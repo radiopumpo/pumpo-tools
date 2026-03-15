@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pumpo Tools | Developer Ecosystem</title>
+  <style>
+    body {
+      margin: 0; font-family: "Inter", sans-serif;
+      background: #0d0d0d; color: #fff;
+      display: flex; flex-direction: column; align-items: center;
+      padding: 50px 20px;
+    }
+    h1 { color: #40e0d0; text-shadow: 0 0 15px rgba(64, 224, 208, 0.4); margin-bottom: 10px; }
+    p.subtitle { color: #888; margin-bottom: 40px; }
+
+    .tools-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px; width: 100%; max-width: 900px;
+    }
+
+    .tool-card {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid #333; border-radius: 16px;
+      padding: 30px; text-align: center;
+      transition: 0.3s ease; text-decoration: none; color: inherit;
+    }
+
+    .tool-card:hover {
+      border-color: #ff0080;
+      transform: translateY(-5px);
+      box-shadow: 0 10px 30px rgba(255, 0, 128, 0.2);
+    }
+
+    .tool-card h2 { color: #ff0080; margin-top: 0; }
+    .tool-card p { color: #ccc; font-size: 0.9rem; line-height: 1.5; }
+    
+    .badge {
+      display: inline-block; background: #40e0d0; color: #000;
+      padding: 4px 10px; border-radius: 20px; font-size: 0.7rem;
+      font-weight: bold; margin-bottom: 15px;
+    }
+
+    .coming-soon { opacity: 0.6; filter: grayscale(1); pointer-events: none; }
+  </style>
+</head>
+<body>
+
+  <h1>⚡ PUMPO TOOLS</h1>
+  <p class="subtitle">High-performance utilities for the modern developer.</p>
+
+  <div class="tools-grid">
+    <a href="debugger.html" class="tool-card">
+      <div class="badge">AI POWERED</div>
+      <h2>Debugger</h2>
+      <p>Paste your error logs and let Gemini AI explain the fix in plain English. No more StackOverflow rabbit holes.</p>
+    </a>
+
+    <a href="#" class="tool-card coming-soon">
+      <div class="badge">UPCOMING</div>
+      <h2>JSON Pumpo-fier</h2>
+      <p>Clean, format, and validate your JSON strings with a neon-synthwave interface.</p>
+    </a>
+
+    <a href="https://radiopumpo.github.io" class="tool-card">
+      <div class="badge">LIVE NOW</div>
+      <h2>Radio Pumpo</h2>
+      <p>Need focus? Head back to the 24/7 radio station for the best coding beats.</p>
+    </a>
+  </div>
+
+</body>
+</html>
