@@ -1,0 +1,20 @@
+{
+  "name": "Pumpo AI Tools",
+  "short_name": "PumpoTools",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#0d0d0d",
+  "theme_color": "#ff0080",
+  "icons": [
+    {
+      "src": "https://radiopumpo.github.io/radiopumpologo.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://radiopumpo.github.io/radiopumpologo.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
