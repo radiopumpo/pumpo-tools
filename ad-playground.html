@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ad-Engine Playground | Pumpo Tools Showcase</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="icon" type="image/png" href="https://radiopumpo.github.io/radiopumpologo.png">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Fira+Code&display=swap');
+        
+        body { font-family: 'Inter', sans-serif; background-color: #0d0d0d; }
+        .pumpo-neon-text { color: #40e0d0; text-shadow: 0 0 10px rgba(64, 224, 208, 0.4); }
+        .pumpo-pink-text { color: #ff0080; }
+        
+        .ad-container { 
+            width: 300px; height: 250px; 
+            border: 1px solid #333; 
+            position: relative; 
+            overflow: hidden; 
+            background: #151515; 
+            margin: auto; 
+            border-radius: 8px;
+        }
+        
+        #scratch-canvas { cursor: crosshair; touch-action: none; z-index: 20; position: relative; }
+        
+        .hidden-content { 
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
+            display: flex; align-items: center; justify-content: center; 
+            z-index: 1; text-align: center; background: #fff;
+        }
+
+        .back-link { color: #888; text-decoration: none; font-size: 0.9rem; transition: 0.3s; }
+        .back-link:hover { color: #40e0d0; }
+
+        .log-box { font-family: 'Fira Code', monospace; font-size: 0.7rem; background: #000; border: 1px solid #222; padding: 8px; border-radius: 4px; color: #40e0d0; }
+        
+        /* Modal Animation */
+        @keyframes modalFade {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        .modal-animate { animation: modalFade 0.4s ease-out forwards; }
+    </style>
+</head>
+<body class="text-white p-8">
+
+    <div id="leadModal" class="fixed inset-0 bg-black/90 backdrop-blur-md z-[100] hidden items-center justify-center p-4">
+        <div class="bg-[#1a1a1a] border-2 border-[#40e0d0] p-8 rounded-2xl max-w-sm text-center shadow-[0_0_50px_rgba(64,224,208,0.3)] modal-animate">
+            <div class="text-5xl mb-4">⚡</div>
+            <h2 class="text-2xl font-bold pumpo-neon-text mb-2">Want these modules for your site?</h2>
+            <p class="text-slate-400 text-sm mb-6">Contact us to integrate high-engagement gamified ads or access the Industry Vault.</p>
+            
+            <a href="mailto:your-email@example.com?subject=Inquiry: Gamified Ad Modules&body=Hi Radio Pumpo Team, I saw the Ad-Engine Playground and I am interested in learning more about your gamified modules for my project." 
+               class="block w-full bg-[#40e0d0] text-black font-black py-3 rounded-lg hover:shadow-[0_0_20px_#40e0d0] transition-all uppercase tracking-tight">
+                Contact Us
+            </a>
+            
+            <button onclick="closeModal()" class="mt-4 text-slate-600 text-[10px] uppercase tracking-widest hover:text-white transition-colors">
+                Return to Playground
+            </button>
+        </div>
+    </div>
+
+    <header class="max-w-4xl mx-auto text-center mb-12">
+        <div class="mb-6 text-left">
+            <a href="index.html" class="back-link">← Back to Pumpo Tools Hub</a>
+        </div>
+        <h1 class="text-4xl font-bold pumpo-neon-text mb-4">AD-ENGINE PLAYGROUND</h1>
+        <p class="text-slate-500 uppercase tracking-widest text-xs font-bold">Showcasing High-Engagement B2B Modules</p>
+    </header>
+
+    <main class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
+
+        <div class="bg-[#1a1a1a] p-6 rounded-2xl border border-[#333] hover:border-[#ff0080] transition-colors">
+            <h3 class="text-lg font-bold pumpo-pink-text mb-1">1. The Scratch Reveal</h3>
+            <p class="text-xs text-slate-500 mb-6">Interaction Gap Logic. High Retention.</p>
+            
+            <div class="ad-container shadow-2xl">
+                <div class="hidden-content flex-col p-4">
+                    <span class="text-4xl font-black text-black">70% OFF</span>
+                    <p class="text-slate-600 text-[10px] font-bold mt-1">CODE: PUMPO_AD_2026</p>
+                    <button class="mt-4 bg-[#ff0080] text-white px-6 py-2 rounded-full text-xs font-bold shadow-lg">CLAIM NOW</button>
+                </div>
+                <canvas id="scratch-canvas" width="300" height="250"></canvas>
+            </div>
+            
+            <div class="mt-6">
+                <div class="log-box">
+                    SIGNAL: <span id="scratch-log">Awaiting dwell...</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-[#1a1a1a] p-6 rounded-2xl border border-[#333] hover:border-[#40e0d0] transition-colors">
+            <h3 class="text-lg font-bold pumpo-pink-text mb-1">2. Micro-Decision</h3>
+            <p class="text-xs text-slate-500 mb-6">Agency-Based Segmentation Tool.</p>
+            
+            <div id="choice-container" class="ad-container shadow-2xl flex flex-col items-center justify-center p-4 bg-white text-black">
+                <div id="choice-content" class="text-center">
+                    <p class="font-black text-lg mb-6 leading-tight">CHOOSE YOUR VIBE</p>
+                    <div class="flex flex-col gap-3 w-48">
+                        <button onclick="handleChoice('High Energy')" class="bg-black text-[#40e0d0] p-3 rounded font-bold text-xs border-b-4 border-cyan-700 hover:translate-y-1 hover:border-b-0 transition-all">⚡ ENERGETIC</button>
+                        <button onclick="handleChoice('Chill')" class="bg-black text-[#ff0080] p-3 rounded font-bold text-xs border-b-4 border-pink-900 hover:translate-y-1 hover:border-b-0 transition-all">🌊 RELAXED</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-6">
+                <div class="log-box">
+                    PERSONA: <span id="choice-log">Null</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-[#1a1a1a] p-6 rounded-2xl border border-[#333] hover:border-[#ff0080] transition-colors">
+            <h3 class="text-lg font-bold pumpo-pink-text mb-1">3. Tactile Toss</h3>
+            <p class="text-xs text-slate-500 mb-6">Kinetic Satisfaction Mechanics.</p>
+            
+            <div class="ad-container shadow-2xl bg-zinc-200 flex items-center justify-center">
+                <div id="target" class="absolute top-6 w-24 h-6 border-2 border-dashed border-zinc-400 rounded-full flex items-center justify-center">
+                    <span class="text-[8px] text-zinc-400 font-bold">GOAL</span>
+                </div>
+                <div id="ball" class="w-16 h-16 bg-[#ff0080] rounded-full flex items-center justify-center text-white text-[10px] font-black cursor-pointer shadow-xl transition-all duration-300 active:scale-95">
+                    TOSS
+                </div>
+            </div>
+            
+            <div class="mt-6">
+                <div class="log-box">
+                    PHYSICS: <span id="physics-log">Idle</span>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <footer class="mt-20 text-center">
+        <p class="text-slate-600 text-[10px] font-bold tracking-widest uppercase mb-2">© 2026 Gamified Ad Engine | Powered by Radio Pumpo</p>
+    </footer>
+
+    <script>
+        // --- INTERACTION TRACKER ---
+        let interactions = { scratch: false, choice: false, toss: false };
+
+        function checkInteractions() {
+            if (interactions.scratch && interactions.choice && interactions.toss) {
+                setTimeout(() => {
+                    const modal = document.getElementById('leadModal');
+                    modal.classList.remove('hidden');
+                    modal.classList.add('flex');
+                }, 1000);
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('leadModal').classList.add('hidden');
+            document.getElementById('leadModal').classList.remove('flex');
+        }
+
+        // --- SCRATCH LOGIC ---
+        const canvas = document.getElementById('scratch-canvas');
+        const ctx = canvas.getContext('2d');
+        const scratchLog = document.getElementById('scratch-log');
+        
+        ctx.fillStyle = '#333'; 
+        ctx.fillRect(0, 0, 300, 250);
+        ctx.fillStyle = '#40e0d0';
+        ctx.font = 'bold 14px Inter';
+        ctx.textAlign = 'center';
+        ctx.fillText('SCRATCH TO REVEAL OFFER', 150, 130);
+
+        let isDrawing = false;
+        function scratch(e) {
+            if (!isDrawing) return;
+            const rect = canvas.getBoundingClientRect();
+            const x = (e.clientX || e.touches[0].clientX) - rect.left;
+            const y = (e.clientY || e.touches[0].clientY) - rect.top;
+            ctx.globalCompositeOperation = 'destination-out';
+            ctx.beginPath();
+            ctx.arc(x, y, 25, 0, Math.PI * 2);
+            ctx.fill();
+            
+            if(!interactions.scratch) {
+                interactions.scratch = true;
+                scratchLog.innerText = "Interacting (Active Signal)";
+                checkInteractions();
+            }
+        }
+
+        canvas.addEventListener('mousedown', () => isDrawing = true);
+        canvas.addEventListener('mouseup', () => isDrawing = false);
+        canvas.addEventListener('mousemove', scratch);
+        canvas.addEventListener('touchstart', (e) => { e.preventDefault(); isDrawing = true; });
+        canvas.addEventListener('touchend', () => isDrawing = false);
+        canvas.addEventListener('touchmove', scratch);
+
+        // --- CHOICE LOGIC ---
+        function handleChoice(type) {
+            const content = document.getElementById('choice-content');
+            const log = document.getElementById('choice-log');
+            log.innerText = type;
+            content.innerHTML = `
+                <p class='font-black text-xl text-[#ff0080] mb-2'>BINGO!</p>
+                <p class='text-[10px] font-bold text-slate-500 mb-4'>USER SEGMENT: ${type.toUpperCase()}</p>
+                <button class='bg-black text-white px-4 py-2 rounded text-[10px] font-bold' onclick='location.reload()'>RESET DEMO</button>
+            `;
+            if(!interactions.choice) {
+                interactions.choice = true;
+                checkInteractions();
+            }
+        }
+
+        // --- PHYSICS LOGIC ---
+        const ball = document.getElementById('ball');
+        const physicsLog = document.getElementById('physics-log');
+        ball.addEventListener('click', () => {
+            ball.style.transform = 'translateY(-140px) scale(0.6)';
+            ball.style.opacity = '0.5';
+            physicsLog.innerText = "Velocity: High";
+            
+            if(!interactions.toss) {
+                interactions.toss = true;
+                checkInteractions();
+            }
+
+            setTimeout(() => {
+                ball.style.transform = 'translateY(0) scale(1)';
+                ball.style.opacity = '1';
+                physicsLog.innerText = "Conversion: 100%";
+            }, 600);
+        });
+    </script>
+</body>
+</html>
