@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pumpo Debugger | Gemini AI Error Explainer</title>
+  
+  <link rel="icon" type="image/png" href="https://radiopumpo.github.io/radiopumpologo.png">
+  
+  <style>
+    /* --- PUMPO AESTHETIC --- */
+    body {
+      background: #0d0d0d;
+      color: #fff;
+      font-family: 'Inter', -apple-system, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px 20px;
+      margin: 0;
+    }
+    .container {
+      max-width: 800px;
+      width: 100%;
+    }
+    h1 { 
+      color: #40e0d0; 
+      text-shadow: 0 0 15px rgba(64, 224, 208, 0.4); 
+      margin-bottom: 5px;
+    }
+    .back-link {
+      color: #888;
+      text-decoration: none;
+      font-size: 0.9rem;
+      transition: 0.3s;
+    }
+    .back-link:hover { color: #ff0080; }
+
+    /* --- INPUT SECTIONS --- */
+    .pumpo-box {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid #333;
+      border-radius: 16px;
+      padding: 25px;
+      margin-top: 25px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+    }
+    .input-label {
+      display: block;
+      color: #ff0080;
+      font-weight: bold;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+    textarea, input {
+      width: 100%;
+      background: #151515;
+      border: 1px solid #333;
+      color: #40e0d0;
+      padding: 14px;
+      border-radius: 8px;
+      box-sizing: border-box;
+      font-family: 'Fira Code', monospace;
+      font-size: 0.9rem;
+    }
+    textarea:focus, input:focus {
+      outline: none;
+      border-color: #40e0d0;
+    }
+
+    /* --- BUTTONS --- */
+    .btn-primary {
+      background: #ff0080;
+      color: white;
+      border: none;
+      padding: 14px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+      width: 100%;
+      margin-top: 20px;
+      transition: 0.3s;
+    }
+    .btn-primary:hover {
+      box-shadow: 0 0 20px rgba(255, 0, 128, 0.5);
+      transform: translateY(-2px);
+    }
+
+    /* --- RESULTS --- */
+    #results { display: none; margin-top: 40px; }
+    .card {
+      background: rgba(64, 224, 208, 0.03);
+      border-left: 4px solid #40e0d0;
+      padding: 20px;
+      margin-bottom: 25px;
+      border-radius: 0 12px 12px 0;
+    }
+    .card h3 {
+      color: #ff0080;
+      margin-top: 0;
+      font-size: 1rem;
+    }
+    pre {
+      background: #000;
+      padding: 15px;
+      border-radius: 8px;
+      overflow-x: auto;
+      border: 1px solid #222;
+      color: #40e0d0;
+      position: relative;
+    }
+    .copy-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: #333;
+      color: #fff;
+      border: none;
+      padding: 5px 10px;
+      font-size: 0.7rem;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .loading { 
+      display: none; 
+      text-align: center; 
+      color: #40e0d0; 
+      font-style: italic; 
+      margin-top: 20px; 
+      animation: pulse 1.5s infinite;
+    }
+    @keyframes pulse { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <a href="index.html" class="back-link">← Back to Pumpo Tools Hub</a>
+    <h1>⚡ PUMPO DEBUGGER</h1>
+    <p style="color: #666; margin-top: 0;">Instant error analysis powered by Gemini 1.5 Flash</p>
+    
+    <div class="pumpo-box">
+      <span class="input-label">Gemini API Key</span>
+      <input type="password" id="apiKey" placeholder="Enter your Google AI API Key...">
+      <p style="font-size: 0.7rem; color: #555; margin-top: 8px;">
+        Don't have one? Get it for free at <a href="https://aistudio.google.com/" target="_blank" style="color: #40e0d0;">Google AI Studio</a>.
+      </p>
+    </div>
+
+    <div class="pumpo-box">
+      <span class="input-label">The Error Log</span>
+      <textarea id="errorInput" rows="6" placeholder="Paste your terminal error, crash log, or buggy code snippet here..."></textarea>
+      <button class="btn-primary" id="explainBtn">ANALYZE ERROR</button>
+      <div id="loading" class="loading">Consulting the Pumpo Oracle...</div>
+    </div>
+
+    <div id="results">
+      <div class="card">
+        <h3>Plain English Explanation</h3>
+        <div id="explanationText" style="line-height: 1.6;"></div>
+      </div>
+
+      <div class="card">
+        <h3>Proposed Fix</h3>
+        <pre id="fixContainer"><code id="fixText"></code><button class="copy-btn" onclick="copyCode()">Copy Code</button></pre>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    async function analyzeError() {
+      const key = document.getElementById('apiKey').value;
+      const error = document.getElementById('errorInput').value;
+      
+      if (!key || !error) {
+        alert("Please provide both your API key and an error message!");
+        return;
+      }
+
+      const loading = document.getElementById('loading');
+      const results = document.getElementById('results');
+      const explanationDiv = document.getElementById('explanationText');
+      const fixDiv = document.getElementById('fixText');
+
+      loading.style.display = 'block';
+      results.style.display = 'none';
+
+      // Endpoint for Gemini 1.5 Flash
+      const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${key}`;
+
+      try {
+        const response = await fetch(API_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{
+              parts: [{
+                text: `You are a world-class senior developer. Analyze this error: "${error}". 
+                Break your response into two parts:
+                1. EXPLANATION: A concise, plain-English explanation of why this is happening.
+                2. FIX: The corrected code or command to fix it.
+                Keep it professional but friendly.`
+              }]
+            }]
+          })
+        });
+
+        const data = await response.json();
+        
+        if (data.error) throw new Error(data.error.message);
+
+        const aiOutput = data.candidates[0].content.parts[0].text;
+
+        // Split the response into Explanation and Fix
+        const parts = aiOutput.split(/FIX:/i);
+        const explanation = parts[0].replace(/EXPLANATION:/i, '').trim();
+        const fix = parts[1] ? parts[1].trim() : "No specific code fix provided.";
+
+        explanationDiv.innerHTML = explanation.replace(/\n/g, '<br>');
+        fixDiv.innerText = fix.replace(/```[a-z]*\n/g, '').replace(/```/g, ''); // Clean markdown backticks
+
+        loading.style.display = 'none';
+        results.style.display = 'block';
+
+      } catch (err) {
+        alert("Failed to analyze: " + err.message);
+        loading.style.display = 'none';
+      }
+    }
+
+    function copyCode() {
+      const code = document.getElementById('fixText').innerText;
+      navigator.clipboard.writeText(code);
+      const btn = document.querySelector('.copy-btn');
+      btn.innerText = "Copied!";
+      setTimeout(() => btn.innerText = "Copy Code", 2000);
+    }
+
+    document.getElementById('explainBtn').onclick = analyzeError;
+  </script>
+</body>
+</html>
