@@ -2,235 +2,216 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ad-Engine Playground | Pumpo Tools Showcase</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Ad-Gamification Engine | Playground</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="icon" type="image/png" href="https://radiopumpo.github.io/radiopumpologo.png">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Fira+Code&display=swap');
-        
-        body { font-family: 'Inter', sans-serif; background-color: #0d0d0d; }
-        .pumpo-neon-text { color: #40e0d0; text-shadow: 0 0 10px rgba(64, 224, 208, 0.4); }
-        .pumpo-pink-text { color: #ff0080; }
-        
+        /* Responsive Container Fix */
         .ad-container { 
-            width: 300px; height: 250px; 
-            border: 1px solid #333; 
+            width: 100%; 
+            max-width: 300px; 
+            height: 250px; 
+            border: 2px solid #333; 
             position: relative; 
             overflow: hidden; 
-            background: #151515; 
-            margin: auto; 
-            border-radius: 8px;
+            background: #fff; 
+            margin: auto;
+            touch-action: none; /* Prevents page scrolling while gaming */
         }
+        #scratch-canvas { cursor: crosshair; touch-action: none; width: 100%; height: 100%; }
+        .hidden-content { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; z-index: 1; text-align: center; }
         
-        #scratch-canvas { cursor: crosshair; touch-action: none; z-index: 20; position: relative; }
-        
-        .hidden-content { 
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
-            display: flex; align-items: center; justify-content: center; 
-            z-index: 1; text-align: center; background: #fff;
+        /* Physics/Toss Styling */
+        #ball { 
+            width: 60px; height: 60px; background: radial-gradient(circle at 30% 30%, #ff4d4d, #990000); 
+            border-radius: 50%; cursor: grab; position: absolute; bottom: 20px; left: calc(50% - 30px);
+            z-index: 20; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 10px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
         }
-
-        .back-link { color: #888; text-decoration: none; font-size: 0.9rem; transition: 0.3s; }
-        .back-link:hover { color: #40e0d0; }
-
-        .log-box { font-family: 'Fira Code', monospace; font-size: 0.7rem; background: #000; border: 1px solid #222; padding: 8px; border-radius: 4px; color: #40e0d0; }
-        
-        /* Modal Animation */
-        @keyframes modalFade {
-            from { opacity: 0; transform: scale(0.9); }
-            to { opacity: 1; transform: scale(1); }
+        #ball:active { cursor: grabbing; }
+        #goal-hole { 
+            width: 80px; height: 30px; background: #222; border-radius: 50%; 
+            position: absolute; top: 30px; left: calc(50% - 40px);
+            box-shadow: inset 0 5px 10px rgba(0,0,0,0.8);
+            border: 2px solid #444;
         }
-        .modal-animate { animation: modalFade 0.4s ease-out forwards; }
     </style>
 </head>
-<body class="text-white p-8">
+<body class="bg-slate-900 text-white font-sans p-4 md:p-8">
 
-    <div id="leadModal" class="fixed inset-0 bg-black/90 backdrop-blur-md z-[100] hidden items-center justify-center p-4">
-        <div class="bg-[#1a1a1a] border-2 border-[#40e0d0] p-8 rounded-2xl max-w-sm text-center shadow-[0_0_50px_rgba(64,224,208,0.3)] modal-animate">
-            <div class="text-5xl mb-4">⚡</div>
-            <h2 class="text-2xl font-bold pumpo-neon-text mb-2">Want these modules for your site?</h2>
-            <p class="text-slate-400 text-sm mb-6">Contact us to integrate high-engagement gamified ads or access the Industry Vault.</p>
-            
-            <a href="mailto:your-email@example.com?subject=Inquiry: Gamified Ad Modules&body=Hi Radio Pumpo Team, I saw the Ad-Engine Playground and I am interested in learning more about your gamified modules for my project." 
-               class="block w-full bg-[#40e0d0] text-black font-black py-3 rounded-lg hover:shadow-[0_0_20px_#40e0d0] transition-all uppercase tracking-tight">
-                Contact Us
-            </a>
-            
-            <button onclick="closeModal()" class="mt-4 text-slate-600 text-[10px] uppercase tracking-widest hover:text-white transition-colors">
-                Return to Playground
-            </button>
-        </div>
-    </div>
-
-    <header class="max-w-4xl mx-auto text-center mb-12">
-        <div class="mb-6 text-left">
-            <a href="index.html" class="back-link">← Back to Pumpo Tools Hub</a>
-        </div>
-        <h1 class="text-4xl font-bold pumpo-neon-text mb-4">AD-ENGINE PLAYGROUND</h1>
-        <p class="text-slate-500 uppercase tracking-widest text-xs font-bold">Showcasing High-Engagement B2B Modules</p>
+    <header class="max-w-4xl mx-auto text-center mb-10">
+        <h1 class="text-3xl md:text-4xl font-bold text-cyan-400 mb-2">Ad-Engine Playground</h1>
+        <p class="text-slate-400 text-sm">Interactive "Container" Modules for Mobile Web.</p>
     </header>
 
-    <main class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
+    <main class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6">
 
-        <div class="bg-[#1a1a1a] p-6 rounded-2xl border border-[#333] hover:border-[#ff0080] transition-colors">
-            <h3 class="text-lg font-bold pumpo-pink-text mb-1">1. The Scratch Reveal</h3>
-            <p class="text-xs text-slate-500 mb-6">Interaction Gap Logic. High Retention.</p>
-            
-            <div class="ad-container shadow-2xl">
+        <div class="bg-slate-800 p-4 rounded-xl border border-slate-700">
+            <h3 class="text-lg font-semibold mb-1">1. Scratch Reveal</h3>
+            <p class="text-xs text-slate-400 mb-4 font-mono uppercase tracking-widest">Curiosity Gap</p>
+            <div class="ad-container shadow-lg rounded">
                 <div class="hidden-content flex-col p-4">
-                    <span class="text-4xl font-black text-black">70% OFF</span>
-                    <p class="text-slate-600 text-[10px] font-bold mt-1">CODE: PUMPO_AD_2026</p>
-                    <button class="mt-4 bg-[#ff0080] text-white px-6 py-2 rounded-full text-xs font-bold shadow-lg">CLAIM NOW</button>
+                    <span class="text-3xl font-black text-orange-500 italic">WINNER!</span>
+                    <p class="text-black text-[10px] font-bold mt-1">CODE: GITHUB2026</p>
+                    <button class="mt-3 bg-black text-white px-4 py-1 rounded text-xs uppercase font-bold">Shop Now</button>
                 </div>
-                <canvas id="scratch-canvas" width="300" height="250"></canvas>
-            </div>
-            
-            <div class="mt-6">
-                <div class="log-box">
-                    SIGNAL: <span id="scratch-log">Awaiting dwell...</span>
-                </div>
+                <canvas id="scratch-canvas" width="300" height="250" class="relative z-10"></canvas>
             </div>
         </div>
 
-        <div class="bg-[#1a1a1a] p-6 rounded-2xl border border-[#333] hover:border-[#40e0d0] transition-colors">
-            <h3 class="text-lg font-bold pumpo-pink-text mb-1">2. Micro-Decision</h3>
-            <p class="text-xs text-slate-500 mb-6">Agency-Based Segmentation Tool.</p>
-            
-            <div id="choice-container" class="ad-container shadow-2xl flex flex-col items-center justify-center p-4 bg-white text-black">
-                <div id="choice-content" class="text-center">
-                    <p class="font-black text-lg mb-6 leading-tight">CHOOSE YOUR VIBE</p>
-                    <div class="flex flex-col gap-3 w-48">
-                        <button onclick="handleChoice('High Energy')" class="bg-black text-[#40e0d0] p-3 rounded font-bold text-xs border-b-4 border-cyan-700 hover:translate-y-1 hover:border-b-0 transition-all">⚡ ENERGETIC</button>
-                        <button onclick="handleChoice('Chill')" class="bg-black text-[#ff0080] p-3 rounded font-bold text-xs border-b-4 border-pink-900 hover:translate-y-1 hover:border-b-0 transition-all">🌊 RELAXED</button>
+        <div class="bg-slate-800 p-4 rounded-xl border border-slate-700">
+            <h3 class="text-lg font-semibold mb-1">2. Micro-Decision</h3>
+            <p class="text-xs text-slate-400 mb-4 font-mono uppercase tracking-widest">Segmentation</p>
+            <div id="choice-container" class="ad-container shadow-lg rounded flex flex-col items-center justify-center p-4 text-black">
+                <div id="choice-content" class="text-center w-full">
+                    <p class="font-bold mb-4 text-sm uppercase">Choose your Vibe:</p>
+                    <div class="space-y-2">
+                        <button onclick="handleChoice('Mountain')" class="w-full bg-slate-200 hover:bg-cyan-400 p-3 rounded font-bold transition-colors">🏔️ Adventure</button>
+                        <button onclick="handleChoice('Beach')" class="w-full bg-slate-200 hover:bg-cyan-400 p-3 rounded font-bold transition-colors">🏖️ Relaxation</button>
                     </div>
                 </div>
             </div>
-            
-            <div class="mt-6">
-                <div class="log-box">
-                    PERSONA: <span id="choice-log">Null</span>
-                </div>
-            </div>
         </div>
 
-        <div class="bg-[#1a1a1a] p-6 rounded-2xl border border-[#333] hover:border-[#ff0080] transition-colors">
-            <h3 class="text-lg font-bold pumpo-pink-text mb-1">3. Tactile Toss</h3>
-            <p class="text-xs text-slate-500 mb-6">Kinetic Satisfaction Mechanics.</p>
-            
-            <div class="ad-container shadow-2xl bg-zinc-200 flex items-center justify-center">
-                <div id="target" class="absolute top-6 w-24 h-6 border-2 border-dashed border-zinc-400 rounded-full flex items-center justify-center">
-                    <span class="text-[8px] text-zinc-400 font-bold">GOAL</span>
-                </div>
-                <div id="ball" class="w-16 h-16 bg-[#ff0080] rounded-full flex items-center justify-center text-white text-[10px] font-black cursor-pointer shadow-xl transition-all duration-300 active:scale-95">
-                    TOSS
-                </div>
-            </div>
-            
-            <div class="mt-6">
-                <div class="log-box">
-                    PHYSICS: <span id="physics-log">Idle</span>
+        <div class="bg-slate-800 p-4 rounded-xl border border-slate-700">
+            <h3 class="text-lg font-semibold mb-1">3. Tactile Toss</h3>
+            <p class="text-xs text-slate-400 mb-4 font-mono uppercase tracking-widest">Dopamine Loop</p>
+            <div class="ad-container shadow-lg rounded bg-slate-100" id="toss-area">
+                <div id="goal-hole"></div>
+                <div id="ball">DRAG ME</div>
+                <div id="toss-overlay" class="hidden-content bg-white/95 z-50 flex-col p-4 hidden">
+                    <p class="text-green-600 font-black text-xl">GOAL!</p>
+                    <p class="text-black text-xs mt-2">Claim your free trial below</p>
+                    <button class="mt-4 bg-red-600 text-white px-6 py-2 rounded font-bold uppercase text-xs" onclick="location.reload()">Get Offer</button>
                 </div>
             </div>
         </div>
 
     </main>
 
-    <footer class="mt-20 text-center">
-        <p class="text-slate-600 text-[10px] font-bold tracking-widest uppercase mb-2">© 2026 Gamified Ad Engine | Powered by Radio Pumpo</p>
-    </footer>
+    <section class="max-w-xl mx-auto mt-16 p-6 bg-black/40 rounded-2xl border border-white/10 text-center">
+        <h2 class="text-xl font-bold mb-4">Industry-Specific Vault</h2>
+        <div class="flex gap-2">
+            <input type="password" id="vault-pass" placeholder="Enter Client Key" class="bg-slate-900 border border-slate-700 rounded px-4 py-2 w-full text-sm">
+            <button onclick="checkPass()" class="bg-cyan-600 px-4 py-2 rounded font-bold text-sm">Unlock</button>
+        </div>
+        <p id="pass-msg" class="text-xs mt-3 text-slate-500">Request access for Real Estate, Automotive, and FinTech modules.</p>
+    </section>
 
     <script>
-        // --- INTERACTION TRACKER ---
-        let interactions = { scratch: false, choice: false, toss: false };
-
-        function checkInteractions() {
-            if (interactions.scratch && interactions.choice && interactions.toss) {
-                setTimeout(() => {
-                    const modal = document.getElementById('leadModal');
-                    modal.classList.remove('hidden');
-                    modal.classList.add('flex');
-                }, 1000);
-            }
-        }
-
-        function closeModal() {
-            document.getElementById('leadModal').classList.add('hidden');
-            document.getElementById('leadModal').classList.remove('flex');
-        }
-
-        // --- SCRATCH LOGIC ---
+        // --- 1. SCRATCH LOGIC ---
         const canvas = document.getElementById('scratch-canvas');
         const ctx = canvas.getContext('2d');
-        const scratchLog = document.getElementById('scratch-log');
-        
-        ctx.fillStyle = '#333'; 
+        ctx.fillStyle = '#C0C0C0'; 
         ctx.fillRect(0, 0, 300, 250);
-        ctx.fillStyle = '#40e0d0';
-        ctx.font = 'bold 14px Inter';
+        ctx.fillStyle = '#666';
+        ctx.font = 'bold 16px sans-serif';
         ctx.textAlign = 'center';
-        ctx.fillText('SCRATCH TO REVEAL OFFER', 150, 130);
+        ctx.fillText('SCRATCH TO REVEAL', 150, 130);
 
         let isDrawing = false;
+        function getPos(e) {
+            const rect = canvas.getBoundingClientRect();
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            return { x: clientX - rect.left, y: clientY - rect.top };
+        }
         function scratch(e) {
             if (!isDrawing) return;
-            const rect = canvas.getBoundingClientRect();
-            const x = (e.clientX || e.touches[0].clientX) - rect.left;
-            const y = (e.clientY || e.touches[0].clientY) - rect.top;
+            e.preventDefault();
+            const pos = getPos(e);
             ctx.globalCompositeOperation = 'destination-out';
             ctx.beginPath();
-            ctx.arc(x, y, 25, 0, Math.PI * 2);
+            ctx.arc(pos.x, pos.y, 25, 0, Math.PI * 2);
             ctx.fill();
-            
-            if(!interactions.scratch) {
-                interactions.scratch = true;
-                scratchLog.innerText = "Interacting (Active Signal)";
-                checkInteractions();
-            }
         }
-
         canvas.addEventListener('mousedown', () => isDrawing = true);
-        canvas.addEventListener('mouseup', () => isDrawing = false);
+        canvas.addEventListener('touchstart', (e) => { isDrawing = true; scratch(e); });
+        window.addEventListener('mouseup', () => isDrawing = false);
+        window.addEventListener('touchend', () => isDrawing = false);
         canvas.addEventListener('mousemove', scratch);
-        canvas.addEventListener('touchstart', (e) => { e.preventDefault(); isDrawing = true; });
-        canvas.addEventListener('touchend', () => isDrawing = false);
         canvas.addEventListener('touchmove', scratch);
 
-        // --- CHOICE LOGIC ---
-        function handleChoice(type) {
-            const content = document.getElementById('choice-content');
-            const log = document.getElementById('choice-log');
-            log.innerText = type;
-            content.innerHTML = `
-                <p class='font-black text-xl text-[#ff0080] mb-2'>BINGO!</p>
-                <p class='text-[10px] font-bold text-slate-500 mb-4'>USER SEGMENT: ${type.toUpperCase()}</p>
-                <button class='bg-black text-white px-4 py-2 rounded text-[10px] font-bold' onclick='location.reload()'>RESET DEMO</button>
+        // --- 2. CHOICE LOGIC ---
+        function handleChoice(val) {
+            document.getElementById('choice-content').innerHTML = `
+                <div class='animate-bounce text-4xl mb-2'>✨</div>
+                <p class='font-bold text-sm'>Tailoring your ${val} experience...</p>
+                <button class='mt-4 text-[10px] underline uppercase' onclick='location.reload()'>Reset</button>
             `;
-            if(!interactions.choice) {
-                interactions.choice = true;
-                checkInteractions();
+        }
+
+        // --- 3. DRAG & DROP PHYSICS (TACTILE TOSS) ---
+        const ball = document.getElementById('ball');
+        const hole = document.getElementById('goal-hole');
+        const overlay = document.getElementById('toss-overlay');
+        let active = false;
+        let currentX, currentY, initialX, initialY;
+        let xOffset = 0, yOffset = 0;
+
+        function dragStart(e) {
+            initialX = (e.type === "touchstart" ? e.touches[0].clientX : e.clientX) - xOffset;
+            initialY = (e.type === "touchstart" ? e.touches[0].clientY : e.clientY) - yOffset;
+            if (e.target === ball) active = true;
+        }
+
+        function drag(e) {
+            if (active) {
+                e.preventDefault();
+                currentX = (e.type === "touchmove" ? e.touches[0].clientX : e.clientX) - initialX;
+                currentY = (e.type === "touchmove" ? e.touches[0].clientY : e.clientY) - initialY;
+                xOffset = currentX;
+                yOffset = currentY;
+                setTranslate(currentX, currentY, ball);
+                checkCollision();
             }
         }
 
-        // --- PHYSICS LOGIC ---
-        const ball = document.getElementById('ball');
-        const physicsLog = document.getElementById('physics-log');
-        ball.addEventListener('click', () => {
-            ball.style.transform = 'translateY(-140px) scale(0.6)';
-            ball.style.opacity = '0.5';
-            physicsLog.innerText = "Velocity: High";
-            
-            if(!interactions.toss) {
-                interactions.toss = true;
-                checkInteractions();
-            }
+        function setTranslate(xPos, yPos, el) {
+            el.style.transform = "translate3d(" + xPos + "px, " + yPos + "px, 0)";
+        }
 
-            setTimeout(() => {
-                ball.style.transform = 'translateY(0) scale(1)';
-                ball.style.opacity = '1';
-                physicsLog.innerText = "Conversion: 100%";
-            }, 600);
-        });
+        function checkCollision() {
+            const ballRect = ball.getBoundingClientRect();
+            const holeRect = hole.getBoundingClientRect();
+            // Check if center of ball is within the hole area
+            if (ballRect.top < (holeRect.bottom - 10) && 
+                ballRect.left > holeRect.left && 
+                ballRect.right < holeRect.right) {
+                active = false;
+                ball.style.display = 'none';
+                overlay.classList.remove('hidden');
+                overlay.classList.add('flex');
+            }
+        }
+
+        function dragEnd() {
+            initialX = currentX;
+            initialY = currentY;
+            active = false;
+        }
+
+        const container = document.getElementById('toss-area');
+        container.addEventListener("touchstart", dragStart, false);
+        container.addEventListener("touchend", dragEnd, false);
+        container.addEventListener("touchmove", drag, false);
+        container.addEventListener("mousedown", dragStart, false);
+        container.addEventListener("mouseup", dragEnd, false);
+        container.addEventListener("mousemove", drag, false);
+
+        // --- PASSWORD VAULT ---
+        function checkPass() {
+            const p = document.getElementById('vault-pass').value;
+            const msg = document.getElementById('pass-msg');
+            if(p === "demo123") {
+                msg.innerText = "Redirecting to Vault...";
+                msg.style.color = "#22c55e";
+                // window.location.href = "vault.html"; // You would link your protected page here
+            } else {
+                msg.innerText = "Invalid Key. Try 'demo123'";
+                msg.style.color = "#ef4444";
+            }
+        }
     </script>
 </body>
 </html>
