@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fix My Prompt | Pumpo AI Optimizer</title>
+  <link rel="icon" type="image/png" href="https://radiopumpo.github.io/radiopumpologo.png">
+  
+  <style>
+    body { background: #0d0d0d; color: #fff; font-family: 'Inter', sans-serif; display: flex; flex-direction: column; align-items: center; padding: 40px 20px; margin: 0; }
+    .container { max-width: 800px; width: 100%; }
+    h1 { color: #ff8c00; text-shadow: 0 0 15px rgba(255, 140, 0, 0.4); margin-bottom: 5px; }
+    .back-link { color: #888; text-decoration: none; font-size: 0.9rem; transition: 0.3s; }
+    .back-link:hover { color: #40e0d0; }
+
+    .pumpo-box { background: rgba(255, 255, 255, 0.05); border: 1px solid #333; border-radius: 16px; padding: 25px; margin-top: 25px; }
+    .input-label { display: block; color: #ff8c00; font-weight: bold; font-size: 0.8rem; text-transform: uppercase; margin-bottom: 8px; }
+    
+    textarea, input { width: 100%; background: #151515; border: 1px solid #333; color: #ff8c00; padding: 14px; border-radius: 8px; box-sizing: border-box; font-size: 1rem; }
+    textarea:focus, input:focus { outline: none; border-color: #ff8c00; }
+
+    .btn-fix { background: #ff8c00; color: black; border: none; padding: 14px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 20px; transition: 0.3s; font-size: 1.1rem; }
+    .btn-fix:hover { box-shadow: 0 0 20px rgba(255, 140, 0, 0.5); transform: translateY(-2px); }
+
+    #results { display: none; margin-top: 40px; }
+    .result-card { background: rgba(255, 140, 0, 0.03); border-left: 4px solid #ff8c00; padding: 20px; border-radius: 0 12px 12px 0; margin-bottom: 20px; }
+    .result-card h3 { color: #40e0d0; margin-top: 0; font-size: 0.9rem; text-transform: uppercase; }
+    
+    pre { background: #000; padding: 15px; border-radius: 8px; overflow-x: auto; border: 1px solid #222; color: #ff8c00; position: relative; white-space: pre-wrap; }
+    .copy-btn { position: absolute; top: 10px; right: 10px; background: #333; color: #fff; border: none; padding: 5px 10px; font-size: 0.7rem; border-radius: 4px; cursor: pointer; }
+
+    .loading { display: none; text-align: center; color: #ff8c00; font-style: italic; margin-top: 20px; animation: pulse 1.5s infinite; }
+    @keyframes pulse { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <a href="index.html" class="back-link">← Back to Pumpo Tools Hub</a>
+    <h1>✨ FIX MY PROMPT</h1>
+    <p style="color: #666; margin-top: 0;">Transform lazy prompts into high-performance instructions.</p>
+    
+    <div class="pumpo-box">
+      <span class="input-label">Gemini API Key</span>
+      <input type="password" id="apiKey" placeholder="Paste your Google AI API Key...">
+    </div>
+
+    <div class="pumpo-box">
+      <span class="input-label">Your Weak Prompt</span>
+      <textarea id="promptInput" rows="4" placeholder="e.g. Write a social media post about my new app."></textarea>
+      <button class="btn-fix" id="fixBtn">REPAIR PROMPT</button>
+      <div id="loading" class="loading">Engineering perfection...</div>
+    </div>
+
+    <div id="results">
+      <div class="result-card">
+        <h3>The Optimized Prompt</h3>
+        <pre><code id="optimizedPrompt"></code><button class="copy-btn" onclick="copyPrompt()">Copy</button></pre>
+      </div>
+
+      <div class="result-card" style="border-left-color: #40e0d0;">
+        <h3 style="color: #40e0d0;">Why this works</h3>
+        <div id="explanationText" style="line-height: 1.6; font-size: 0.9rem;"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    async function fixPrompt() {
+      const key = document.getElementById('apiKey').value;
+      const prompt = document.getElementById('promptInput').value;
+      
+      if (!key || !prompt) {
+        alert("Enter your key and a prompt!");
+        return;
+      }
+
+      const loading = document.getElementById('loading');
+      const results = document.getElementById('results');
+      const optimizedCode = document.getElementById('optimizedPrompt');
+      const explanationDiv = document.getElementById('explanationText');
+
+      loading.style.display = 'block';
+      results.style.display = 'none';
+
+      const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${key}`;
+
+      try {
+        const response = await fetch(API_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{
+              parts: [{
+                text: `You are a Prompt Engineer. Take this weak prompt: "${prompt}". 
+                Rewrite it using the 'Role-Context-Task-Constraint' framework to be highly effective.
+                Return your response in this format:
+                OPTIMIZED: (the new prompt)
+                REASONING: (3 bullet points on why this is better)`
+              }]
+            }]
+          })
+        });
+
+        const data = await response.json();
+        const aiOutput = data.candidates[0].content.parts[0].text;
+
+        const parts = aiOutput.split(/REASONING:/i);
+        const optimized = parts[0].replace(/OPTIMIZED:/i, '').trim();
+        const reasoning = parts[1] ? parts[1].trim() : "Improved structure and clarity.";
+
+        optimizedCode.innerText = optimized.replace(/```/g, '');
+        explanationDiv.innerHTML = reasoning.replace(/\n/g, '<br>').replace(/\*/g, '•');
+
+        loading.style.display = 'none';
+        results.style.display = 'block';
+
+      } catch (err) {
+        alert("Error: " + err.message);
+        loading.style.display = 'none';
+      }
+    }
+
+    function copyPrompt() {
+      const code = document.getElementById('optimizedPrompt').innerText;
+      navigator.clipboard.writeText(code);
+      const btn = document.querySelector('.copy-btn');
+      btn.innerText = "Copied!";
+      setTimeout(() => btn.innerText = "Copy", 2000);
+    }
+
+    document.getElementById('fixBtn').onclick = fixPrompt;
+  </script>
+</body>
+</html>
