@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Revenue Leak Detector | Pumpo Business AI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="icon" type="image/png" href="https://radiopumpo.github.io/radiopumpologo.png">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Fira+Code&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #0d0d0d; color: white; overflow-x: hidden; }
+        .pumpo-orange { color: #ff8c00; text-shadow: 0 0 10px rgba(255, 140, 0, 0.4); }
+        .back-link { color: #888; text-decoration: none; font-size: 0.9rem; transition: 0.3s; }
+        .back-link:hover { color: #ff8c00; }
+
+        /* Sonar Animation */
+        .sonar-wrapper { position: relative; width: 200px; height: 200px; margin: auto; display: none; }
+        .sonar-ring {
+            position: absolute; width: 100%; height: 100%;
+            border: 2px solid #ff8c00; border-radius: 50%;
+            animation: sonar 2s inline infinite; opacity: 0;
+        }
+        .sonar-ring:nth-child(2) { animation-delay: 0.5s; }
+        .sonar-ring:nth-child(3) { animation-delay: 1s; }
+        @keyframes sonar {
+            0% { transform: scale(0.1); opacity: 1; }
+            100% { transform: scale(1.5); opacity: 0; }
+        }
+
+        .input-box { background: #151515; border: 1px solid #333; transition: 0.3s; }
+        .input-box:focus-within { border-color: #ff8c00; }
+        
+        .leak-card { 
+            background: #1a1a1a; border: 1px solid #333; 
+            border-left: 5px solid #ff8c00; transition: 0.4s;
+        }
+        .leak-card:hover { transform: translateX(10px); background: #222; }
+    </style>
+</head>
+<body class="p-8">
+
+    <div class="max-w-4xl mx-auto">
+        <header class="mb-12 text-center">
+            <div class="text-left mb-6">
+                <a href="index.html" class="back-link">← Back to Tools Hub</a>
+            </div>
+            <h1 class="text-5xl font-black pumpo-orange tracking-tighter italic">LEAK DETECTOR</h1>
+            <p class="text-slate-500 text-sm mt-2 uppercase tracking-widest">Identify hidden profit drain in your business</p>
+        </header>
+
+        <div class="mb-8 p-6 bg-[#1a1a1a] rounded-xl border border-[#333]">
+            <label class="block text-[10px] font-bold text-[#ff8c00] uppercase mb-2">Gemini Analysis Engine Key</label>
+            <input type="password" id="apiKey" class="w-full bg-black border border-[#333] rounded-lg p-3 text-sm focus:border-[#ff8c00] outline-none" placeholder="Paste your API key...">
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
+            <div class="input-box p-6 rounded-2xl">
+                <h3 class="text-xs font-bold text-slate-400 uppercase mb-4">Business URL or Name</h3>
+                <input type="text" id="bizName" class="w-full bg-transparent border-b border-[#333] py-2 text-xl outline-none focus:border-[#ff8c00]" placeholder="e.g. Acme SaaS">
+            </div>
+            <div class="input-box p-6 rounded-2xl">
+                <h3 class="text-xs font-bold text-slate-400 uppercase mb-4">What do you sell?</h3>
+                <input type="text" id="bizDesc" class="w-full bg-transparent border-b border-[#333] py-2 text-xl outline-none focus:border-[#ff8c00]" placeholder="e.g. Project management software">
+            </div>
+        </div>
+
+        <button id="scanBtn" class="w-full bg-[#ff8c00] text-black font-black py-5 rounded-2xl hover:shadow-[0_0_30px_rgba(255,140,0,0.4)] transition-all text-xl mb-12">
+            SCAN FOR LEAKS
+        </button>
+
+        <div id="loading" class="hidden text-center mb-12">
+            <div class="sonar-wrapper" id="sonar">
+                <div class="sonar-ring"></div>
+                <div class="sonar-ring"></div>
+                <div class="sonar-ring"></div>
+            </div>
+            <p class="text-[#ff8c00] font-bold mt-8 animate-pulse uppercase tracking-widest">Analyzing Revenue Streams...</p>
+        </div>
+
+        <div id="results" class="hidden space-y-6">
+            <h2 class="text-2xl font-bold mb-6 flex items-center gap-3">
+                <span class="bg-[#ff8c00] text-black px-2 py-1 rounded text-sm">3</span>
+                Major Leaks Detected
+            </h2>
+            <div id="leakContainer"></div>
+            
+            <div class="mt-12 p-8 bg-orange-950/20 border border-orange-900/50 rounded-2xl text-center">
+                <h3 class="text-xl font-bold text-[#ff8c00] mb-2">Want a Deep Dive Audit?</h3>
+                <p class="text-slate-400 text-sm mb-6">Our full €9 report includes 15+ leaks, competitor pricing gaps, and an implementation roadmap.</p>
+                <a href="mailto:your-email@example.com?subject=Full Revenue Audit Inquiry" class="inline-block bg-white text-black font-black px-8 py-3 rounded-lg hover:bg-[#ff8c00] transition-colors">REQUEST FULL REPORT</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function runScan() {
+            const key = document.getElementById('apiKey').value;
+            const name = document.getElementById('bizName').value;
+            const desc = document.getElementById('bizDesc').value;
+
+            if (!key || !name || !desc) return alert("Please fill in all fields.");
+
+            const btn = document.getElementById('scanBtn');
+            const loading = document.getElementById('loading');
+            const sonar = document.getElementById('sonar');
+            const results = document.getElementById('results');
+            const container = document.getElementById('leakContainer');
+
+            btn.style.display = 'none';
+            loading.classList.remove('hidden');
+            sonar.style.display = 'block';
+            results.classList.add('hidden');
+            container.innerHTML = '';
+
+            const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${key}`;
+
+            const prompt = `You are a world-class business consultant. Analyze this business: Name: ${name}, Description: ${desc}. 
+            Identify 3 specific ways they are likely leaving money on the table (Revenue Leaks). 
+            For each leak, provide: 
+            1. Title (The Problem)
+            2. The Opportunity (How to fix it)
+            3. Estimated Impact (e.g. +15% revenue).
+            Return the output as a valid JSON array of objects with keys: "title", "opportunity", "impact". No other text.`;
+
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+                });
+
+                const data = await response.json();
+                let rawText = data.candidates[0].content.parts[0].text;
+                // Clean markdown JSON if present
+                const cleanJson = rawText.replace(/```json|```/g, "").trim();
+                const leaks = JSON.parse(cleanJson);
+
+                leaks.forEach(leak => {
+                    const card = document.createElement('div');
+                    card.className = 'leak-card p-6 rounded-r-2xl';
+                    card.innerHTML = `
+                        <div class="flex justify-between items-start mb-2">
+                            <h3 class="text-xl font-bold text-white">${leak.title}</h3>
+                            <span class="text-[#ff8c00] font-mono text-sm font-bold">${leak.impact}</span>
+                        </div>
+                        <p class="text-slate-400 text-sm leading-relaxed">${leak.opportunity}</p>
+                    `;
+                    container.appendChild(card);
+                });
+
+                results.classList.remove('hidden');
+            } catch (err) {
+                alert("Scan failed. Ensure your API key is correct.");
+            } finally {
+                loading.classList.add('hidden');
+                btn.style.display = 'block';
+            }
+        }
+
+        document.getElementById('scanBtn').onclick = runScan;
+    </script>
+</body>
+</html>
