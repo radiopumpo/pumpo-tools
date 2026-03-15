@@ -3,6 +3,29 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Pumpo Tools">
+
+<link rel="apple-touch-icon" href="https://radiopumpo.github.io/radiopumpologo.png">
+
+<script>
+    (function(document,navigator,standalone) {
+        if ((standalone in navigator) && navigator[standalone]) {
+            var cobj = Array.prototype.slice.call(document.querySelectorAll('a[href]'));
+            cobj.forEach(function(n) {
+                n.addEventListener('click', function(event) {
+                    var newPage = n.getAttribute('href');
+                    if (newPage.indexOf('http') !== 0) {
+                        event.preventDefault();
+                        window.location = newPage;
+                    }
+                });
+            });
+        }
+    })(document,window.navigator,'standalone');
+</script>
+
   <title>Pumpo Tools | Developer Ecosystem</title>
   <style>
     body {
