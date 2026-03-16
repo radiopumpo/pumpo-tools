@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>Keep Moving | Pumpo Tools</title>
+  <link rel="icon" type="image/png" href="https://radiopumpo.github.io/radiopumpologo.png">
+  <link href="https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Rajdhani:wght@400;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --pink: #ff0080;
+      --cyan: #40e0d0;
+      --orange: #ff8c00;
+      --bg: #0d0d0d;
+      --bg2: #141414;
+      --bg3: #1a1a1a;
+      --border: rgba(255,255,255,0.09);
+      --border2: rgba(255,255,255,0.18);
+      --pink-glow: rgba(255,0,128,0.35);
+      --cyan-glow: rgba(64,224,208,0.3);
+      --text: #f0ede6;
+      --muted: #666;
+      --red: #E24B4A;
+      --amber: #d4820f;
+      --green: #4a8a2a;
+      --purple: #6b5fd4;
+      --blue: #2e7fd4;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { -webkit-text-size-adjust: 100%; }
+    body {
+      font-family: 'Rajdhani', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    body::before {
+      content: '';
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.025) 2px, rgba(0,0,0,0.025) 4px);
+      pointer-events: none; z-index: 9999;
+    }
+
+    /* NAV */
+    .top-nav {
+      position: fixed; top: 0; left: 0; right: 0;
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 12px 20px;
+      background: rgba(13,13,13,0.88);
+      backdrop-filter: blur(10px);
+      z-index: 500;
+      border-bottom: 1px solid rgba(255,0,128,0.18);
+    }
+    .nav-brand { font-family: 'Black Ops One', cursive; font-size: .95rem; color: var(--pink); letter-spacing: 2px; text-decoration: none; }
+    .nav-link { color: var(--cyan); text-decoration: none; font-weight: 700; font-size: .75rem; border: 1px solid var(--cyan); padding: 6px 13px; border-radius: 20px; transition: .3s; letter-spacing: 1px; }
+    .nav-link:hover { background: var(--cyan); color: #0d0d0d; box-shadow: 0 0 15px var(--cyan-glow); }
+
+    /* WRAP */
+    .wrap { max-width: 700px; margin: 0 auto; padding: 90px 1.25rem 4rem; }
+
+    /* HEADER */
+    .page-header { margin-bottom: 2.25rem; animation: fadeUp .9s ease-out forwards; opacity: 0; }
+    @keyframes fadeUp { 0%{opacity:0;transform:translateY(14px)} 100%{opacity:1;transform:translateY(0)} }
+    .eyebrow { font-family: 'Space Mono', monospace; font-size: 9px; letter-spacing: .22em; text-transform: uppercase; color: var(--muted); margin-bottom: .5rem; }
+    .page-header h1 {
+      font-family: 'Black Ops One', cursive;
+      font-size: clamp(30px, 7vw, 52px);
+      line-height: 1.0; letter-spacing: 1px;
+      color: var(--cyan);
+      text-shadow: 0 0 25px var(--cyan-glow), 0 0 50px rgba(64,224,208,0.1);
+    }
+    .page-header h1 span {
+      color: var(--pink);
+      text-shadow: 0 0 25px var(--pink-glow), 0 0 50px rgba(255,0,128,0.1);
+    }
+    .tagline { font-size: 13px; color: var(--muted); margin-top: .55rem; font-weight: 600; letter-spacing: .5px; line-height: 1.55; }
+
+    .hdivider {
+      width: 100%; height: 1.5px;
+      background: linear-gradient(to right, var(--pink), var(--cyan), transparent);
+      margin-bottom: 2rem; opacity: .35;
+    }
+
+    /* KEY GATE */
+    #key-gate { margin-bottom: 1.75rem; animation: fadeUp .9s .1s ease-out forwards; opacity: 0; }
+    .key-box { background: var(--bg3); border: 1px solid var(--border); border-radius: 14px; padding: 1.1rem 1.2rem; display: flex; flex-direction: column; gap: .6rem; transition: border-color .2s; }
+    .key-box:focus-within { border-color: rgba(64,224,208,0.3); }
+    .key-label { font-family: 'Space Mono', monospace; font-size: 9px; letter-spacing: .2em; text-transform: uppercase; color: var(--muted); }
+    .key-row { display: flex; gap: 8px; flex-wrap: wrap; }
+    .key-input { flex: 1; min-width: 160px; background: var(--bg2); border: 1px solid var(--border); color: var(--text); font-family: 'Space Mono', monospace; font-size: 12px; padding: .55rem .85rem; border-radius: 8px; outline: none; transition: border-color .15s; }
+    .key-input:focus { border-color: var(--cyan); }
+    .key-btn { background: var(--cyan); color: #0d0d0d; border: none; padding: .55rem 1.1rem; font-family: 'Black Ops One', cursive; font-size: 11px; letter-spacing: .08em; cursor: pointer; border-radius: 8px; transition: all .2s; white-space: nowrap; }
+    .key-btn:hover { box-shadow: 0 0 16px var(--cyan-glow); }
+    .key-note { font-size: 11px; color: #444; line-height: 1.5; font-weight: 600; }
+    .key-note a { color: var(--muted); }
+    .key-status { font-family: 'Space Mono', monospace; font-size: 10px; display: none; }
+    .key-status.ok { color: var(--green); }
+    .key-status.err { color: var(--red); }
+
+    /* FORM */
+    #form-view { display: none; animation: fadeUp .8s ease-out forwards; opacity: 0; }
+    .field { margin-bottom: 1.5rem; }
+    .flabel { font-family: 'Space Mono', monospace; font-size: 9px; letter-spacing: .18em; text-transform: uppercase; color: var(--muted); margin-bottom: .5rem; display: flex; align-items: center; gap: 7px; }
+    .flabel .n { border: 1px solid rgba(64,224,208,0.25); color: var(--cyan); width: 17px; height: 17px; display: flex; align-items: center; justify-content: center; font-size: 9px; flex-shrink: 0; border-radius: 3px; }
+    textarea { width: 100%; background: var(--bg3); border: 1px solid var(--border); border-radius: 10px; padding: .8rem 1rem; font-size: 14px; font-family: 'Rajdhani', sans-serif; font-weight: 600; color: var(--text); resize: vertical; outline: none; line-height: 1.65; min-height: 90px; transition: border-color .15s; }
+    textarea:focus { border-color: rgba(64,224,208,0.3); }
+    textarea::placeholder { color: #3a3a3a; }
+
+    .chips { display: flex; flex-wrap: wrap; gap: 7px; }
+    .chip { background: var(--bg3); border: 1px solid var(--border); padding: .42rem .9rem; font-size: 11px; font-family: 'Space Mono', monospace; color: var(--muted); cursor: pointer; transition: all .15s; border-radius: 20px; user-select: none; white-space: nowrap; }
+    .chip:hover { border-color: var(--cyan); color: var(--cyan); }
+    .chip.on { background: var(--cyan); color: #0d0d0d; border-color: var(--cyan); font-weight: 700; }
+    .chip.on-low { background: var(--green); color: #c8e8b0; border-color: var(--green); }
+    .chip.on-mid { background: var(--amber); color: #fad898; border-color: var(--amber); }
+    .chip.on-high { background: var(--red); color: #f8c8c8; border-color: var(--red); }
+
+    .cta { width: 100%; background: var(--pink); color: #fff; border: none; padding: 1.05rem; font-family: 'Black Ops One', cursive; font-size: 14px; letter-spacing: .12em; cursor: pointer; border-radius: 12px; transition: all .2s; margin-top: .25rem; }
+    .cta:hover:not(:disabled) { box-shadow: 0 0 28px var(--pink-glow); transform: translateY(-2px); }
+    .cta:disabled { opacity: .25; cursor: not-allowed; transform: none; box-shadow: none; }
+
+    .err-box { background: rgba(226,75,74,0.08); border: 1px solid var(--red); padding: .7rem .9rem; font-family: 'Space Mono', monospace; font-size: 11px; color: var(--red); margin-top: .75rem; display: none; line-height: 1.55; border-radius: 8px; }
+
+    /* OUTPUT */
+    #output-section { display: none; }
+    .sec-divider { display: flex; align-items: center; gap: 10px; margin: 2rem 0 1.75rem; }
+    .sec-divider .line { flex: 1; height: 1px; background: linear-gradient(to right, var(--pink), var(--cyan)); opacity: .3; }
+    .sec-divider .tag { font-family: 'Black Ops One', cursive; font-size: 10px; letter-spacing: .2em; text-transform: uppercase; color: var(--cyan); }
+
+    .loading { text-align: center; padding: 3rem 0; }
+    .lbar { height: 1.5px; background: var(--border); overflow: hidden; margin: 1.25rem 0; border-radius: 2px; }
+    .lbar-i { height: 100%; background: linear-gradient(to right, var(--pink), var(--cyan)); animation: lp 1.8s ease-in-out infinite; }
+    @keyframes lp { 0%{width:0%;margin-left:0} 50%{width:55%;margin-left:22%} 100%{width:0%;margin-left:100%} }
+    .lbl { font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: .18em; text-transform: uppercase; color: var(--muted); }
+
+    .rblock { margin-bottom: 1.75rem; border-left: 2.5px solid var(--cyan); padding-left: 1.1rem; }
+    .rblock.warn  { border-left-color: var(--amber); }
+    .rblock.hot   { border-left-color: var(--pink); }
+    .rblock.good  { border-left-color: var(--green); }
+    .rblock.paths { border-left-color: var(--purple); }
+    .rblock.fwd   { border-left-color: var(--blue); }
+
+    .blabel { font-family: 'Space Mono', monospace; font-size: 9px; letter-spacing: .2em; text-transform: uppercase; color: var(--muted); margin-bottom: .4rem; }
+    .btitle { font-family: 'Black Ops One', cursive; font-size: 16px; margin-bottom: .6rem; line-height: 1.15; letter-spacing: .5px; }
+    .bbody { font-size: 14px; line-height: 1.75; color: var(--text); white-space: pre-wrap; font-weight: 600; }
+    .hot-body { font-size: 15px; font-weight: 700; line-height: 1.6; color: var(--text); }
+
+    .steps-stack { display: flex; flex-direction: column; gap: 10px; }
+    .sg-label { font-family: 'Space Mono', monospace; font-size: 9px; letter-spacing: .16em; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
+    .step-item { background: var(--bg3); border: 1px solid var(--border); padding: .6rem .9rem; font-size: 13px; line-height: 1.65; border-radius: 8px; font-weight: 600; transition: border-color .2s; }
+    .step-item:hover { border-color: rgba(64,224,208,0.2); }
+
+    .path-card { background: var(--bg3); border: 1px solid var(--border); padding: .9rem 1rem; margin-bottom: 8px; border-radius: 10px; transition: all .2s; }
+    .path-card:hover { transform: translateX(5px); border-color: rgba(107,95,212,0.35); }
+    .path-title { font-family: 'Black Ops One', cursive; font-size: 12px; margin-bottom: .3rem; color: var(--cyan); letter-spacing: .5px; }
+    .path-tradeoff { font-size: 10px; font-family: 'Space Mono', monospace; color: var(--muted); margin-bottom: .45rem; }
+    .path-body { font-size: 13px; line-height: 1.65; color: #888; font-weight: 600; }
+
+    .cq-block { background: var(--bg3); border: 1px solid var(--border); padding: 1rem 1.1rem; margin-bottom: 1.75rem; border-radius: 10px; }
+    .cq-intro { font-size: 13px; line-height: 1.6; margin-bottom: .75rem; color: #777; font-weight: 600; }
+    .cq-list { display: flex; flex-direction: column; gap: 7px; margin-bottom: .85rem; }
+    .cq-item { font-size: 13px; line-height: 1.55; padding-left: .8rem; border-left: 2px solid rgba(64,224,208,0.25); color: var(--text); font-weight: 600; }
+    .cq-ta { width: 100%; background: var(--bg2); border: 1px solid var(--border); padding: .65rem .85rem; font-size: 13px; font-family: 'Rajdhani', sans-serif; font-weight: 600; color: var(--text); resize: vertical; outline: none; line-height: 1.6; min-height: 70px; border-radius: 8px; transition: border-color .15s; }
+    .cq-ta:focus { border-color: rgba(64,224,208,0.3); }
+    .cq-ta::placeholder { color: #3a3a3a; }
+    .cq-btn { margin-top: .65rem; background: var(--cyan); color: #0d0d0d; border: none; padding: .6rem 1.25rem; font-family: 'Black Ops One', cursive; font-size: 11px; letter-spacing: .08em; cursor: pointer; border-radius: 8px; transition: all .2s; }
+    .cq-btn:hover { box-shadow: 0 0 14px var(--cyan-glow); }
+
+    .export-row { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1px solid var(--border); }
+    .exp-btn { background: transparent; border: 1px solid var(--border); padding: .48rem .9rem; font-size: 10px; font-family: 'Space Mono', monospace; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); cursor: pointer; border-radius: 20px; transition: all .15s; }
+    .exp-btn:hover { border-color: var(--cyan); color: var(--cyan); }
+    .exp-btn.copied { border-color: var(--green); color: #4a8a2a; }
+
+    .restart-btn { display: none; margin-top: 1rem; background: transparent; border: 1px solid var(--border); padding: .48rem 1.1rem; font-size: 10px; font-family: 'Space Mono', monospace; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); cursor: pointer; border-radius: 20px; transition: all .15s; }
+    .restart-btn:hover { border-color: var(--pink); color: var(--pink); }
+
+    footer { margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid var(--border); font-family: 'Space Mono', monospace; font-size: 9px; letter-spacing: .12em; text-transform: uppercase; color: #333; display: flex; justify-content: space-between; flex-wrap: wrap; gap: .5rem; }
+    footer a { color: #444; text-decoration: none; transition: color .2s; }
+    footer a:hover { color: var(--cyan); }
+
+    @media (max-width: 480px) {
+      .wrap { padding: 80px .9rem 3rem; }
+      .page-header h1 { font-size: 32px; }
+      .key-row { flex-direction: column; }
+      .key-input { min-width: 0; }
+      .export-row { gap: 6px; }
+      .exp-btn { font-size: 9px; padding: .42rem .75rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <nav class="top-nav">
+    <a href="index.html" class="nav-brand">🔧 PUMPO TOOLS</a>
+    <a href="https://radiopumpo.github.io" class="nav-link">📻 RADIO</a>
+  </nav>
+
+  <div class="wrap">
+
+    <header class="page-header">
+      <div class="eyebrow">pumpo tools // clarity engine</div>
+      <h1>KEEP<br><span>MOVING.</span></h1>
+      <p class="tagline">No fluff. No therapy loops. An honest breakdown of where you are and what to actually do next.</p>
+    </header>
+
+    <div class="hdivider"></div>
+
+    <!-- API Key -->
+    <div id="key-gate">
+      <div class="key-box">
+        <div class="key-label">Google Gemini API Key — required</div>
+        <div class="key-row">
+          <input type="password" class="key-input" id="api-key-input" placeholder="Paste your Gemini key..." autocomplete="off" spellcheck="false">
+          <button class="key-btn" onclick="saveKey()">SAVE</button>
+        </div>
+        <div class="key-note">
+          Stays in your browser only — sent directly to Google, never to any server.<br>
+          Free key at <a href="https://aistudio.google.com/app/apikey" target="_blank">aistudio.google.com</a>
+        </div>
+        <div id="key-status" class="key-status"></div>
+      </div>
+    </div>
+
+    <!-- Form -->
+    <div id="form-view">
+      <div class="field">
+        <div class="flabel"><span class="n">1</span> What are you stuck on?</div>
+        <textarea id="situation" placeholder="Be specific. The more honest you are, the more useful this gets."></textarea>
+      </div>
+      <div class="field">
+        <div class="flabel"><span class="n">2</span> What have you already tried?</div>
+        <textarea id="tried" placeholder="List what you've attempted and what happened. Don't skip this — it changes everything."></textarea>
+      </div>
+      <div class="field">
+        <div class="flabel"><span class="n">3</span> How long have you been stuck?</div>
+        <div class="chips" id="dur-chips">
+          <div class="chip" data-v="a few days">Days</div>
+          <div class="chip" data-v="a few weeks">Weeks</div>
+          <div class="chip" data-v="a couple of months">Months</div>
+          <div class="chip" data-v="over 6 months">6+ months</div>
+          <div class="chip" data-v="over a year">1+ year</div>
+        </div>
+      </div>
+      <div class="field">
+        <div class="flabel"><span class="n">4</span> How does this feel right now?</div>
+        <div class="chips" id="urg-chips">
+          <div class="chip" data-v="low" data-cls="on-low">Annoying but ok</div>
+          <div class="chip" data-v="medium" data-cls="on-mid">Weighing on me</div>
+          <div class="chip" data-v="high" data-cls="on-high">Need this resolved</div>
+        </div>
+      </div>
+      <button class="cta" id="submit-btn" disabled>ANALYZE MY SITUATION →</button>
+      <div class="err-box" id="err-msg"></div>
+    </div>
+
+    <!-- Output -->
+    <div id="output-section">
+      <div class="sec-divider"><div class="line"></div><div class="tag">Analysis</div><div class="line"></div></div>
+      <div id="loading-state" class="loading">
+        <div class="lbl" id="loading-txt">Reading your situation...</div>
+        <div class="lbar"><div class="lbar-i"></div></div>
+      </div>
+      <div id="results" style="display:none"></div>
+      <button class="restart-btn" id="restart-btn" onclick="restart()">← Start over</button>
+    </div>
+
+    <footer>
+      <a href="index.html">← All Tools</a>
+      <span>Keep Moving — pumpo tools</span>
+      <span>Powered by Gemini 2.5 Flash</span>
+    </footer>
+
+  </div>
+
+  <script>
+    let apiKey = localStorage.getItem('km_gemini_key') || '';
+    let dur = '', urg = '', lastResult = null, loadTimer = null;
+    const loadMsgs = ['Reading your situation...', 'Naming the real problem...', 'Mapping your options...', 'Almost done...'];
+
+    (function init() {
+      if (apiKey) {
+        document.getElementById('api-key-input').value = apiKey;
+        showKeyStatus('Key loaded.', true);
+        document.getElementById('form-view').style.display = 'block';
+      }
+    })();
+
+    function saveKey() {
+      const val = document.getElementById('api-key-input').value.trim();
+      if (!val || val.length < 10) { showKeyStatus('That doesn\'t look like a valid key.', false); return; }
+      apiKey = val;
+      localStorage.setItem('km_gemini_key', apiKey);
+      showKeyStatus('Key saved. You\'re good to go.', true);
+      document.getElementById('form-view').style.display = 'block';
+    }
+
+    function showKeyStatus(msg, ok) {
+      const el = document.getElementById('key-status');
+      el.style.display = 'block';
+      el.textContent = msg;
+      el.className = 'key-status ' + (ok ? 'ok' : 'err');
+    }
+
+    document.querySelectorAll('#dur-chips .chip').forEach(c => {
+      c.addEventListener('click', () => {
+        document.querySelectorAll('#dur-chips .chip').forEach(x => x.classList.remove('on'));
+        c.classList.add('on'); dur = c.dataset.v; checkReady();
+      });
+    });
+    document.querySelectorAll('#urg-chips .chip').forEach(c => {
+      c.addEventListener('click', () => {
+        document.querySelectorAll('#urg-chips .chip').forEach(x => x.classList.remove('on-low','on-mid','on-high'));
+        c.classList.add(c.dataset.cls); urg = c.dataset.v; checkReady();
+      });
+    });
+    ['situation','tried'].forEach(id => document.getElementById(id).addEventListener('input', checkReady));
+
+    function checkReady() {
+      const ok = document.getElementById('situation').value.trim() && document.getElementById('tried').value.trim() && dur && urg;
+      document.getElementById('submit-btn').disabled = !ok;
+    }
+
+    document.getElementById('submit-btn').addEventListener('click', () => {
+      const situation = document.getElementById('situation').value.trim();
+      const tried = document.getElementById('tried').value.trim();
+      showOutput();
+      runAnalysis(situation, tried, dur, urg, '');
+    });
+
+    function showOutput() {
+      document.getElementById('form-view').style.display = 'none';
+      document.getElementById('output-section').style.display = 'block';
+      document.getElementById('loading-state').style.display = 'block';
+      document.getElementById('results').style.display = 'none';
+      document.getElementById('restart-btn').style.display = 'none';
+      document.getElementById('err-msg').style.display = 'none';
+      startLoadCycle();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function startLoadCycle() {
+      let i = 0;
+      document.getElementById('loading-txt').textContent = loadMsgs[0];
+      clearInterval(loadTimer);
+      loadTimer = setInterval(() => { i = (i + 1) % loadMsgs.length; document.getElementById('loading-txt').textContent = loadMsgs[i]; }, 2200);
+    }
+
+    async function runAnalysis(situation, tried, duration, urgency, extraContext) {
+      const prompt = `You are a radical candor advisor. Direct, honest, warm when needed — like a trusted friend who tells the truth. No sugarcoating, no therapy-speak, no vague advice. Radically supportive and candid. Not superior, not preachy.
+
+USER INPUT:
+Situation: ${situation}
+What they've tried: ${tried}
+How long stuck: ${duration}
+Urgency: ${urgency}
+${extraContext ? 'Additional context: ' + extraContext : ''}
+
+Respond ONLY with a raw JSON object. No markdown fences, no preamble, no text outside the JSON.
+
+{
+  "asis_title": "punchy title (5 words max) for their real current state",
+  "asis_body": "2-3 sentences. Brutally honest. Name the actual problem underneath the surface problem if different.",
+  "honest_take": "1-2 sentences. The thing most people are too polite to say. Say it with care, not cruelty.",
+  "tobe_title": "punchy title for their realistic achievable future state",
+  "tobe_body": "2-3 sentences. Concrete, not inspirational. What actually changes.",
+  "steps": {
+    "now": ["1-2 actions to start in the next hour — specific enough to begin immediately"],
+    "tomorrow": ["1-2 actions for tomorrow"],
+    "this_week": ["1-2 actions for this week"],
+    "this_month": ["1-2 actions for this month"],
+    "longer": ["1 action for the next 3-6 months if relevant, else empty array"]
+  },
+  "paths": [
+    {"title": "3-4 word label", "trade_off": "one honest trade-off under 8 words", "description": "2 sentences: what this path looks like and realistic outcome"},
+    {"title": "3-4 word label", "trade_off": "trade-off", "description": "2 sentences"},
+    {"title": "optional third path only if genuinely distinct", "trade_off": "trade-off", "description": "2 sentences"}
+  ],
+  "future_outlook": "2-3 sentences. Grounded 3-6 month view if they follow through. No fairytale endings.",
+  "clarifying_questions": []
+}
+
+For clarifying_questions: include 1-3 questions ONLY if more context would meaningfully change the advice. If the situation is clear, return empty array.`;
+
+      const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+
+      try {
+        const res = await fetch(API_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+        });
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}));
+          throw new Error(errData?.error?.message || `HTTP ${res.status}`);
+        }
+        const data = await res.json();
+        const raw = data.candidates[0].content.parts[0].text;
+        const clean = raw.replace(/```json\s*/gi, '').replace(/```\s*/g, '').trim();
+        const result = JSON.parse(clean);
+        lastResult = { result, situation, tried, duration, urgency };
+
+        clearInterval(loadTimer);
+        document.getElementById('loading-state').style.display = 'none';
+        document.getElementById('results').style.display = 'block';
+        document.getElementById('restart-btn').style.display = 'inline-block';
+        renderResults(result);
+
+      } catch (e) {
+        clearInterval(loadTimer);
+        document.getElementById('loading-state').style.display = 'none';
+        document.getElementById('form-view').style.display = 'block';
+        document.getElementById('output-section').style.display = 'none';
+        const el = document.getElementById('err-msg');
+        el.style.display = 'block';
+        el.textContent = 'Error: ' + e.message;
+        console.error('[keep-moving]', e);
+      }
+    }
+
+    function renderResults(r) {
+      const stepGroups = [
+        { key: 'now',        label: 'Right now — start today' },
+        { key: 'tomorrow',   label: 'Tomorrow' },
+        { key: 'this_week',  label: 'This week' },
+        { key: 'this_month', label: 'This month' },
+        { key: 'longer',     label: '3–6 months out' }
+      ];
+      const stepsHTML = stepGroups
+        .filter(g => r.steps[g.key] && r.steps[g.key].length > 0)
+        .map(g => `<div><div class="sg-label">${g.label}</div>${r.steps[g.key].map(s => `<div class="step-item">${esc(s)}</div>`).join('')}</div>`).join('');
+
+      const pathsHTML = r.paths.map(p => `
+        <div class="path-card">
+          <div class="path-title">${esc(p.title)}</div>
+          <div class="path-tradeoff">↔ ${esc(p.trade_off)}</div>
+          <div class="path-body">${esc(p.description)}</div>
+        </div>`).join('');
+
+      const cqHTML = r.clarifying_questions && r.clarifying_questions.length > 0 ? `
+        <div class="cq-block">
+          <div class="blabel">Want a sharper read?</div>
+          <div class="cq-intro">These would meaningfully change the advice:</div>
+          <div class="cq-list">${r.clarifying_questions.map(q => `<div class="cq-item">${esc(q)}</div>`).join('')}</div>
+          <textarea class="cq-ta" id="cq-answer" placeholder="Answer any or all of the above..."></textarea>
+          <button class="cq-btn" onclick="goDeeper()">RE-ANALYZE WITH MORE CONTEXT →</button>
+        </div>` : '';
+
+      document.getElementById('results').innerHTML = `
+        <div class="rblock warn">
+          <div class="blabel">As-is — where you actually are</div>
+          <div class="btitle">${esc(r.asis_title)}</div>
+          <div class="bbody">${esc(r.asis_body)}</div>
+        </div>
+        <div class="rblock hot">
+          <div class="blabel">Honest take</div>
+          <div class="hot-body">${esc(r.honest_take)}</div>
+        </div>
+        <div class="rblock good">
+          <div class="blabel">To-be — what becomes possible</div>
+          <div class="btitle">${esc(r.tobe_title)}</div>
+          <div class="bbody">${esc(r.tobe_body)}</div>
+        </div>
+        <div class="rblock">
+          <div class="blabel">Steps — what to actually do</div>
+          <div class="steps-stack">${stepsHTML}</div>
+        </div>
+        <div class="rblock paths">
+          <div class="blabel">Paths forward — your options</div>
+          ${pathsHTML}
+        </div>
+        <div class="rblock fwd">
+          <div class="blabel">Future outlook — 3 to 6 months</div>
+          <div class="bbody">${esc(r.future_outlook)}</div>
+        </div>
+        ${cqHTML}
+        <div class="export-row">
+          <button class="exp-btn" onclick="copyText(this)">Copy text</button>
+          <button class="exp-btn" onclick="downloadTxt()">Download .txt</button>
+          <button class="exp-btn" onclick="copySnippet(this)">Copy shareable snippet</button>
+        </div>`;
+    }
+
+    function goDeeper() {
+      const extra = document.getElementById('cq-answer').value.trim();
+      if (!extra) return;
+      const { situation, tried, duration, urgency } = lastResult;
+      document.getElementById('results').style.display = 'none';
+      document.getElementById('restart-btn').style.display = 'none';
+      document.getElementById('loading-state').style.display = 'block';
+      startLoadCycle();
+      runAnalysis(situation, tried, duration, urgency, extra);
+    }
+
+    function buildText() {
+      if (!lastResult) return '';
+      const r = lastResult.result;
+      const groups = [
+        { key: 'now', label: 'RIGHT NOW' }, { key: 'tomorrow', label: 'TOMORROW' },
+        { key: 'this_week', label: 'THIS WEEK' }, { key: 'this_month', label: 'THIS MONTH' },
+        { key: 'longer', label: '3-6 MONTHS' }
+      ];
+      let t = `KEEP MOVING — ANALYSIS\n${'─'.repeat(40)}\n\n`;
+      t += `AS-IS: ${r.asis_title}\n${r.asis_body}\n\nHONEST TAKE\n${r.honest_take}\n\n`;
+      t += `TO-BE: ${r.tobe_title}\n${r.tobe_body}\n\nSTEPS\n`;
+      groups.forEach(g => { if (r.steps[g.key] && r.steps[g.key].length > 0) { t += `${g.label}:\n`; r.steps[g.key].forEach(s => t += `  — ${s}\n`); } });
+      t += `\nPATHS FORWARD\n`;
+      r.paths.forEach(p => t += `${p.title}\nTrade-off: ${p.trade_off}\n${p.description}\n\n`);
+      t += `FUTURE OUTLOOK\n${r.future_outlook}\n\n${'─'.repeat(40)}\nGenerated by Keep Moving — pumpo.tools\n`;
+      return t;
+    }
+
+    function copyText(btn) {
+      navigator.clipboard.writeText(buildText()).then(() => { btn.textContent = 'Copied!'; btn.classList.add('copied'); setTimeout(() => { btn.textContent = 'Copy text'; btn.classList.remove('copied'); }, 2000); }).catch(() => alert('Copy failed — try Download .txt instead.'));
+    }
+    function downloadTxt() {
+      const a = document.createElement('a');
+      a.href = 'data:text/plain;charset=utf-8,' + encodeURIComponent(buildText());
+      a.download = 'keep-moving-analysis.txt'; a.click();
+    }
+    function copySnippet(btn) {
+      if (!lastResult) return;
+      const r = lastResult.result;
+      const s = `I got unstuck.\n\nWhere I was: ${r.asis_title}\nWhere I'm going: ${r.tobe_title}\n\n"${r.honest_take}"\n\n— Keep Moving on pumpo.tools`;
+      navigator.clipboard.writeText(s).then(() => { btn.textContent = 'Copied!'; btn.classList.add('copied'); setTimeout(() => { btn.textContent = 'Copy shareable snippet'; btn.classList.remove('copied'); }, 2000); }).catch(() => alert('Copy failed.'));
+    }
+
+    function restart() {
+      lastResult = null; dur = ''; urg = '';
+      document.getElementById('situation').value = '';
+      document.getElementById('tried').value = '';
+      document.querySelectorAll('.chip').forEach(c => c.classList.remove('on','on-low','on-mid','on-high'));
+      document.getElementById('form-view').style.display = 'block';
+      document.getElementById('output-section').style.display = 'none';
+      document.getElementById('results').style.display = 'none';
+      document.getElementById('restart-btn').style.display = 'none';
+      checkReady();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function esc(str) {
+      if (typeof str !== 'string') return '';
+      return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+  </script>
+</body>
+</html>
