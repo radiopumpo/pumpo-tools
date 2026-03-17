@@ -80,6 +80,8 @@
     .nav-link:hover { background: var(--cyan); color: #0d0d0d; box-shadow: 0 0 15px var(--cyan-glow); }
     .nav-link.radio { border-color: #ff0033; color: #ff6666; }
     .nav-link.radio:hover { background: #ff0033; color: #fff; box-shadow: 0 0 15px rgba(255,0,51,0.4); }
+    .nav-link.pulse { border-color: #00ff88; color: #00ff88; }
+    .nav-link.pulse:hover { background: #00ff88; color: #0d0d0d; box-shadow: 0 0 15px rgba(0,255,136,0.35); }
 
     /* HEADER */
     .page-header {
@@ -134,9 +136,7 @@
     }
     .section-label.dev { color: var(--cyan); }
     .section-label.general { color: var(--pink); }
-    .section-rule {
-      flex: 1; height: 1px; opacity: .2;
-    }
+    .section-rule { flex: 1; height: 1px; opacity: .2; }
     .section-rule.dev { background: var(--cyan); }
     .section-rule.general { background: var(--pink); }
     .section-desc {
@@ -172,8 +172,6 @@
       opacity: 0;
       animation: fadeSlideIn 0.7s ease-out forwards;
     }
-
-    /* Stagger all cards globally */
     .tool-card:nth-child(1) { animation-delay: 0.05s; }
     .tool-card:nth-child(2) { animation-delay: 0.12s; }
     .tool-card:nth-child(3) { animation-delay: 0.19s; }
@@ -181,17 +179,9 @@
     .tool-card:nth-child(5) { animation-delay: 0.33s; }
     .tool-card:nth-child(6) { animation-delay: 0.40s; }
 
-    .tool-card:hover {
-      transform: translateY(-6px);
-    }
-    .tool-card.dev-card:hover {
-      border-color: var(--cyan);
-      box-shadow: 0 12px 35px var(--cyan-glow);
-    }
-    .tool-card.general-card:hover {
-      border-color: var(--pink);
-      box-shadow: 0 12px 35px var(--pink-glow);
-    }
+    .tool-card:hover { transform: translateY(-6px); }
+    .tool-card.dev-card:hover { border-color: var(--cyan); box-shadow: 0 12px 35px var(--cyan-glow); }
+    .tool-card.general-card:hover { border-color: var(--pink); box-shadow: 0 12px 35px var(--pink-glow); }
 
     .tool-card.coming-soon {
       opacity: 0.25 !important;
@@ -231,6 +221,7 @@
   <nav class="top-nav">
     <span class="nav-brand">🔧 PUMPO TOOLS</span>
     <div class="nav-right">
+      <a href="gitpulse.html" class="nav-link pulse">⚡ GITPULSE</a>
       <a href="https://radiopumpo.github.io" class="nav-link radio">📻 RADIO PUMPO</a>
     </div>
   </nav>
@@ -276,6 +267,13 @@
         <p>Explore high-engagement, gamified ad modules. Scratch reveals, micro-decisions, and tactile interactions.</p>
       </a>
 
+      <a href="chain-watch.html" class="tool-card dev-card">
+        <div class="badge" style="background:#40e0d0; color:#000;">CRYPTO</div>
+        <h2 style="color:#40e0d0;">Chain Watch</h2>
+        <p>Read-only wallet overview across 10 major chains. Portfolio value, price performance, AI insight.</p>
+        <div class="badge" style="background:#cfff04; color:#000;">NEW</div>
+      </a>
+
       <a href="#" class="tool-card dev-card coming-soon">
         <div class="badge" style="background:#333; color:#555;">UPCOMING</div>
         <h2 style="color:#555;">JSON Pumpo-fier</h2>
@@ -309,12 +307,6 @@
         <div class="badge" style="background:#cfff04; color:#000;">NEW</div>
       </a>
 
-      <a href="chain-watch.html" class="tool-card dev-card">
-        <div class="badge" style="background:#40e0d0; color:#000;">CRYPTO</div>
-        <h2 style="color:#40e0d0;">Chain Watch</h2>
-        <p>Read-only wallet overview across 10 major chains. Portfolio value, price performance, AI insight.</p>
-      </a>
-      
       <a href="prestige.html" class="tool-card general-card">
         <div class="badge" style="background:#40e0d0; color:#000;">WRITING</div>
         <h2 style="color:#40e0d0;">Prestige</h2>
