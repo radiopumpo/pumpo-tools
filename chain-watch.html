@@ -1,0 +1,960 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>Chain Watch | Pumpo Tools</title>
+  <link rel="icon" type="image/png" href="https://radiopumpo.github.io/radiopumpologo.png">
+  <link href="https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Rajdhani:wght@400;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --pink: #ff0080;
+      --cyan: #40e0d0;
+      --orange: #ff8c00;
+      --bg: #0d0d0d;
+      --bg2: #141414;
+      --bg3: #1a1a1a;
+      --bg4: #222;
+      --border: rgba(255,255,255,0.08);
+      --border2: rgba(255,255,255,0.15);
+      --text: #f0ede6;
+      --muted: #666;
+      --dimmed: #333;
+      --green: #4caf7d;
+      --green-bg: rgba(76,175,125,0.1);
+      --red: #e24b4a;
+      --red-bg: rgba(226,75,74,0.1);
+      --pink-glow: rgba(255,0,128,0.3);
+      --cyan-glow: rgba(64,224,208,0.25);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { -webkit-text-size-adjust: 100%; }
+    body {
+      font-family: 'Rajdhani', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+      padding-top: env(safe-area-inset-top);
+      -webkit-tap-highlight-color: transparent;
+    }
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.025) 2px, rgba(0,0,0,0.025) 4px);
+      pointer-events: none; z-index: 9999;
+    }
+
+    /* NAV */
+    .top-nav {
+      position: fixed; top: 0; left: 0; right: 0;
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 12px 20px;
+      background: rgba(13,13,13,0.9);
+      backdrop-filter: blur(10px);
+      z-index: 500;
+      border-bottom: 1px solid rgba(255,0,128,0.15);
+    }
+    .nav-brand { font-family: 'Black Ops One', cursive; font-size: .9rem; color: var(--pink); letter-spacing: 2px; text-decoration: none; }
+    .nav-right { display: flex; gap: 8px; align-items: center; }
+    .nav-link { color: var(--cyan); text-decoration: none; font-weight: 700; font-size: .7rem; border: 1px solid var(--cyan); padding: 5px 12px; border-radius: 20px; transition: .3s; letter-spacing: 1px; font-family: 'Space Mono', monospace; }
+    .nav-link:hover { background: var(--cyan); color: #0d0d0d; box-shadow: 0 0 12px var(--cyan-glow); }
+    .nav-settings { background: transparent; border: 1px solid var(--border2); color: var(--muted); font-family: 'Space Mono', monospace; font-size: .65rem; letter-spacing: .08em; padding: 5px 10px; border-radius: 20px; cursor: pointer; transition: .2s; }
+    .nav-settings:hover { border-color: var(--pink); color: var(--pink); }
+
+    /* WRAP */
+    .wrap { max-width: 780px; margin: 0 auto; padding: 80px 1.25rem 4rem; }
+
+    /* SETUP VIEW */
+    .setup-header { margin-bottom: 2rem; }
+    .eyebrow { font-family: 'Space Mono', monospace; font-size: 9px; letter-spacing: .22em; text-transform: uppercase; color: var(--muted); margin-bottom: .5rem; }
+    .page-title { font-family: 'Black Ops One', cursive; font-size: clamp(28px, 6vw, 44px); line-height: 1.0; color: var(--cyan); text-shadow: 0 0 20px var(--cyan-glow); letter-spacing: 1px; }
+    .page-title span { color: var(--pink); text-shadow: 0 0 20px var(--pink-glow); }
+    .page-sub { font-size: 13px; color: var(--muted); margin-top: .5rem; font-weight: 600; line-height: 1.55; }
+
+    .hdivider { width: 100%; height: 1px; background: linear-gradient(to right, var(--pink), var(--cyan), transparent); opacity: .25; margin: 1.5rem 0; }
+
+    /* STEP */
+    .step-label { font-family: 'Space Mono', monospace; font-size: 9px; letter-spacing: .2em; text-transform: uppercase; color: var(--muted); margin-bottom: .75rem; display: flex; align-items: center; gap: 8px; }
+    .step-label .n { border: 1px solid rgba(64,224,208,0.3); color: var(--cyan); width: 18px; height: 18px; display: flex; align-items: center; justify-content: center; font-size: 9px; border-radius: 3px; flex-shrink: 0; }
+
+    /* CHAIN CHIPS */
+    .chain-grid { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 1.5rem; }
+    .chain-chip {
+      display: flex; align-items: center; gap: 7px;
+      background: var(--bg3); border: 1px solid var(--border);
+      padding: .5rem .9rem; border-radius: 20px;
+      font-family: 'Space Mono', monospace; font-size: 10px;
+      color: var(--muted); cursor: pointer; transition: all .15s;
+      user-select: none;
+    }
+    .chain-chip:hover { border-color: var(--border2); color: var(--text); }
+    .chain-chip.on { background: var(--bg4); border-color: var(--cyan); color: var(--cyan); }
+    .chain-chip .dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
+
+    /* KEY FIELDS */
+    .key-fields { display: flex; flex-direction: column; gap: 10px; margin-bottom: 1.5rem; }
+    .key-field { background: var(--bg3); border: 1px solid var(--border); border-radius: 10px; padding: 1rem 1.1rem; }
+    .key-field-label { font-family: 'Space Mono', monospace; font-size: 9px; letter-spacing: .18em; text-transform: uppercase; color: var(--muted); margin-bottom: .5rem; display: flex; justify-content: space-between; align-items: center; }
+    .key-field-label a { color: var(--cyan); text-decoration: none; font-size: 8px; }
+    .key-field-label a:hover { text-decoration: underline; }
+    .key-row { display: flex; gap: 7px; }
+    .key-input { flex: 1; background: var(--bg2); border: 1px solid var(--border); color: var(--text); font-family: 'Space Mono', monospace; font-size: 11px; padding: .5rem .85rem; border-radius: 8px; outline: none; transition: border-color .15s; min-width: 0; }
+    .key-input:focus { border-color: var(--cyan); }
+    .key-input::placeholder { color: var(--dimmed); }
+    .key-free { font-family: 'Space Mono', monospace; font-size: 10px; color: var(--green); padding: .5rem 0; }
+    .key-btn { background: var(--cyan); color: #0d0d0d; border: none; padding: .5rem .9rem; font-family: 'Black Ops One', cursive; font-size: 10px; border-radius: 8px; cursor: pointer; transition: .2s; white-space: nowrap; }
+    .key-btn:hover { box-shadow: 0 0 12px var(--cyan-glow); }
+    .key-status { font-family: 'Space Mono', monospace; font-size: 9px; margin-top: 4px; display: none; }
+    .key-status.ok { color: var(--green); display: block; }
+    .key-status.err { color: var(--red); display: block; }
+
+    /* WALLET INPUT */
+    .wallet-section { margin-bottom: 1.5rem; }
+    .wallet-row { display: flex; gap: 8px; flex-wrap: wrap; }
+    .wallet-input { flex: 1; min-width: 200px; background: var(--bg3); border: 1px solid var(--border); color: var(--text); font-family: 'Space Mono', monospace; font-size: 12px; padding: .65rem 1rem; border-radius: 10px; outline: none; transition: border-color .15s; }
+    .wallet-input:focus { border-color: var(--cyan); }
+    .wallet-input::placeholder { color: var(--dimmed); font-size: 11px; }
+    .chain-select { background: var(--bg3); border: 1px solid var(--border); color: var(--text); font-family: 'Space Mono', monospace; font-size: 11px; padding: .65rem .85rem; border-radius: 10px; outline: none; cursor: pointer; }
+    .chain-select:focus { border-color: var(--cyan); }
+
+    /* BUTTONS */
+    .btn-primary { background: var(--pink); color: #fff; border: none; padding: 1rem 1.5rem; font-family: 'Black Ops One', cursive; font-size: 13px; letter-spacing: .1em; border-radius: 10px; cursor: pointer; transition: all .2s; width: 100%; }
+    .btn-primary:hover:not(:disabled) { box-shadow: 0 0 24px var(--pink-glow); transform: translateY(-2px); }
+    .btn-primary:disabled { opacity: .25; cursor: not-allowed; transform: none; }
+    .btn-secondary { background: transparent; border: 1px solid var(--border2); color: var(--muted); font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: .1em; text-transform: uppercase; padding: .65rem 1.1rem; border-radius: 10px; cursor: pointer; transition: .2s; }
+    .btn-secondary:hover { border-color: var(--cyan); color: var(--cyan); }
+
+    /* VIEWS */
+    .view { display: none; }
+    .view.active { display: block; }
+
+    /* LOADING */
+    .loading-state { text-align: center; padding: 4rem 0; }
+    .lbar { height: 1.5px; background: var(--border); overflow: hidden; margin: 1.25rem auto; max-width: 300px; }
+    .lbar-i { height: 100%; background: linear-gradient(to right, var(--pink), var(--cyan)); animation: lp 1.8s ease-in-out infinite; }
+    @keyframes lp { 0%{width:0%;margin-left:0} 50%{width:55%;margin-left:22%} 100%{width:0%;margin-left:100%} }
+    .lbl { font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: .18em; text-transform: uppercase; color: var(--muted); }
+
+    /* DASHBOARD */
+    .dash-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 12px; }
+    .dash-wallet { font-family: 'Space Mono', monospace; font-size: 10px; color: var(--muted); margin-top: 4px; word-break: break-all; }
+    .dash-chain-badge { font-family: 'Space Mono', monospace; font-size: 9px; letter-spacing: .12em; text-transform: uppercase; border: 1px solid var(--border2); padding: 3px 10px; border-radius: 20px; color: var(--muted); }
+
+    /* PORTFOLIO TOTAL */
+    .portfolio-card { background: var(--bg3); border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem 1.4rem; margin-bottom: 1rem; }
+    .portfolio-label { font-family: 'Space Mono', monospace; font-size: 9px; letter-spacing: .2em; text-transform: uppercase; color: var(--muted); margin-bottom: .4rem; }
+    .portfolio-value { font-family: 'Black Ops One', cursive; font-size: clamp(28px, 6vw, 42px); color: var(--text); line-height: 1; letter-spacing: .5px; }
+    .portfolio-change { font-family: 'Space Mono', monospace; font-size: 11px; margin-top: .4rem; }
+    .portfolio-change.up { color: var(--green); }
+    .portfolio-change.down { color: var(--red); }
+
+    /* PERF GRID */
+    .perf-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 1rem; }
+    .perf-card { background: var(--bg3); border: 1px solid var(--border); border-radius: 10px; padding: .85rem 1rem; }
+    .perf-label { font-family: 'Space Mono', monospace; font-size: 8px; letter-spacing: .15em; text-transform: uppercase; color: var(--muted); margin-bottom: .35rem; }
+    .perf-val { font-family: 'Black Ops One', cursive; font-size: 18px; line-height: 1; }
+    .perf-val.up { color: var(--green); }
+    .perf-val.down { color: var(--red); }
+    .perf-val.neutral { color: var(--muted); }
+
+    /* ASSETS TABLE */
+    .section-title { font-family: 'Space Mono', monospace; font-size: 9px; letter-spacing: .2em; text-transform: uppercase; color: var(--muted); margin-bottom: .75rem; }
+    .asset-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 1rem; }
+    .asset-row {
+      background: var(--bg3); border: 1px solid var(--border);
+      border-radius: 10px; padding: .85rem 1rem;
+      display: grid; grid-template-columns: 1fr auto auto;
+      align-items: center; gap: 12px;
+      transition: border-color .2s;
+    }
+    .asset-row:hover { border-color: var(--border2); }
+    .asset-name { font-size: 14px; font-weight: 700; color: var(--text); }
+    .asset-amount { font-family: 'Space Mono', monospace; font-size: 10px; color: var(--muted); margin-top: 2px; }
+    .asset-value { font-family: 'Black Ops One', cursive; font-size: 15px; text-align: right; }
+    .asset-change { font-family: 'Space Mono', monospace; font-size: 10px; text-align: right; margin-top: 2px; }
+    .asset-change.up { color: var(--green); }
+    .asset-change.down { color: var(--red); }
+    .asset-change.neutral { color: var(--muted); }
+
+    /* AI INSIGHT */
+    .ai-block { background: var(--bg3); border: 1px solid var(--border); border-radius: 12px; padding: 1.1rem 1.2rem; margin-bottom: 1rem; }
+    .ai-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: .75rem; }
+    .ai-label { font-family: 'Space Mono', monospace; font-size: 9px; letter-spacing: .2em; text-transform: uppercase; color: var(--muted); }
+    .ai-run-btn { background: transparent; border: 1px solid var(--border2); color: var(--muted); font-family: 'Space Mono', monospace; font-size: 9px; letter-spacing: .08em; padding: 4px 10px; border-radius: 20px; cursor: pointer; transition: .2s; }
+    .ai-run-btn:hover { border-color: var(--cyan); color: var(--cyan); }
+    .ai-text { font-size: 13px; line-height: 1.75; color: var(--text); font-weight: 600; }
+    .ai-text.muted { color: var(--muted); font-style: italic; }
+
+    /* DASH ACTIONS */
+    .dash-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 1.25rem; padding-top: 1.25rem; border-top: 1px solid var(--border); }
+
+    /* ERROR */
+    .err-box { background: var(--red-bg); border: 1px solid var(--red); padding: .75rem 1rem; border-radius: 8px; font-family: 'Space Mono', monospace; font-size: 11px; color: var(--red); margin-bottom: 1rem; display: none; line-height: 1.55; }
+
+    /* SETTINGS OVERLAY */
+    .overlay { position: fixed; inset: 0; background: rgba(13,13,13,0.97); z-index: 600; display: none; flex-direction: column; padding: 1.5rem 1.25rem; padding-top: calc(70px + env(safe-area-inset-top)); overflow-y: auto; }
+    .overlay.open { display: flex; }
+    .overlay-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+    .overlay-title { font-family: 'Black Ops One', cursive; font-size: 18px; color: var(--cyan); letter-spacing: 1px; }
+    .overlay-close { background: transparent; border: 1px solid var(--border2); color: var(--muted); font-family: 'Space Mono', monospace; font-size: 9px; padding: 5px 12px; border-radius: 20px; cursor: pointer; transition: .2s; }
+    .overlay-close:hover { border-color: var(--pink); color: var(--pink); }
+
+    @media (max-width: 480px) {
+      .wrap { padding: 75px .9rem 3.5rem; }
+      .perf-grid { grid-template-columns: repeat(3, 1fr); }
+      .perf-val { font-size: 15px; }
+      .asset-row { grid-template-columns: 1fr auto; }
+      .asset-right { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <nav class="top-nav">
+    <a href="index.html" class="nav-brand">🔧 PUMPO TOOLS</a>
+    <div class="nav-right">
+      <button class="nav-settings" onclick="openSettings()">⚙ KEYS</button>
+      <a href="index.html" class="nav-link">← HUB</a>
+    </div>
+  </nav>
+
+  <div class="wrap">
+
+    <!-- SETUP VIEW -->
+    <div class="view active" id="view-setup">
+      <div class="setup-header">
+        <div class="eyebrow">pumpo tools // wallet tracker</div>
+        <div class="page-title">CHAIN<br><span>WATCH.</span></div>
+        <p class="page-sub">Read-only wallet overview across major chains. No private keys. No sign-up.</p>
+      </div>
+
+      <div class="hdivider"></div>
+
+      <!-- Step 1: chains -->
+      <div class="step-label"><span class="n">1</span> Select chains to track</div>
+      <div class="chain-grid" id="chain-grid"></div>
+
+      <!-- Step 2: keys -->
+      <div class="step-label"><span class="n">2</span> API keys for selected chains</div>
+      <div class="key-fields" id="key-fields"></div>
+
+      <!-- Step 3: Gemini optional -->
+      <div class="step-label"><span class="n">3</span> Gemini key <span style="color:var(--dimmed);font-size:8px;letter-spacing:.1em">— optional, AI insight only</span></div>
+      <div class="key-field" style="margin-bottom:1.5rem">
+        <div class="key-field-label">
+          <span>Gemini API Key</span>
+          <a href="https://aistudio.google.com/app/apikey" target="_blank">Get free key ↗</a>
+        </div>
+        <div class="key-row">
+          <input type="password" class="key-input" id="key-cw_gemini_key" placeholder="Paste Gemini key for AI portfolio insight..." autocomplete="off">
+          <button class="key-btn" onclick="saveProviderKey('cw_gemini_key')">SAVE</button>
+        </div>
+        <div class="key-status" id="kstatus-cw_gemini_key"></div>
+      </div>
+
+      <!-- Step 4: wallet -->
+      <div class="step-label"><span class="n">4</span> Enter wallet address</div>
+      <div class="wallet-section">
+        <div class="wallet-row">
+          <select class="chain-select" id="wallet-chain"></select>
+          <input type="text" class="wallet-input" id="wallet-address" placeholder="Public wallet address only — no private keys">
+        </div>
+      </div>
+
+      <div class="err-box" id="setup-err"></div>
+      <button class="btn-primary" id="load-btn" onclick="loadWallet()">LOAD WALLET →</button>
+    </div>
+
+    <!-- LOADING VIEW -->
+    <div class="view" id="view-loading">
+      <div class="loading-state">
+        <div class="lbl" id="loading-txt">Fetching chain data...</div>
+        <div class="lbar"><div class="lbar-i"></div></div>
+      </div>
+    </div>
+
+    <!-- DASHBOARD VIEW -->
+    <div class="view" id="view-dash">
+      <div class="dash-header">
+        <div>
+          <div class="eyebrow">Portfolio overview</div>
+          <div class="dash-wallet" id="dash-wallet-addr"></div>
+        </div>
+        <div class="dash-chain-badge" id="dash-chain-badge"></div>
+      </div>
+
+      <!-- Total value -->
+      <div class="portfolio-card">
+        <div class="portfolio-label">Total portfolio value</div>
+        <div class="portfolio-value" id="dash-total">$0.00</div>
+        <div class="portfolio-change" id="dash-24h"></div>
+      </div>
+
+      <!-- Performance -->
+      <div class="perf-grid">
+        <div class="perf-card">
+          <div class="perf-label">7 day</div>
+          <div class="perf-val neutral" id="perf-7d">—</div>
+        </div>
+        <div class="perf-card">
+          <div class="perf-label">30 day</div>
+          <div class="perf-val neutral" id="perf-30d">—</div>
+        </div>
+        <div class="perf-card">
+          <div class="perf-label">365 day</div>
+          <div class="perf-val neutral" id="perf-365d">—</div>
+        </div>
+      </div>
+
+      <!-- Assets -->
+      <div class="section-title" style="margin-top:.5rem">Assets</div>
+      <div class="asset-list" id="asset-list"></div>
+
+      <!-- AI Insight -->
+      <div class="ai-block">
+        <div class="ai-header">
+          <span class="ai-label">AI Insight — Gemini</span>
+          <button class="ai-run-btn" onclick="runAIInsight()">Generate →</button>
+        </div>
+        <div class="ai-text muted" id="ai-text">Press generate to interpret your portfolio data.</div>
+      </div>
+
+      <div class="err-box" id="dash-err"></div>
+
+      <div class="dash-actions">
+        <button class="btn-secondary" onclick="backToSetup()">← New wallet</button>
+        <button class="btn-secondary" onclick="refreshWallet()">↻ Refresh</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- SETTINGS OVERLAY -->
+  <div class="overlay" id="settings-overlay">
+    <div class="overlay-header">
+      <span class="overlay-title">API KEYS</span>
+      <button class="overlay-close" onclick="closeSettings()">CLOSE</button>
+    </div>
+    <div id="settings-key-fields"></div>
+    <div style="margin-top:1rem">
+      <button class="btn-secondary" onclick="clearAllData()" style="color:var(--red);border-color:var(--red)">Clear all saved data</button>
+    </div>
+  </div>
+
+  <script>
+  // ── CHAIN CONFIG ──────────────────────────────────────────────────────────
+  const CHAINS = [
+    { id:'ethereum',  label:'Ethereum',  symbol:'ETH',  provider:'moralis', moralisChain:'eth',      coingecko:'ethereum' },
+    { id:'polygon',   label:'Polygon',   symbol:'MATIC',provider:'moralis', moralisChain:'polygon',  coingecko:'matic-network' },
+    { id:'bsc',       label:'BSC',       symbol:'BNB',  provider:'moralis', moralisChain:'bsc',      coingecko:'binancecoin' },
+    { id:'arbitrum',  label:'Arbitrum',  symbol:'ETH',  provider:'moralis', moralisChain:'arbitrum', coingecko:'ethereum' },
+    { id:'base',      label:'Base',      symbol:'ETH',  provider:'moralis', moralisChain:'base',     coingecko:'ethereum' },
+    { id:'optimism',  label:'Optimism',  symbol:'ETH',  provider:'moralis', moralisChain:'optimism', coingecko:'ethereum' },
+    { id:'avalanche', label:'Avalanche', symbol:'AVAX', provider:'moralis', moralisChain:'avalanche',coingecko:'avalanche-2' },
+    { id:'solana',    label:'Solana',    symbol:'SOL',  provider:'moralis', moralisChain:'solana',   coingecko:'solana' },
+    { id:'bitcoin',   label:'Bitcoin',   symbol:'BTC',  provider:'blockstream',                      coingecko:'bitcoin' },
+    { id:'ton',       label:'TON',       symbol:'TON',  provider:'toncenter',                        coingecko:'the-open-network' },
+  ];
+
+  const PROVIDERS = {
+    moralis:     { label:'Moralis API Key', placeholder:'Enter Moralis API key...', link:'https://moralis.io', linkLabel:'Get free key', storageKey:'cw_moralis_key' },
+    toncenter:   { label:'TONCenter API Key', placeholder:'Enter TONCenter API key...', link:'https://toncenter.com', linkLabel:'Get free key', storageKey:'cw_ton_key' },
+    blockstream: { label:'Bitcoin (Blockstream)', placeholder:'', storageKey:null, free:true },
+  };
+
+  // ── STATE ─────────────────────────────────────────────────────────────────
+  const STORAGE = 'cw_state_v1';
+  let state = JSON.parse(localStorage.getItem(STORAGE) || '{}');
+  let selectedChains = state.selectedChains || [];
+  let lastWallet = state.lastWallet || null;
+  let lastChain = state.lastChain || null;
+  let loadTimer = null;
+  let lastPortfolioData = null;
+
+  const loadMsgs = ['Fetching chain data...','Resolving token balances...','Pulling price data...','Almost there...'];
+
+  function saveState() {
+    state.selectedChains = selectedChains;
+    state.lastWallet = lastWallet;
+    state.lastChain = lastChain;
+    localStorage.setItem(STORAGE, JSON.stringify(state));
+  }
+
+  function getKey(storageKey) { return storageKey ? (localStorage.getItem(storageKey) || '') : ''; }
+  function setKey(storageKey, val) { if (storageKey) localStorage.setItem(storageKey, val); }
+
+  // ── INIT ──────────────────────────────────────────────────────────────────
+  window.onload = function() {
+    renderChainGrid();
+    renderKeyFields();
+    renderWalletChainSelect();
+    // Restore selections
+    document.querySelectorAll('.chain-chip').forEach(c => {
+      if (selectedChains.includes(c.dataset.id)) c.classList.add('on');
+    });
+    // Pre-fill keys
+    Object.values(PROVIDERS).forEach(p => {
+      if (p.storageKey) {
+        const saved = getKey(p.storageKey);
+        const inp = document.getElementById('key-' + p.storageKey);
+        if (inp && saved) inp.value = saved;
+      }
+    });
+    // Pre-fill Gemini key
+    const savedGemini = localStorage.getItem('cw_gemini_key') || '';
+    const geminiInp = document.getElementById('key-cw_gemini_key');
+    if (geminiInp && savedGemini) {
+      geminiInp.value = savedGemini;
+      const st = document.getElementById('kstatus-cw_gemini_key');
+      if (st) { st.textContent = '✓ Key saved'; st.className = 'key-status ok'; }
+    }
+  };
+
+  // ── CHAIN GRID ────────────────────────────────────────────────────────────
+  function renderChainGrid() {
+    document.getElementById('chain-grid').innerHTML = CHAINS.map(c => `
+      <div class="chain-chip ${selectedChains.includes(c.id)?'on':''}" data-id="${c.id}" onclick="toggleChain('${c.id}')">
+        <span class="dot"></span>${c.label}
+      </div>
+    `).join('');
+  }
+
+  function toggleChain(id) {
+    if (selectedChains.includes(id)) {
+      selectedChains = selectedChains.filter(c => c !== id);
+    } else {
+      selectedChains.push(id);
+    }
+    renderChainGrid();
+    renderKeyFields();
+    renderWalletChainSelect();
+    saveState();
+  }
+
+  // ── KEY FIELDS ────────────────────────────────────────────────────────────
+  function renderKeyFields(container) {
+    const el = container || document.getElementById('key-fields');
+    if (!el) return;
+    const needed = new Set(
+      selectedChains.map(id => CHAINS.find(c => c.id === id)?.provider).filter(Boolean)
+    );
+    if (needed.size === 0) { el.innerHTML = '<p style="font-family:\'Space Mono\',monospace;font-size:10px;color:var(--dimmed)">Select chains above to see required keys.</p>'; return; }
+    el.innerHTML = [...needed].map(provider => {
+      const p = PROVIDERS[provider];
+      if (p.free) return `
+        <div class="key-field">
+          <div class="key-field-label"><span>${p.label}</span></div>
+          <div class="key-free">✓ Free — no key required</div>
+        </div>`;
+      const saved = getKey(p.storageKey);
+      return `
+        <div class="key-field">
+          <div class="key-field-label">
+            <span>${p.label}</span>
+            <a href="${p.link}" target="_blank">${p.linkLabel} ↗</a>
+          </div>
+          <div class="key-row">
+            <input type="password" class="key-input" id="key-${p.storageKey}" placeholder="${p.placeholder}" value="${saved}" autocomplete="off">
+            <button class="key-btn" onclick="saveProviderKey('${p.storageKey}')">SAVE</button>
+          </div>
+          <div class="key-status" id="kstatus-${p.storageKey}">${saved ? '✓ Key saved' : ''}</div>
+        </div>`;
+    }).join('');
+  }
+
+  function saveProviderKey(storageKey) {
+    const val = document.getElementById('key-' + storageKey)?.value.trim();
+    if (!val) return;
+    setKey(storageKey, val);
+    const el = document.getElementById('kstatus-' + storageKey);
+    if (el) { el.textContent = '✓ Key saved'; el.className = 'key-status ok'; }
+  }
+
+  // ── WALLET CHAIN SELECT ───────────────────────────────────────────────────
+  function renderWalletChainSelect() {
+    const sel = document.getElementById('wallet-chain');
+    const chains = selectedChains.length > 0
+      ? selectedChains.map(id => CHAINS.find(c => c.id === id)).filter(Boolean)
+      : CHAINS;
+    sel.innerHTML = chains.map(c => `<option value="${c.id}">${c.label}</option>`).join('');
+    if (lastChain) sel.value = lastChain;
+  }
+
+  // ── LOAD WALLET ───────────────────────────────────────────────────────────
+  async function loadWallet() {
+    const addr = document.getElementById('wallet-address').value.trim();
+    const chainId = document.getElementById('wallet-chain').value;
+    const errEl = document.getElementById('setup-err');
+    errEl.style.display = 'none';
+
+    if (!addr) { showSetupErr('Enter a wallet address.'); return; }
+    if (!chainId) { showSetupErr('Select a chain.'); return; }
+
+    const chain = CHAINS.find(c => c.id === chainId);
+
+    // Key check
+    if (chain.provider !== 'blockstream') {
+      const p = PROVIDERS[chain.provider];
+      const key = getKey(p.storageKey);
+      if (!key) { showSetupErr(`${p.label} required. Save your key above.`); return; }
+    }
+
+    lastWallet = addr; lastChain = chainId; saveState();
+    showView('loading');
+    startLoadCycle();
+
+    try {
+      const data = await fetchWalletData(addr, chain);
+      clearInterval(loadTimer);
+      renderDashboard(data, addr, chain);
+      showView('dash');
+    } catch (e) {
+      clearInterval(loadTimer);
+      showView('setup');
+      showSetupErr('Failed to load wallet: ' + e.message);
+      console.error('[chain-watch]', e);
+    }
+  }
+
+  function showSetupErr(msg) {
+    const el = document.getElementById('setup-err');
+    el.textContent = msg; el.style.display = 'block';
+  }
+
+  async function refreshWallet() {
+    if (!lastWallet || !lastChain) return;
+    const chain = CHAINS.find(c => c.id === lastChain);
+    showView('loading'); startLoadCycle();
+    try {
+      const data = await fetchWalletData(lastWallet, chain);
+      clearInterval(loadTimer);
+      renderDashboard(data, lastWallet, chain);
+      showView('dash');
+    } catch(e) {
+      clearInterval(loadTimer);
+      showView('dash');
+      const errEl = document.getElementById('dash-err');
+      errEl.textContent = 'Refresh failed: ' + e.message;
+      errEl.style.display = 'block';
+    }
+  }
+
+  // ── FETCH ORCHESTRATOR ────────────────────────────────────────────────────
+  async function fetchWalletData(address, chain) {
+    if (chain.provider === 'moralis') return fetchMoralis(address, chain);
+    if (chain.provider === 'blockstream') return fetchBitcoin(address);
+    if (chain.provider === 'toncenter') return fetchTON(address);
+    throw new Error('Unknown provider');
+  }
+
+  // ── MORALIS (EVM + Solana) ────────────────────────────────────────────────
+  async function fetchMoralis(address, chain) {
+    const key = getKey('cw_moralis_key');
+    const isSolana = chain.id === 'solana';
+    const baseUrl = 'https://deep-index.moralis.io/api/v2.2';
+
+    let nativeRes, tokensRes;
+
+    if (isSolana) {
+      const solBase = 'https://solana-gateway.moralis.io';
+      [nativeRes, tokensRes] = await Promise.all([
+        fetch(`${solBase}/account/mainnet/${address}/balance`, { headers: { 'X-API-Key': key } }),
+        fetch(`${solBase}/account/mainnet/${address}/tokens`, { headers: { 'X-API-Key': key } }),
+      ]);
+    } else {
+      [nativeRes, tokensRes] = await Promise.all([
+        fetch(`${baseUrl}/${address}/balance?chain=${chain.moralisChain}`, { headers: { 'X-API-Key': key } }),
+        fetch(`${baseUrl}/${address}/erc20?chain=${chain.moralisChain}&limit=20`, { headers: { 'X-API-Key': key } }),
+      ]);
+    }
+
+    if (!nativeRes.ok) {
+      const err = await nativeRes.json().catch(()=>({}));
+      throw new Error(err?.message || `Moralis error ${nativeRes.status}`);
+    }
+
+    const nativeData = await nativeRes.json();
+    const tokensData = tokensRes.ok ? await tokensRes.json() : { result: [] };
+
+    // Native balance
+    let nativeBalance;
+    if (isSolana) {
+      nativeBalance = parseFloat(nativeData.solana || 0);
+    } else {
+      nativeBalance = parseFloat(nativeData.balance || 0) / 1e18;
+    }
+
+    // Token list
+    let tokens = [];
+    const tokenList = isSolana ? (tokensData || []) : (tokensData.result || []);
+
+    tokenList.slice(0, 15).forEach(t => {
+      const decimals = parseInt(t.decimals || 18);
+      const amount = parseFloat(t.amount || t.balance || 0) / Math.pow(10, decimals);
+      if (amount > 0.0001) {
+        tokens.push({
+          symbol: (t.symbol || t.mint?.slice(0,6) || '???').toUpperCase(),
+          name: t.name || t.symbol || 'Unknown',
+          amount,
+          usdPrice: parseFloat(t.usd_price || 0),
+          usdValue: parseFloat(t.usd_value || (amount * parseFloat(t.usd_price || 0))),
+          change24h: parseFloat(t.usd_price_24hr_percent_change || 0),
+          cgId: null,
+        });
+      }
+    });
+
+    // Fetch native price + historical from CoinGecko
+    const priceData = await fetchCoinGeckoPrices(chain.coingecko);
+    const nativeUsd = priceData.current;
+    const nativeValue = nativeBalance * nativeUsd;
+
+    const nativeToken = {
+      symbol: chain.symbol,
+      name: chain.label + ' (native)',
+      amount: nativeBalance,
+      usdPrice: nativeUsd,
+      usdValue: nativeValue,
+      change24h: priceData.change24h,
+      change7d: priceData.change7d,
+      change30d: priceData.change30d,
+      change365d: priceData.change365d,
+    };
+
+    // Fetch prices for top tokens
+    for (let t of tokens.slice(0,8)) {
+      try {
+        const cgId = await resolveCoinGeckoId(t.symbol);
+        if (cgId) {
+          const p = await fetchCoinGeckoPrices(cgId);
+          t.usdPrice = p.current;
+          t.usdValue = t.amount * p.current;
+          t.change24h = p.change24h;
+          t.change7d = p.change7d;
+          t.change30d = p.change30d;
+          t.change365d = p.change365d;
+        }
+      } catch(_) {}
+    }
+
+    const allTokens = [nativeToken, ...tokens.filter(t => t.usdValue > 0.01)];
+    const totalValue = allTokens.reduce((s, t) => s + (t.usdValue || 0), 0);
+
+    // Weighted portfolio performance
+    const perf = calcPortfolioPerf(allTokens, totalValue);
+
+    return { totalValue, tokens: allTokens, perf, chain };
+  }
+
+  // ── BITCOIN (Blockstream) ─────────────────────────────────────────────────
+  async function fetchBitcoin(address) {
+    const [addrRes, priceData] = await Promise.all([
+      fetch(`https://blockstream.info/api/address/${address}`),
+      fetchCoinGeckoPrices('bitcoin'),
+    ]);
+    if (!addrRes.ok) throw new Error(`Blockstream error ${addrRes.status}`);
+    const data = await addrRes.json();
+    const satoshis = (data.chain_stats?.funded_txo_sum || 0) - (data.chain_stats?.spent_txo_sum || 0);
+    const btcBalance = satoshis / 1e8;
+    const usdValue = btcBalance * priceData.current;
+
+    const tokens = [{
+      symbol: 'BTC',
+      name: 'Bitcoin',
+      amount: btcBalance,
+      usdPrice: priceData.current,
+      usdValue,
+      change24h: priceData.change24h,
+      change7d: priceData.change7d,
+      change30d: priceData.change30d,
+      change365d: priceData.change365d,
+    }];
+
+    const perf = calcPortfolioPerf(tokens, usdValue);
+    return { totalValue: usdValue, tokens, perf };
+  }
+
+  // ── TON (TONCenter) ───────────────────────────────────────────────────────
+  async function fetchTON(address) {
+    const key = getKey('cw_ton_key');
+    const headers = key ? { 'X-API-Key': key } : {};
+    const [walletRes, priceData] = await Promise.all([
+      fetch(`https://toncenter.com/api/v2/getAddressBalance?address=${address}`, { headers }),
+      fetchCoinGeckoPrices('the-open-network'),
+    ]);
+    if (!walletRes.ok) throw new Error(`TONCenter error ${walletRes.status}`);
+    const data = await walletRes.json();
+    const nanotons = parseFloat(data.result || 0);
+    const tonBalance = nanotons / 1e9;
+    const usdValue = tonBalance * priceData.current;
+
+    const tokens = [{
+      symbol: 'TON',
+      name: 'Toncoin',
+      amount: tonBalance,
+      usdPrice: priceData.current,
+      usdValue,
+      change24h: priceData.change24h,
+      change7d: priceData.change7d,
+      change30d: priceData.change30d,
+      change365d: priceData.change365d,
+    }];
+
+    const perf = calcPortfolioPerf(tokens, usdValue);
+    return { totalValue: usdValue, tokens, perf };
+  }
+
+  // ── COINGECKO ─────────────────────────────────────────────────────────────
+  const cgCache = {};
+  async function fetchCoinGeckoPrices(cgId) {
+    if (cgCache[cgId]) return cgCache[cgId];
+    try {
+      const res = await fetch(`https://api.coingecko.com/api/v3/coins/${cgId}?localization=false&tickers=false&community_data=false&developer_data=false`);
+      if (!res.ok) throw new Error('CoinGecko ' + res.status);
+      const d = await res.json();
+      const m = d.market_data;
+      const result = {
+        current: m.current_price?.usd || 0,
+        change24h: m.price_change_percentage_24h || 0,
+        change7d: m.price_change_percentage_7d || 0,
+        change30d: m.price_change_percentage_30d || 0,
+        change365d: m.price_change_percentage_1y || 0,
+      };
+      cgCache[cgId] = result;
+      return result;
+    } catch(_) {
+      return { current:0, change24h:0, change7d:0, change30d:0, change365d:0 };
+    }
+  }
+
+  // Simple symbol → CoinGecko ID resolver for common tokens
+  const SYMBOL_MAP = {
+    'USDT':'tether','USDC':'usd-coin','DAI':'dai','WETH':'weth','WBTC':'wrapped-bitcoin',
+    'MATIC':'matic-network','BNB':'binancecoin','LINK':'chainlink','UNI':'uniswap',
+    'AAVE':'aave','COMP':'compound-governance-token','MKR':'maker','SNX':'havven',
+    'CRV':'curve-dao-token','LDO':'lido-dao','ARB':'arbitrum','OP':'optimism',
+    'APE':'apecoin','SAND':'the-sandbox','MANA':'decentraland','AXS':'axie-infinity',
+    'PEPE':'pepe','SHIB':'shiba-inu','DOGE':'dogecoin',
+  };
+  async function resolveCoinGeckoId(symbol) { return SYMBOL_MAP[symbol.toUpperCase()] || null; }
+
+  // ── PORTFOLIO PERFORMANCE ─────────────────────────────────────────────────
+  function calcPortfolioPerf(tokens, totalValue) {
+    if (!totalValue || totalValue === 0) return { change24h:0, change7d:0, change30d:0, change365d:0 };
+    const weighted = (key) => tokens.reduce((s, t) => {
+      const w = (t.usdValue || 0) / totalValue;
+      return s + w * (t[key] || 0);
+    }, 0);
+    return {
+      change24h: weighted('change24h'),
+      change7d: weighted('change7d'),
+      change30d: weighted('change30d'),
+      change365d: weighted('change365d'),
+    };
+  }
+
+  // ── RENDER DASHBOARD ──────────────────────────────────────────────────────
+  function renderDashboard(data, address, chain) {
+    lastPortfolioData = data;
+    const { totalValue, tokens, perf } = data;
+
+    document.getElementById('dash-wallet-addr').textContent = address.length > 20
+      ? address.slice(0,10) + '...' + address.slice(-8)
+      : address;
+    document.getElementById('dash-chain-badge').textContent = chain?.label || lastChain;
+
+    document.getElementById('dash-total').textContent = fmtUSD(totalValue);
+
+    const c24 = perf.change24h;
+    const c24El = document.getElementById('dash-24h');
+    c24El.textContent = (c24 >= 0 ? '▲ ' : '▼ ') + Math.abs(c24).toFixed(2) + '% (24h)';
+    c24El.className = 'portfolio-change ' + (c24 >= 0 ? 'up' : 'down');
+
+    setPerf('perf-7d', perf.change7d);
+    setPerf('perf-30d', perf.change30d);
+    setPerf('perf-365d', perf.change365d);
+
+    // Asset rows
+    const sorted = [...tokens].sort((a,b) => (b.usdValue||0) - (a.usdValue||0));
+    document.getElementById('asset-list').innerHTML = sorted.map(t => {
+      const chg = t.change24h || 0;
+      const chgClass = chg > 0 ? 'up' : chg < 0 ? 'down' : 'neutral';
+      const chgStr = chg !== 0 ? (chg > 0 ? '+' : '') + chg.toFixed(2) + '%' : '—';
+      return `
+        <div class="asset-row">
+          <div>
+            <div class="asset-name">${esc(t.symbol)}</div>
+            <div class="asset-amount">${fmtAmount(t.amount)} · $${fmtPrice(t.usdPrice)}</div>
+          </div>
+          <div style="text-align:right">
+            <div class="asset-value">${fmtUSD(t.usdValue)}</div>
+            <div class="asset-change ${chgClass}">${chgStr} 24h</div>
+          </div>
+        </div>`;
+    }).join('') || '<div style="font-family:\'Space Mono\',monospace;font-size:11px;color:var(--muted);padding:.5rem 0">No assets found.</div>';
+
+    // Reset AI
+    document.getElementById('ai-text').textContent = 'Press generate to interpret your portfolio data.';
+    document.getElementById('ai-text').className = 'ai-text muted';
+    document.getElementById('dash-err').style.display = 'none';
+  }
+
+  function setPerf(id, val) {
+    const el = document.getElementById(id);
+    if (!val && val !== 0) { el.textContent = '—'; el.className = 'perf-val neutral'; return; }
+    el.textContent = (val >= 0 ? '+' : '') + val.toFixed(1) + '%';
+    el.className = 'perf-val ' + (val > 0 ? 'up' : val < 0 ? 'down' : 'neutral');
+  }
+
+  // ── AI INSIGHT ────────────────────────────────────────────────────────────
+  async function runAIInsight() {
+    const key = localStorage.getItem('cw_gemini_key') || '';
+    const aiEl = document.getElementById('ai-text');
+
+    if (!key) {
+      aiEl.textContent = 'No Gemini key saved. Add it in step 3 of the setup screen or via ⚙ KEYS in the nav.';
+      aiEl.className = 'ai-text muted';
+      return;
+    }
+
+    if (!lastPortfolioData) return;
+    const { totalValue, tokens, perf } = lastPortfolioData;
+
+    aiEl.textContent = 'Interpreting portfolio data...';
+    aiEl.className = 'ai-text muted';
+
+    const topAssets = tokens.slice(0,6).map(t =>
+      `${t.symbol}: $${fmtUSD(t.usdValue)} (${t.change24h?.toFixed(1)||'?'}% 24h)`
+    ).join(', ');
+
+    const prompt = `You are a neutral crypto portfolio data analyst. Your role is to observe and report — not to give financial advice, not to predict, not to recommend buy/sell decisions.
+
+Portfolio data:
+- Chain: ${lastChain}
+- Total value: $${totalValue.toFixed(2)}
+- 24h change: ${perf.change24h?.toFixed(2)}%
+- 7d change: ${perf.change7d?.toFixed(2)}%
+- 30d change: ${perf.change30d?.toFixed(2)}%
+- 365d change: ${perf.change365d?.toFixed(2)}%
+- Top assets: ${topAssets}
+
+Write 2-3 sentences observing what the data shows. State concentration, performance trends, and any notable patterns. Do not give financial advice. Do not say "buy", "sell", "consider", "you should". Just describe what the numbers show.`;
+
+    const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${key}`;
+    try {
+      const res = await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(()=>({}));
+        throw new Error(err?.error?.message || `HTTP ${res.status}`);
+      }
+      const d = await res.json();
+      const text = d.candidates[0].content.parts[0].text;
+      aiEl.textContent = text;
+      aiEl.className = 'ai-text';
+    } catch(e) {
+      aiEl.textContent = 'Insight failed: ' + e.message;
+      aiEl.className = 'ai-text muted';
+    }
+  }
+
+  // ── SETTINGS OVERLAY ──────────────────────────────────────────────────────
+  function openSettings() {
+    const container = document.getElementById('settings-key-fields');
+    // Show all possible key fields
+    const allProviders = ['moralis','toncenter'];
+    container.innerHTML = allProviders.map(provider => {
+      const p = PROVIDERS[provider];
+      const saved = getKey(p.storageKey);
+      return `
+        <div class="key-field" style="margin-bottom:10px">
+          <div class="key-field-label">
+            <span>${p.label}</span>
+            <a href="${p.link}" target="_blank" style="color:var(--cyan);font-size:8px;text-decoration:none">${p.linkLabel} ↗</a>
+          </div>
+          <div class="key-row">
+            <input type="password" class="key-input" id="skey-${p.storageKey}" placeholder="${p.placeholder}" value="${saved}" autocomplete="off">
+            <button class="key-btn" onclick="saveProviderKeyById('skey-${p.storageKey}','${p.storageKey}')">SAVE</button>
+          </div>
+          <div class="key-status ${saved?'ok':''}" id="skstatus-${p.storageKey}">${saved?'✓ Key saved':''}</div>
+        </div>`;
+    }).join('') + `
+      <div class="key-field" style="margin-bottom:10px">
+        <div class="key-field-label"><span>Gemini API Key (AI Insights)</span><a href="https://aistudio.google.com/app/apikey" target="_blank" style="color:var(--cyan);font-size:8px;text-decoration:none">Get free key ↗</a></div>
+        <div class="key-row">
+          <input type="password" class="key-input" id="skey-gemini" placeholder="Gemini key for AI insights..." value="${localStorage.getItem('cw_gemini_key')||''}" autocomplete="off">
+          <button class="key-btn" onclick="saveProviderKeyById('skey-gemini','cw_gemini_key')">SAVE</button>
+        </div>
+        <div class="key-status ${localStorage.getItem('cw_gemini_key')?'ok':''}" id="skstatus-gemini">${localStorage.getItem('cw_gemini_key')?'✓ Key saved':''}</div>
+      </div>`;
+    document.getElementById('settings-overlay').classList.add('open');
+  }
+
+  function saveProviderKeyById(inputId, storageKey) {
+    const val = document.getElementById(inputId)?.value.trim();
+    if (!val) return;
+    localStorage.setItem(storageKey, val);
+    const el = document.getElementById('skstatus-' + storageKey.replace('cw_','').replace('_key',''));
+    const el2 = document.getElementById('skstatus-' + storageKey);
+    [el, el2].forEach(e => { if(e) { e.textContent = '✓ Key saved'; e.className = 'key-status ok'; }});
+    renderKeyFields();
+  }
+
+  function closeSettings() { document.getElementById('settings-overlay').classList.remove('open'); }
+
+  function clearAllData() {
+    if (confirm('Clear all saved keys and wallet data?')) {
+      ['cw_state_v1','cw_moralis_key','cw_ton_key','cw_gemini_key'].forEach(k => localStorage.removeItem(k));
+      location.reload();
+    }
+  }
+
+  // ── VIEWS ─────────────────────────────────────────────────────────────────
+  function showView(id) {
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    document.getElementById('view-' + id).classList.add('active');
+  }
+  function backToSetup() { showView('setup'); }
+
+  function startLoadCycle() {
+    let i = 0;
+    document.getElementById('loading-txt').textContent = loadMsgs[0];
+    clearInterval(loadTimer);
+    loadTimer = setInterval(() => {
+      i = (i+1) % loadMsgs.length;
+      document.getElementById('loading-txt').textContent = loadMsgs[i];
+    }, 2000);
+  }
+
+  // ── FORMATTERS ────────────────────────────────────────────────────────────
+  function fmtUSD(v) {
+    if (!v || v === 0) return '$0.00';
+    if (v >= 1000000) return '$' + (v/1000000).toFixed(2) + 'M';
+    if (v >= 1000) return '$' + v.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
+    return '$' + v.toFixed(2);
+  }
+  function fmtAmount(v) {
+    if (!v) return '0';
+    if (v >= 1000) return v.toLocaleString('en-US', {maximumFractionDigits:2});
+    if (v >= 1) return v.toFixed(4);
+    return v.toFixed(6);
+  }
+  function fmtPrice(v) {
+    if (!v) return '0.00';
+    if (v >= 1000) return v.toLocaleString('en-US', {maximumFractionDigits:0});
+    if (v >= 1) return v.toFixed(2);
+    return v.toFixed(6);
+  }
+  function esc(s) {
+    if (typeof s !== 'string') return '';
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+  </script>
+</body>
+</html>
