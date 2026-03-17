@@ -46,7 +46,7 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 80px 20px 60px;
+      padding: 80px 20px 80px;
       overflow-x: hidden;
     }
 
@@ -60,7 +60,7 @@
       z-index: 9999;
     }
 
-    /* --- NAV --- */
+    /* NAV */
     .top-nav {
       position: fixed; top: 0; left: 0; right: 0;
       display: flex; justify-content: space-between; align-items: center;
@@ -71,18 +71,26 @@
       border-bottom: 1px solid rgba(255,0,128,0.2);
     }
     .nav-brand { font-family: 'Black Ops One', cursive; font-size: 1rem; color: var(--pink); letter-spacing: 2px; text-decoration: none; }
-    .nav-link { color: var(--cyan); text-decoration: none; font-weight: 700; font-size: 0.8rem; border: 1px solid var(--cyan); padding: 7px 14px; border-radius: 20px; transition: 0.3s; letter-spacing: 1px; }
+    .nav-right { display: flex; align-items: center; gap: 10px; }
+    .nav-link {
+      color: var(--cyan); text-decoration: none; font-weight: 700;
+      font-size: 0.75rem; border: 1px solid var(--cyan);
+      padding: 6px 13px; border-radius: 20px; transition: 0.3s; letter-spacing: 1px;
+    }
     .nav-link:hover { background: var(--cyan); color: #0d0d0d; box-shadow: 0 0 15px var(--cyan-glow); }
+    .nav-link.radio { border-color: #ff0033; color: #ff6666; }
+    .nav-link.radio:hover { background: #ff0033; color: #fff; box-shadow: 0 0 15px rgba(255,0,51,0.4); }
 
-    /* --- HEADER --- */
+    /* HEADER */
     .page-header {
       text-align: center;
-      margin-bottom: 40px;
+      margin-bottom: 50px;
       animation: fadeSlideIn 1.2s ease-out forwards;
       opacity: 0;
+      width: 100%;
+      max-width: 960px;
     }
     @keyframes fadeSlideIn { 0% { opacity:0; transform: translateY(16px); } 100% { opacity:1; transform: translateY(0); } }
-    @keyframes fadeIn { to { opacity: 1; } }
 
     .page-header h1 {
       font-family: 'Black Ops One', cursive;
@@ -93,35 +101,66 @@
       margin: 0 0 10px;
     }
     .page-header p {
-      color: #666;
-      font-size: 1rem;
-      font-weight: 600;
-      letter-spacing: 1px;
-      margin: 0;
+      color: #666; font-size: 1rem; font-weight: 600; letter-spacing: 1px; margin: 0;
     }
 
-    /* --- DIVIDER --- */
+    /* DIVIDER */
     .divider {
       width: 80%; max-width: 500px; height: 1px;
       background: linear-gradient(to right, transparent, var(--cyan), transparent);
-      margin: 0 0 40px; opacity: 0.3;
+      margin: 0 0 50px; opacity: 0.3;
     }
 
-    /* --- GRID --- */
-    .tools-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 18px;
+    /* SECTION WRAPPER */
+    .section-block {
       width: 100%;
       max-width: 960px;
+      margin-bottom: 56px;
     }
 
-    /* --- TOOL CARD --- */
+    /* SECTION HEADER */
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+    .section-label {
+      font-family: 'Black Ops One', cursive;
+      font-size: .8rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+    .section-label.dev { color: var(--cyan); }
+    .section-label.general { color: var(--pink); }
+    .section-rule {
+      flex: 1; height: 1px; opacity: .2;
+    }
+    .section-rule.dev { background: var(--cyan); }
+    .section-rule.general { background: var(--pink); }
+    .section-desc {
+      font-size: .8rem;
+      font-weight: 600;
+      letter-spacing: .5px;
+      color: #444;
+      margin-bottom: 20px;
+    }
+
+    /* GRID */
+    .tools-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(265px, 1fr));
+      gap: 16px;
+      width: 100%;
+    }
+
+    /* TOOL CARD */
     .tool-card {
       background: var(--card);
       border: 1px solid rgba(255,255,255,0.08);
       border-radius: 20px;
-      padding: 28px 24px;
+      padding: 26px 22px;
       text-align: center;
       text-decoration: none;
       color: inherit;
@@ -134,24 +173,29 @@
       animation: fadeSlideIn 0.7s ease-out forwards;
     }
 
+    /* Stagger all cards globally */
     .tool-card:nth-child(1) { animation-delay: 0.05s; }
     .tool-card:nth-child(2) { animation-delay: 0.12s; }
     .tool-card:nth-child(3) { animation-delay: 0.19s; }
     .tool-card:nth-child(4) { animation-delay: 0.26s; }
     .tool-card:nth-child(5) { animation-delay: 0.33s; }
     .tool-card:nth-child(6) { animation-delay: 0.40s; }
-    .tool-card:nth-child(7) { animation-delay: 0.47s; }
-    .tool-card:nth-child(8) { animation-delay: 0.54s; }
 
     .tool-card:hover {
-      border-color: var(--pink);
       transform: translateY(-6px);
+    }
+    .tool-card.dev-card:hover {
+      border-color: var(--cyan);
+      box-shadow: 0 12px 35px var(--cyan-glow);
+    }
+    .tool-card.general-card:hover {
+      border-color: var(--pink);
       box-shadow: 0 12px 35px var(--pink-glow);
     }
 
     .tool-card.coming-soon {
-      opacity: 0.3 !important;
-      filter: grayscale(0.8);
+      opacity: 0.25 !important;
+      filter: grayscale(0.9);
       pointer-events: none;
     }
 
@@ -160,12 +204,10 @@
       font-size: 1.1rem;
       letter-spacing: 1px;
       margin: 0;
-      color: var(--pink);
     }
-
     .tool-card p {
-      color: #888;
-      font-size: 0.9rem;
+      color: #777;
+      font-size: 0.88rem;
       line-height: 1.55;
       margin: 0;
       font-weight: 600;
@@ -177,28 +219,20 @@
       color: #000;
       padding: 3px 12px;
       border-radius: 20px;
-      font-size: 0.7rem;
+      font-size: 0.68rem;
       font-weight: 700;
       letter-spacing: 1.5px;
       font-family: 'Rajdhani', sans-serif;
     }
-
-    /* Radio card */
-    .radio-logo {
-      width: 80px; height: 80px;
-      object-fit: contain;
-      border-radius: 14px;
-      filter: drop-shadow(0 0 12px var(--pink-glow));
-      transition: transform 0.25s ease;
-    }
-    .tool-card:hover .radio-logo { transform: scale(1.06); }
   </style>
 </head>
 <body>
 
   <nav class="top-nav">
     <span class="nav-brand">🔧 PUMPO TOOLS</span>
-    <a href="https://radiopumpo.github.io" class="nav-link">📻 RADIO PUMPO</a>
+    <div class="nav-right">
+      <a href="https://radiopumpo.github.io" class="nav-link radio">📻 RADIO PUMPO</a>
+    </div>
   </nav>
 
   <div class="page-header">
@@ -208,66 +242,86 @@
 
   <div class="divider"></div>
 
-  <div class="tools-grid">
+  <!-- DEV TOOLS -->
+  <div class="section-block">
+    <div class="section-header">
+      <span class="section-label dev">Dev Tools</span>
+      <div class="section-rule dev"></div>
+    </div>
+    <p class="section-desc">Built for developers. Code, debug, optimize.</p>
 
-    <a href="prompt-fixer.html" class="tool-card">
-      <div class="badge" style="background:#ff8c00; color:#000;">AI OPTIMIZER</div>
-      <h2 style="color:#ff8c00;">Fix My Prompt</h2>
-      <p>Turn simple sentences into professional AI instructions. Optimized for ChatGPT, Gemini, and Claude.</p>
-      <div class="badge" style="background:#cfff04; color:#000;">NEW</div>
-    </a>
+    <div class="tools-grid">
 
-    <a href="debugger.html" class="tool-card">
-      <div class="badge">AI POWERED</div>
-      <h2>Debugger</h2>
-      <p>Paste your error logs and let AI explain the fix in plain English. No more StackOverflow rabbit holes.</p>
-    </a>
+      <a href="prompt-fixer.html" class="tool-card dev-card">
+        <div class="badge" style="background:#ff8c00; color:#000;">AI OPTIMIZER</div>
+        <h2 style="color:#ff8c00;">Fix My Prompt</h2>
+        <p>Turn simple sentences into professional AI instructions. Optimized for ChatGPT, Gemini, and Claude.</p>
+      </a>
 
-    <a href="ad-playground.html" class="tool-card">
-      <div class="badge" style="background:#40e0d0; color:#000;">B2B SHOWCASE</div>
-      <h2>Ad-Engine Playground</h2>
-      <p>Explore high-engagement, gamified ad modules. Scratch reveals, micro-decisions, and tactile interactions.</p>
-    </a>
+      <a href="debugger.html" class="tool-card dev-card">
+        <div class="badge" style="background:var(--cyan); color:#000;">AI POWERED</div>
+        <h2 style="color:var(--cyan);">Debugger</h2>
+        <p>Paste your error logs and let AI explain the fix in plain English. No more StackOverflow rabbit holes.</p>
+      </a>
 
-    <a href="vision.html" class="tool-card">
-      <div class="badge" style="background:#ff0080; color:#fff;">VISION AI</div>
-      <h2>Vision</h2>
-      <p>Upload any screenshot — errors, charts, or dashboards. Get an instant plain-English breakdown and fix.</p>
-    </a>
+      <a href="vision.html" class="tool-card dev-card">
+        <div class="badge" style="background:#ff0080; color:#fff;">VISION AI</div>
+        <h2 style="color:#ff0080;">Vision</h2>
+        <p>Upload any screenshot — errors, charts, or dashboards. Get an instant plain-English breakdown and fix.</p>
+      </a>
 
-    <a href="prestige.html" class="tool-card">
-      <div class="badge" style="background:#40e0d0; color:#000;">WRITING</div>
-      <h2>Prestige</h2>
-      <p>Turn "okay" text into high-status, persuasive communication. Elevate your emails, pitches, and posts.</p>
-    </a>
+      <a href="ad-playground.html" class="tool-card dev-card">
+        <div class="badge" style="background:var(--cyan); color:#000;">B2B SHOWCASE</div>
+        <h2 style="color:var(--cyan);">Ad-Engine Playground</h2>
+        <p>Explore high-engagement, gamified ad modules. Scratch reveals, micro-decisions, and tactile interactions.</p>
+      </a>
 
-    <a href="leak-detector.html" class="tool-card">
-      <div class="badge" style="background:#ff8c00; color:#000;">BUSINESS</div>
-      <h2 style="color:#ff8c00;">Revenue Leak Detector</h2>
-      <p>Analyze your business URL to find exactly where you're leaving money on the table. Instant ROI audit.</p>
-    </a>
+      <a href="#" class="tool-card dev-card coming-soon">
+        <div class="badge" style="background:#333; color:#555;">UPCOMING</div>
+        <h2 style="color:#555;">JSON Pumpo-fier</h2>
+        <p>Clean, format, and validate your JSON strings with a neon-synthwave interface.</p>
+      </a>
 
-    <a href="#" class="tool-card coming-soon">
-      <div class="badge" style="background:#333; color:#777;">UPCOMING</div>
-      <h2 style="color:#555;">JSON Pumpo-fier</h2>
-      <p>Clean, format, and validate your JSON strings with a neon-synthwave interface.</p>
-    </a>
+    </div>
+  </div>
 
-    <a href="https://radiopumpo.github.io" class="tool-card">
-      <div class="badge" style="background:#ff0033; color:#fff;">● LIVE NOW</div>
-      <img src="https://raw.githubusercontent.com/radiopumpo/radiopumpo.github.io/main/radiopumpologo.png"
-           alt="Radio Pumpo" class="radio-logo">
-      <h2>Radio Pumpo</h2>
-      <p>Need focus? Head back to the 24/7 radio station for the best coding beats.</p>
-    </a>
+  <!-- GENERAL TOOLS -->
+  <div class="section-block">
+    <div class="section-header">
+      <span class="section-label general">For Everyone</span>
+      <div class="section-rule general"></div>
+    </div>
+    <p class="section-desc">No technical context needed. Built for thinking, writing, and moving forward.</p>
 
-    <a href="keep-moving.html" class="tool-card">
-      <div class="badge" style="background:#40e0d0; color:#000;">CLARITY AI</div>
-      <h2 style="color:#40e0d0;">Keep Moving</h2>
-      <p>Stuck on something? Get a brutally honest breakdown of where you are and exactly what to do next.</p>
-      <div class="badge" style="background:#cfff04; color:#000;">NEW</div>
-    </a>
-    
+    <div class="tools-grid">
+
+      <a href="keep-moving.html" class="tool-card general-card">
+        <div class="badge" style="background:#40e0d0; color:#000;">CLARITY AI</div>
+        <h2 style="color:#40e0d0;">Keep Moving</h2>
+        <p>Stuck on something? Get a brutally honest breakdown of where you are and exactly what to do next.</p>
+        <div class="badge" style="background:#cfff04; color:#000;">NEW</div>
+      </a>
+
+      <a href="grounded.html" class="tool-card general-card">
+        <div class="badge" style="background:#6b7c4a; color:#0e0e0c;">STABILITY SYSTEM</div>
+        <h2 style="color:#8a9e60;">Grounded</h2>
+        <p>A 42-day behavior-driven stability process. Time-bound, exit-focused, no retention loops.</p>
+        <div class="badge" style="background:#cfff04; color:#000;">NEW</div>
+      </a>
+
+      <a href="prestige.html" class="tool-card general-card">
+        <div class="badge" style="background:#40e0d0; color:#000;">WRITING</div>
+        <h2 style="color:#40e0d0;">Prestige</h2>
+        <p>Turn "okay" text into high-status, persuasive communication. Elevate your emails, pitches, and posts.</p>
+      </a>
+
+      <a href="leak-detector.html" class="tool-card general-card">
+        <div class="badge" style="background:#ff8c00; color:#000;">BUSINESS</div>
+        <h2 style="color:#ff8c00;">Revenue Leak Detector</h2>
+        <p>Analyze your business URL to find exactly where you're leaving money on the table. Instant ROI audit.</p>
+      </a>
+
+    </div>
   </div>
 
 </body>
