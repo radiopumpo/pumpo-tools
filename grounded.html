@@ -1,0 +1,988 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Grounded">
+  <link rel="apple-touch-icon" href="https://radiopumpo.github.io/radiopumpologo.png">
+  <link rel="icon" type="image/png" href="https://radiopumpo.github.io/radiopumpologo.png">
+  <title>Grounded | Pumpo Tools</title>
+  <link href="https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Rajdhani:wght@400;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg:       #0e0e0c;
+      --bg2:      #151513;
+      --bg3:      #1c1c19;
+      --bg4:      #242420;
+      --border:   rgba(255,255,255,0.07);
+      --border2:  rgba(255,255,255,0.14);
+      --text:     #e8e4dc;
+      --muted:    #6b6860;
+      --dimmed:   #3a3a36;
+      --olive:    #6b7c4a;
+      --olive2:   #8a9e60;
+      --olive-bg: rgba(107,124,74,0.12);
+      --red:      #8b3a3a;
+      --red-bg:   rgba(139,58,58,0.12);
+      --red-text: #c87070;
+      --amber:    #8b6a2a;
+      --amber-bg: rgba(139,106,42,0.12);
+      --amber-text: #c8a060;
+      --stone:    #5a5a54;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { -webkit-text-size-adjust: 100%; }
+
+    body {
+      font-family: 'Rajdhani', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+      padding-top: env(safe-area-inset-top);
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    /* Subtle grain texture */
+    body::before {
+      content: '';
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,0,0,0.015) 3px, rgba(0,0,0,0.015) 6px);
+      pointer-events: none; z-index: 9999;
+    }
+
+    /* NAV — pumpo shell */
+    .top-nav {
+      position: fixed; top: 0; left: 0; right: 0;
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 12px 20px;
+      background: rgba(14,14,12,0.92);
+      backdrop-filter: blur(10px);
+      z-index: 500;
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-brand { font-family: 'Black Ops One', cursive; font-size: .9rem; color: var(--olive2); letter-spacing: 2px; text-decoration: none; }
+    .nav-right { display: flex; align-items: center; gap: 10px; }
+    .nav-link { color: var(--muted); text-decoration: none; font-weight: 700; font-size: .7rem; border: 1px solid var(--border2); padding: 5px 11px; border-radius: 20px; transition: .25s; letter-spacing: 1px; font-family: 'Space Mono', monospace; }
+    .nav-link:hover { border-color: var(--olive); color: var(--olive2); }
+    .debug-toggle { background: transparent; border: 1px solid var(--dimmed); color: var(--dimmed); font-family: 'Space Mono', monospace; font-size: 9px; letter-spacing: .1em; padding: 4px 9px; border-radius: 20px; cursor: pointer; transition: .2s; }
+    .debug-toggle.active { border-color: var(--amber); color: var(--amber-text); }
+
+    /* WRAP */
+    .wrap { max-width: 600px; margin: 0 auto; padding: 80px 1.25rem 5rem; }
+
+    /* PROGRESS HEADER */
+    .progress-header { margin-bottom: 2rem; }
+    .progress-meta { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px; }
+    .progress-label { font-family: 'Space Mono', monospace; font-size: 9px; letter-spacing: .18em; text-transform: uppercase; color: var(--muted); }
+    .progress-pct { font-family: 'Space Mono', monospace; font-size: 11px; color: var(--olive2); }
+    .progress-track { width: 100%; height: 2px; background: var(--bg4); overflow: hidden; }
+    .progress-fill { height: 100%; background: var(--olive); transition: width 1s ease; width: 0%; }
+    .phase-label { font-family: 'Space Mono', monospace; font-size: 9px; color: var(--dimmed); margin-top: 5px; letter-spacing: .12em; text-transform: uppercase; }
+
+    /* VIEWS */
+    .view { display: none; animation: fadeIn .4s ease; }
+    .view.active { display: block; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* TYPOGRAPHY */
+    .view-title { font-family: 'Black Ops One', cursive; font-size: clamp(26px, 6vw, 40px); line-height: 1.0; letter-spacing: .5px; color: var(--text); margin-bottom: .75rem; }
+    .view-title.olive { color: var(--olive2); }
+    .view-sub { font-size: 13px; color: var(--muted); line-height: 1.6; font-weight: 600; margin-bottom: 1.5rem; }
+
+    /* CARDS */
+    .card { background: var(--bg3); border: 1px solid var(--border); border-radius: 10px; padding: 1.1rem 1.2rem; margin-bottom: 1rem; }
+    .card:focus-within { border-color: var(--border2); }
+    .card-label { font-family: 'Space Mono', monospace; font-size: 9px; letter-spacing: .18em; text-transform: uppercase; color: var(--muted); margin-bottom: .75rem; display: block; }
+
+    /* CONTRACT LIST */
+    .contract-list { list-style: none; display: flex; flex-direction: column; gap: 10px; margin-bottom: 1.5rem; }
+    .contract-list li { font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); padding: .7rem 1rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg2); }
+    .contract-list li span { color: var(--text); font-weight: 700; }
+
+    /* SLIDERS */
+    .slider-group { margin-bottom: 1.25rem; }
+    .slider-label { display: flex; justify-content: space-between; align-items: center; margin-bottom: .5rem; }
+    .slider-name { font-family: 'Space Mono', monospace; font-size: 9px; letter-spacing: .15em; text-transform: uppercase; color: var(--muted); }
+    .slider-val { font-family: 'Space Mono', monospace; font-size: 11px; color: var(--olive2); min-width: 16px; text-align: right; }
+    input[type="range"] { -webkit-appearance: none; width: 100%; background: var(--bg4); height: 3px; border-radius: 2px; outline: none; }
+    input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; height: 16px; width: 16px; background: var(--olive2); border-radius: 50%; cursor: pointer; transition: background .15s; }
+    input[type="range"]::-webkit-slider-thumb:active { background: var(--text); }
+
+    /* BUTTONS */
+    .btn-primary { width: 100%; padding: 1rem; background: var(--olive); color: var(--bg); font-family: 'Black Ops One', cursive; font-size: 13px; letter-spacing: .1em; border: none; border-radius: 8px; cursor: pointer; transition: all .2s; }
+    .btn-primary:hover { background: var(--olive2); }
+    .btn-primary:disabled { opacity: .25; cursor: not-allowed; }
+    .btn-secondary { width: 100%; padding: .85rem; background: transparent; color: var(--muted); font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; border: 1px solid var(--border2); border-radius: 8px; cursor: pointer; transition: all .2s; }
+    .btn-secondary:hover { border-color: var(--olive); color: var(--olive2); }
+    .btn-danger { width: 100%; padding: .85rem; background: var(--red-bg); color: var(--red-text); font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; border: 1px solid var(--red); border-radius: 8px; cursor: pointer; transition: all .2s; }
+    .btn-danger:hover { background: rgba(139,58,58,0.22); }
+    .btn-stack { display: flex; flex-direction: column; gap: 8px; }
+
+    /* DAILY VIEW */
+    .day-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem; }
+    .day-number { font-family: 'Black Ops One', cursive; font-size: 38px; line-height: 1; color: var(--text); }
+    .day-number span { font-size: 14px; color: var(--muted); font-family: 'Space Mono', monospace; font-weight: 400; }
+    .system-status { text-align: right; }
+    .status-label { font-family: 'Space Mono', monospace; font-size: 8px; letter-spacing: .18em; text-transform: uppercase; color: var(--dimmed); display: block; margin-bottom: 3px; }
+    .status-val { font-family: 'Space Mono', monospace; font-size: 10px; font-weight: 700; }
+    .status-val.stable { color: var(--olive2); }
+    .status-val.frozen { color: var(--amber-text); }
+    .status-val.reduced { color: var(--red-text); }
+
+    /* TASK CARDS */
+    .task-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 1.25rem; }
+    .task-item { background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; padding: .85rem 1rem; display: flex; align-items: flex-start; gap: 12px; }
+    .task-icon { font-family: 'Space Mono', monospace; font-size: 9px; color: var(--olive); border: 1px solid var(--olive); padding: 3px 6px; border-radius: 4px; white-space: nowrap; flex-shrink: 0; margin-top: 1px; letter-spacing: .08em; }
+    .task-body { flex: 1; }
+    .task-name { font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 2px; }
+    .task-detail { font-family: 'Space Mono', monospace; font-size: 10px; color: var(--muted); line-height: 1.5; }
+
+    /* SYSTEM MESSAGE */
+    .sys-msg { font-family: 'Space Mono', monospace; font-size: 10px; color: var(--muted); border-left: 2px solid var(--border2); padding-left: .85rem; margin-bottom: 1.25rem; line-height: 1.6; letter-spacing: .04em; }
+    .sys-msg.alert { border-left-color: var(--amber); color: var(--amber-text); }
+
+    /* LOG FORM */
+    .log-form { background: var(--bg3); border: 1px solid var(--border); border-radius: 10px; padding: 1.1rem 1.2rem; margin-bottom: 1rem; }
+    .log-row { display: flex; gap: 8px; margin-bottom: 8px; }
+    .log-chip { flex: 1; padding: .5rem .4rem; background: var(--bg2); border: 1px solid var(--border); border-radius: 6px; font-family: 'Space Mono', monospace; font-size: 9px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); cursor: pointer; transition: all .15s; text-align: center; }
+    .log-chip:hover { border-color: var(--border2); color: var(--text); }
+    .log-chip.on { background: var(--olive); color: var(--bg); border-color: var(--olive); }
+
+    /* AVENUE 2 */
+    .avenue2-block { border: 1px solid var(--border); border-radius: 10px; padding: 1.1rem 1.2rem; margin-bottom: 1rem; }
+    .avenue2-block.locked { opacity: .35; pointer-events: none; filter: grayscale(.6); }
+    .avenue2-block.unlocked { border-color: var(--olive); background: var(--olive-bg); }
+    .avenue2-title { font-family: 'Space Mono', monospace; font-size: 9px; letter-spacing: .2em; text-transform: uppercase; color: var(--muted); margin-bottom: .35rem; }
+    .avenue2-status { font-family: 'Space Mono', monospace; font-size: 10px; color: var(--dimmed); }
+    .avenue2-status.open { color: var(--olive2); }
+
+    /* AI OVERLAY */
+    .overlay { position: fixed; inset: 0; background: rgba(14,14,12,0.97); z-index: 600; display: none; flex-direction: column; padding: 1.5rem 1.25rem; padding-top: calc(1.5rem + env(safe-area-inset-top)); overflow-y: auto; }
+    .overlay.open { display: flex; }
+    .overlay-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+    .overlay-title { font-family: 'Space Mono', monospace; font-size: 9px; letter-spacing: .2em; text-transform: uppercase; color: var(--muted); }
+    .overlay-close { background: transparent; border: 1px solid var(--border2); color: var(--muted); font-family: 'Space Mono', monospace; font-size: 9px; letter-spacing: .1em; padding: 5px 12px; border-radius: 20px; cursor: pointer; transition: .2s; }
+    .overlay-close:hover { border-color: var(--olive); color: var(--olive2); }
+    .terminal-line { font-family: 'Space Mono', monospace; font-size: 10px; color: var(--dimmed); margin-bottom: 4px; }
+    .ai-response-text { font-size: 15px; line-height: 1.75; color: var(--text); font-weight: 600; margin-top: 1.5rem; white-space: pre-wrap; }
+
+    /* DEBUG PANEL */
+    .debug-panel { display: none; background: var(--amber-bg); border: 1px solid var(--amber); border-radius: 10px; padding: 1rem 1.1rem; margin-bottom: 1.25rem; }
+    .debug-panel.open { display: block; }
+    .debug-title { font-family: 'Space Mono', monospace; font-size: 9px; letter-spacing: .18em; text-transform: uppercase; color: var(--amber-text); margin-bottom: .75rem; }
+    .debug-row { display: flex; flex-wrap: wrap; gap: 6px; }
+    .debug-btn { background: transparent; border: 1px solid var(--amber); color: var(--amber-text); font-family: 'Space Mono', monospace; font-size: 9px; letter-spacing: .08em; padding: .4rem .7rem; border-radius: 6px; cursor: pointer; transition: .15s; }
+    .debug-btn:hover { background: var(--amber-bg); }
+
+    /* EXIT VIEW */
+    .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 1.5rem; }
+    .summary-card { background: var(--bg3); border: 1px solid var(--border); border-radius: 8px; padding: .85rem 1rem; }
+    .summary-card-label { font-family: 'Space Mono', monospace; font-size: 8px; letter-spacing: .15em; text-transform: uppercase; color: var(--muted); margin-bottom: .3rem; }
+    .summary-card-val { font-family: 'Black Ops One', cursive; font-size: 22px; color: var(--olive2); line-height: 1; }
+    .summary-card-sub { font-family: 'Space Mono', monospace; font-size: 9px; color: var(--dimmed); margin-top: 3px; }
+
+    /* KEY INPUT */
+    .key-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
+    .key-input { flex: 1; min-width: 140px; background: var(--bg2); border: 1px solid var(--border); color: var(--text); font-family: 'Space Mono', monospace; font-size: 11px; padding: .55rem .85rem; border-radius: 8px; outline: none; transition: border-color .15s; }
+    .key-input:focus { border-color: var(--border2); }
+    .key-btn { background: var(--olive); color: var(--bg); border: none; padding: .55rem 1rem; font-family: 'Black Ops One', cursive; font-size: 10px; letter-spacing: .08em; cursor: pointer; border-radius: 8px; white-space: nowrap; transition: .2s; }
+    .key-btn:hover { background: var(--olive2); }
+    .key-status { font-family: 'Space Mono', monospace; font-size: 10px; margin-top: 4px; display: none; }
+    .key-status.ok { color: var(--olive2); }
+    .key-status.err { color: var(--red-text); }
+    .key-note { font-size: 11px; color: var(--dimmed); line-height: 1.5; font-weight: 600; margin-top: 4px; }
+    .key-note a { color: var(--muted); }
+
+    /* DIVIDER */
+    .hdivider { width: 100%; height: 1px; background: var(--border); margin: 1.5rem 0; }
+
+    @media (max-width: 420px) {
+      .wrap { padding: 75px .9rem 4rem; }
+      .summary-grid { grid-template-columns: 1fr; }
+      .day-number { font-size: 30px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav class="top-nav">
+    <a href="index.html" class="nav-brand">GROUNDED</a>
+    <div class="nav-right">
+      <button class="debug-toggle" id="debug-toggle" onclick="toggleDebug()">DEV</button>
+      <a href="index.html" class="nav-link">← HUB</a>
+    </div>
+  </nav>
+
+  <div class="wrap">
+
+    <!-- PROGRESS BAR -->
+    <div class="progress-header" id="progress-header" style="display:none">
+      <div class="progress-meta">
+        <span class="progress-label">Mission progress</span>
+        <span class="progress-pct" id="progress-pct">0%</span>
+      </div>
+      <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+      <div class="phase-label" id="phase-label">Phase 0 — Entry</div>
+    </div>
+
+    <!-- DEBUG PANEL -->
+    <div class="debug-panel" id="debug-panel">
+      <div class="debug-title">⚠ Dev Mode — State Manipulation</div>
+      <div class="debug-row">
+        <button class="debug-btn" onclick="debugSkipDay()">+ 1 Day</button>
+        <button class="debug-btn" onclick="debugSkipWeek()">+ 7 Days</button>
+        <button class="debug-btn" onclick="debugGoPhase(1)">→ Phase 1</button>
+        <button class="debug-btn" onclick="debugGoPhase(2)">→ Phase 2</button>
+        <button class="debug-btn" onclick="debugGoPhase(3)">→ Phase 3</button>
+        <button class="debug-btn" onclick="debugUnlockAvenue2()">Unlock A2</button>
+        <button class="debug-btn" onclick="debugSimulateLapse()">Sim Lapse</button>
+        <button class="debug-btn" onclick="debugReset()" style="border-color:var(--red-text);color:var(--red-text)">Reset All</button>
+      </div>
+    </div>
+
+    <!-- VIEW: ORIENTATION -->
+    <div class="view active" id="view-orientation">
+      <div class="view-title">THE<br>CONTRACT.</div>
+      <p class="view-sub">Grounded is a behavior-driven system. Not a habit tracker. A time-bound process designed for completion and exit.</p>
+
+      <p style="font-family:'Space Mono',monospace;font-size:9px;color:var(--dimmed);letter-spacing:.06em;line-height:1.7;margin-bottom:1.1rem">No motivational messaging. No streaks. No social features.<br>This is a process, not a product.</p>
+
+      <ul class="contract-list">
+        <li><span>Duration:</span> 42 calendar days</li>
+        <li><span>Structure:</span> 4 phases, daily execution</li>
+        <li><span>Commitment:</span> a session per day, logged</li>
+        <li><span>Nature:</span> finite process — ends at day 42</li>
+        <li><span>Scope:</span> self-observational, not therapeutic</li>
+      </ul>
+
+      <div class="card" style="margin-bottom:1.25rem">
+        <span class="card-label">Gemini API Key (required for data interpretation)</span>
+        <div class="key-row">
+          <input type="password" class="key-input" id="api-key-input" placeholder="Paste Gemini key..." autocomplete="off">
+          <button class="key-btn" onclick="saveKey()">SAVE</button>
+        </div>
+        <div class="key-status" id="key-status"></div>
+        <div class="key-note">Stays in your browser only. Free key at <a href="https://aistudio.google.com/app/apikey" target="_blank">aistudio.google.com</a></div>
+      </div>
+
+      <button class="btn-primary" onclick="acceptContract()">ACCEPT CONDITIONS →</button>
+    </div>
+
+    <!-- VIEW: BASELINE -->
+    <div class="view" id="view-baseline">
+      <div class="view-title olive">BASELINE<br>ASSESSMENT.</div>
+      <p class="view-sub">Reference only. Not used for classification. Recorded once.</p>
+
+      <div class="card">
+        <span class="card-label">Current state — rate each from 1 (low) to 10 (high)</span>
+        <div id="baseline-sliders"></div>
+      </div>
+
+      <button class="btn-primary" onclick="saveBaseline()" style="margin-top:.5rem">RECORD BASELINE →</button>
+    </div>
+
+    <!-- VIEW: DAILY -->
+    <div class="view" id="view-daily">
+
+      <div class="day-header">
+        <div>
+          <div class="day-number">DAY <span id="day-num">01</span></div>
+          <div style="font-family:'Space Mono',monospace;font-size:9px;color:var(--muted);margin-top:3px;letter-spacing:.12em;text-transform:uppercase" id="phase-tag">Phase 1 — Regulation</div>
+        </div>
+        <div class="system-status">
+          <span class="status-label">System status</span>
+          <span class="status-val stable" id="status-val">● STABLE</span>
+        </div>
+      </div>
+
+      <div class="sys-msg" id="sys-msg">Today's focus is movement and breathing. Complete the steps as described.</div>
+
+      <div class="task-list" id="task-list"></div>
+
+      <!-- Log form -->
+      <div class="log-form">
+        <span class="card-label">Log today's session</span>
+        <div style="margin-bottom:.85rem">
+          <div class="slider-label">
+            <span class="slider-name">Effort level</span>
+            <span class="slider-val" id="effort-val">5</span>
+          </div>
+          <input type="range" id="log-effort" min="1" max="10" value="5" oninput="document.getElementById('effort-val').textContent=this.value">
+        </div>
+        <div style="margin-bottom:.85rem">
+          <div class="slider-label">
+            <span class="slider-name">Post-state (how you feel after)</span>
+            <span class="slider-val" id="post-val">5</span>
+          </div>
+          <input type="range" id="log-post" min="1" max="10" value="5" oninput="document.getElementById('post-val').textContent=this.value">
+        </div>
+        <div style="margin-bottom:.85rem">
+          <span class="card-label" style="margin-bottom:.4rem">Session completed?</span>
+          <div class="log-row">
+            <div class="log-chip" id="chip-yes" onclick="selectCompletion(true)">Completed</div>
+            <div class="log-chip" id="chip-skip" onclick="selectCompletion(false)">Skipped</div>
+          </div>
+        </div>
+        <button class="btn-primary" id="log-btn" onclick="logDay()" disabled>LOG SESSION →</button>
+      </div>
+
+      <!-- AI Interpretation -->
+      <button class="btn-secondary" onclick="openAI()" style="margin-bottom:.75rem">Interpret Data →</button>
+
+      <!-- Avenue 2 -->
+      <div class="avenue2-block locked" id="avenue2-block">
+        <div class="avenue2-title">Avenue 2 — Structured Human Review</div>
+        <div class="avenue2-status" id="avenue2-status">STATUS: LOCKED — ELIGIBILITY FROM DAY 21</div>
+      </div>
+
+    </div>
+
+    <!-- VIEW: EXIT -->
+    <div class="view" id="view-exit">
+      <div class="view-title">PROCESS<br>COMPLETE.</div>
+      <p class="view-sub">You have completed the process. Summary below.</p>
+
+      <div class="summary-grid" id="summary-grid"></div>
+
+      <div class="hdivider"></div>
+
+      <div class="btn-stack">
+        <button class="btn-secondary" onclick="exportData()">Export Data (JSON)</button>
+        <button class="btn-danger" onclick="purgeData()">Purge and Delete All Data</button>
+      </div>
+    </div>
+
+  </div><!-- /wrap -->
+
+  <!-- AI OVERLAY -->
+  <div class="overlay" id="ai-overlay">
+    <div class="overlay-header">
+      <span class="overlay-title">Data Interpretation — Gemini 2.5 Flash</span>
+      <button class="overlay-close" onclick="closeAI()">CLOSE</button>
+    </div>
+    <div class="terminal-line">> grounded.interpret_log()</div>
+    <div class="terminal-line" id="ai-status-line">> status: awaiting...</div>
+    <div class="ai-response-text" id="ai-response"></div>
+  </div>
+
+  <script>
+  // ── PROTOCOL DATA ──────────────────────────────────────────────────────────
+  const PROTOCOL = [
+    // Phase 0: Days 1-2 (index 0-1)
+    { phase:0, phaseName:'Phase 0 — Entry',      walk:0,  breath:0, activation:0, stillness:0, unstructured:0, autonomy:false },
+    { phase:0, phaseName:'Phase 0 — Entry',      walk:0,  breath:0, activation:0, stillness:0, unstructured:0, autonomy:false },
+    // Phase 1: Days 3-10 (index 2-9)
+    { phase:1, phaseName:'Phase 1 — Regulation', walk:10, breath:0,  activation:0, stillness:0, unstructured:0, autonomy:false },
+    { phase:1, phaseName:'Phase 1 — Regulation', walk:10, breath:0,  activation:0, stillness:0, unstructured:0, autonomy:false },
+    { phase:1, phaseName:'Phase 1 — Regulation', walk:10, breath:0,  activation:0, stillness:0, unstructured:0, autonomy:false },
+    { phase:1, phaseName:'Phase 1 — Regulation', walk:10, breath:2,  activation:0, stillness:0, unstructured:0, autonomy:false },
+    { phase:1, phaseName:'Phase 1 — Regulation', walk:10, breath:2,  activation:0, stillness:0, unstructured:0, autonomy:false },
+    { phase:1, phaseName:'Phase 1 — Regulation', walk:10, breath:2,  activation:0, stillness:0, unstructured:0, autonomy:false },
+    { phase:1, phaseName:'Phase 1 — Regulation', walk:12, breath:2,  activation:0, stillness:0, unstructured:0, autonomy:false },
+    { phase:1, phaseName:'Phase 1 — Regulation', walk:12, breath:2,  activation:0, stillness:0, unstructured:0, autonomy:false },
+    // Phase 2: Days 11-24 (index 10-23)
+    { phase:2, phaseName:'Phase 2 — Load & Consistency', walk:15, breath:3, activation:2, stillness:0, unstructured:0, autonomy:false },
+    { phase:2, phaseName:'Phase 2 — Load & Consistency', walk:15, breath:3, activation:2, stillness:0, unstructured:0, autonomy:false },
+    { phase:2, phaseName:'Phase 2 — Load & Consistency', walk:15, breath:3, activation:2, stillness:0, unstructured:0, autonomy:false },
+    { phase:2, phaseName:'Phase 2 — Load & Consistency', walk:15, breath:3, activation:3, stillness:2, unstructured:0, autonomy:false },
+    { phase:2, phaseName:'Phase 2 — Load & Consistency', walk:15, breath:3, activation:3, stillness:2, unstructured:0, autonomy:false },
+    { phase:2, phaseName:'Phase 2 — Load & Consistency', walk:15, breath:3, activation:3, stillness:2, unstructured:0, autonomy:false },
+    { phase:2, phaseName:'Phase 2 — Load & Consistency', walk:15, breath:3, activation:3, stillness:2, unstructured:0, autonomy:false },
+    { phase:2, phaseName:'Phase 2 — Load & Consistency', walk:18, breath:4, activation:3, stillness:2, unstructured:0, autonomy:false },
+    { phase:2, phaseName:'Phase 2 — Load & Consistency', walk:18, breath:4, activation:3, stillness:2, unstructured:0, autonomy:false },
+    { phase:2, phaseName:'Phase 2 — Load & Consistency', walk:18, breath:4, activation:3, stillness:2, unstructured:0, autonomy:false },
+    { phase:2, phaseName:'Phase 2 — Load & Consistency', walk:18, breath:4, activation:4, stillness:3, unstructured:0, autonomy:false }, // Day 21
+    { phase:2, phaseName:'Phase 2 — Load & Consistency', walk:18, breath:4, activation:4, stillness:3, unstructured:0, autonomy:false },
+    { phase:2, phaseName:'Phase 2 — Load & Consistency', walk:18, breath:4, activation:4, stillness:3, unstructured:0, autonomy:false },
+    { phase:2, phaseName:'Phase 2 — Load & Consistency', walk:18, breath:4, activation:4, stillness:3, unstructured:0, autonomy:false },
+    // Phase 3: Days 25-42 (index 24-41)
+    { phase:3, phaseName:'Phase 3 — Autonomy & Exposure', walk:20, breath:4, activation:4, stillness:3,  unstructured:0,  autonomy:false },
+    { phase:3, phaseName:'Phase 3 — Autonomy & Exposure', walk:20, breath:4, activation:4, stillness:3,  unstructured:0,  autonomy:false },
+    { phase:3, phaseName:'Phase 3 — Autonomy & Exposure', walk:20, breath:4, activation:4, stillness:3,  unstructured:0,  autonomy:false },
+    { phase:3, phaseName:'Phase 3 — Autonomy & Exposure', walk:20, breath:4, activation:4, stillness:3,  unstructured:0,  autonomy:false },
+    { phase:3, phaseName:'Phase 3 — Autonomy & Exposure', walk:20, breath:5, activation:5, stillness:5,  unstructured:10, autonomy:false },
+    { phase:3, phaseName:'Phase 3 — Autonomy & Exposure', walk:20, breath:5, activation:5, stillness:5,  unstructured:10, autonomy:false },
+    { phase:3, phaseName:'Phase 3 — Autonomy & Exposure', walk:20, breath:5, activation:5, stillness:5,  unstructured:10, autonomy:false },
+    { phase:3, phaseName:'Phase 3 — Autonomy & Exposure', walk:20, breath:5, activation:5, stillness:5,  unstructured:10, autonomy:false },
+    { phase:3, phaseName:'Phase 3 — Autonomy & Exposure', walk:20, breath:5, activation:5, stillness:5,  unstructured:10, autonomy:true  }, // Day 33
+    { phase:3, phaseName:'Phase 3 — Autonomy & Exposure', walk:20, breath:5, activation:5, stillness:5,  unstructured:10, autonomy:true  },
+    // Final stability window Days 35-42
+    { phase:3, phaseName:'Phase 3 — Final Stability',     walk:20, breath:5, activation:5, stillness:8,  unstructured:10, autonomy:true  },
+    { phase:3, phaseName:'Phase 3 — Final Stability',     walk:20, breath:5, activation:5, stillness:8,  unstructured:10, autonomy:true  },
+    { phase:3, phaseName:'Phase 3 — Final Stability',     walk:20, breath:5, activation:5, stillness:8,  unstructured:10, autonomy:true  },
+    { phase:3, phaseName:'Phase 3 — Final Stability',     walk:20, breath:5, activation:5, stillness:8,  unstructured:10, autonomy:true  },
+    { phase:3, phaseName:'Phase 3 — Final Stability',     walk:20, breath:5, activation:5, stillness:8,  unstructured:10, autonomy:true  },
+    { phase:3, phaseName:'Phase 3 — Final Stability',     walk:20, breath:5, activation:5, stillness:8,  unstructured:10, autonomy:true  },
+    { phase:3, phaseName:'Phase 3 — Final Stability',     walk:20, breath:5, activation:5, stillness:8,  unstructured:10, autonomy:true  },
+    { phase:3, phaseName:'Phase 3 — Final Stability',     walk:20, breath:5, activation:5, stillness:8,  unstructured:10, autonomy:true  },
+  ];
+
+  const BASELINE_METRICS = [
+    { id:'restlessness',  label:'Restlessness' },
+    { id:'sleep',         label:'Sleep quality' },
+    { id:'energy',        label:'Energy level' },
+    { id:'tension',       label:'Tension / physical tightness' },
+    { id:'activity',      label:'Activity level' },
+  ];
+
+  // ── STATE ──────────────────────────────────────────────────────────────────
+  const STORAGE_KEY = 'pumpo_grounded_v1';
+
+  function defaultState() {
+    return {
+      view: 'orientation',
+      startDate: null,       // ISO date string of day 1
+      calendarDay: 0,        // 1-indexed calendar day (1 = first day)
+      completedDays: 0,
+      baseline: null,
+      logs: [],              // { calendarDay, completed, effort, post, timestamp }
+      loadLevel: 'normal',   // normal | frozen | reduced
+      avenue2Unlocked: false,
+      avenue2Used: 0,
+      avenue2LastDay: null,
+      consecutiveMissed: 0,
+    };
+  }
+
+  let S = Object.assign(defaultState(), JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}'));
+  let apiKey = localStorage.getItem('pumpo_grounded_key') || '';
+  let completionSelected = null;
+  let debugMode = false;
+
+  function save() { localStorage.setItem(STORAGE_KEY, JSON.stringify(S)); }
+
+  // ── CALENDAR DAY CALCULATION ───────────────────────────────────────────────
+  function calcCalendarDay() {
+    if (!S.startDate) return 1;
+    const start = new Date(S.startDate);
+    const now = new Date();
+    start.setHours(0,0,0,0); now.setHours(0,0,0,0);
+    const diff = Math.floor((now - start) / 86400000) + 1;
+    return Math.max(1, Math.min(diff, 42));
+  }
+
+  function getTodayLogged() {
+    const cd = calcCalendarDay();
+    return S.logs.find(l => l.calendarDay === cd);
+  }
+
+  // ── RULE ENGINE ────────────────────────────────────────────────────────────
+  function runRuleEngine() {
+    const cd = calcCalendarDay();
+    if (cd < 9) return; // Need at least 7 days of data
+    const evalWindows = [9,16,23,30,37,42];
+    if (!evalWindows.includes(cd)) return;
+
+    const window7 = S.logs.filter(l => l.calendarDay >= cd - 6 && l.calendarDay <= cd);
+    const completed7 = window7.filter(l => l.completed).length;
+    const consistency = Math.round((completed7 / 7) * 100);
+
+    const efforts = window7.map(l => l.effort).filter(Boolean);
+    const avgEffort = efforts.reduce((a,b) => a+b, 0) / (efforts.length || 1);
+    const variability = efforts.length > 1
+      ? Math.sqrt(efforts.map(e => Math.pow(e - avgEffort, 2)).reduce((a,b)=>a+b,0) / efforts.length)
+      : 0;
+    const highVariability = variability > 2.5;
+
+    const hardLapse = S.consecutiveMissed >= 5;
+    const lowConsistency = consistency < 40;
+    const midConsistency = consistency >= 40 && consistency < 70;
+    const highConsistency = consistency >= 70 && !highVariability;
+
+    let newLoad = S.loadLevel;
+    if (hardLapse || lowConsistency) {
+      newLoad = 'reduced';
+    } else if (midConsistency || highVariability) {
+      newLoad = 'frozen';
+    } else if (highConsistency) {
+      newLoad = newLoad === 'reduced' ? 'frozen' : 'normal'; // step recovery
+    }
+    S.loadLevel = newLoad;
+    save();
+  }
+
+  function getProtocolForDay(cd) {
+    const idx = Math.min(cd - 1, 41);
+    let p = Object.assign({}, PROTOCOL[idx]);
+    if (S.loadLevel === 'reduced') {
+      p.walk   = Math.max(5,  p.walk   - 5);
+      p.breath = Math.max(0,  p.breath - 1);
+      p.activation = Math.max(0, p.activation - 1);
+      p.stillness  = Math.max(0, p.stillness  - 1);
+    }
+    return p;
+  }
+
+  // ── MESSAGING ──────────────────────────────────────────────────────────────
+  function getSystemMessage(cd, loadLevel) {
+    const p = getProtocolForDay(cd);
+    const phase = p.phase;
+    if (S.consecutiveMissed >= 5) return 'Activity has been inconsistent. Load adjusted.';
+    if (S.consecutiveMissed >= 2) return 'Activity has been inconsistent.';
+    if (cd === 21 && !S.avenue2Unlocked) return 'Optional structured review is now available.';
+    if (loadLevel === 'frozen') return 'The duration has been held. Maintain consistency.';
+    if (loadLevel === 'reduced') return 'Load has been reduced. Continue as described.';
+    if (phase === 0) return 'Baseline recorded. Process begins tomorrow.';
+    if (phase === 1) return 'Today\'s focus is movement and breathing. Complete the steps as described.';
+    if (phase === 2) return cd >= 17 ? 'The duration has increased. Maintain consistency.' : 'Complete the steps as described. Maintain consistency.';
+    if (phase === 3) {
+      if (cd >= 35) return 'The structure remains the same. No new components.';
+      if (p.autonomy) return 'Complete today\'s actions at a time of your choosing. The structure remains the same.';
+      return 'Complete today\'s actions as described. The structure remains the same.';
+    }
+    return 'Complete the steps as described.';
+  }
+
+  // ── TASK RENDERING ─────────────────────────────────────────────────────────
+  function buildTaskList(protocol, autonomy) {
+    const tasks = [];
+    if (protocol.walk > 0) {
+      tasks.push({ tag:'WALK', name: autonomy ? 'Locomotion (self-scheduled)' : 'Locomotion', detail:`${protocol.walk} min — deliberate walking, no audio, no screen` });
+    }
+    if (protocol.breath > 0) {
+      tasks.push({ tag:'BREATH', name:'Controlled breathing', detail:`${protocol.breath} min — 4 sec in, 6 sec out, nasal` });
+    }
+    if (protocol.activation > 0) {
+      tasks.push({ tag:'ACTIVATE', name:'Physical activation', detail:`${protocol.activation} min — jumping jacks, squats, or push-ups (your choice)` });
+    }
+    if (protocol.stillness > 0) {
+      tasks.push({ tag:'STILL', name:'Stillness', detail:`${protocol.stillness} min — sit or stand, no input, no reaction` });
+    }
+    if (protocol.unstructured > 0) {
+      tasks.push({ tag:'FREE', name:'Unstructured movement', detail:`${protocol.unstructured} min — move without goal` });
+    }
+    if (autonomy) {
+      tasks.push({ tag:'AUTONOMY', name:'Autonomy block', detail:'Select one task from today\'s list and execute independently' });
+    }
+    return tasks;
+  }
+
+  // ── AVENUE 2 ───────────────────────────────────────────────────────────────
+  function checkAvenue2(cd) {
+    const el = document.getElementById('avenue2-block');
+    const status = document.getElementById('avenue2-status');
+    const eligible = cd >= 21 && S.avenue2Used < 2;
+    const cooldownOk = !S.avenue2LastDay || (cd - S.avenue2LastDay >= 14);
+
+    if (eligible && cooldownOk) {
+      S.avenue2Unlocked = true;
+      el.classList.remove('locked');
+      el.classList.add('unlocked');
+      const remaining = 2 - S.avenue2Used;
+      status.className = 'avenue2-status open';
+      status.textContent = `STATUS: ELIGIBLE — ${remaining} SESSION${remaining!==1?'S':''} REMAINING`;
+      el.innerHTML = `
+        <div class="avenue2-title">Avenue 2 — Structured Human Review</div>
+        <div class="avenue2-status open">STATUS: ELIGIBLE — ${remaining} SESSION${remaining!==1?'S':''} REMAINING</div>
+        <p style="font-family:'Space Mono',monospace;font-size:9px;color:var(--muted);margin:8px 0;line-height:1.6">Request a structured review session. Max 2 total. Min 14 days between sessions.</p>
+        <button class="btn-secondary" style="margin-top:.5rem" onclick="requestAvenue2()">REQUEST REVIEW SESSION</button>
+      `;
+    } else if (eligible && !cooldownOk) {
+      el.classList.remove('locked');
+      const daysLeft = 14 - (cd - S.avenue2LastDay);
+      status.textContent = `STATUS: ELIGIBLE — COOLDOWN ${daysLeft} DAY${daysLeft!==1?'S':''} REMAINING`;
+    } else if (!eligible && S.avenue2Used >= 2) {
+      el.innerHTML = `<div class="avenue2-title">Avenue 2 — Structured Human Review</div><div class="avenue2-status">STATUS: SESSION LIMIT REACHED</div>`;
+      el.classList.remove('locked');
+    }
+    save();
+  }
+
+  function requestAvenue2() {
+    S.avenue2Used++;
+    S.avenue2LastDay = calcCalendarDay();
+    save();
+    alert('Review session request logged.\n\nA structured review will be scheduled. No further action required from the system.');
+    renderDailyView();
+  }
+
+  // ── VIEWS ──────────────────────────────────────────────────────────────────
+  function showView(id) {
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    document.getElementById('view-' + id).classList.add('active');
+    S.view = id;
+    save();
+    const showProgress = ['baseline','daily','exit'].includes(id);
+    document.getElementById('progress-header').style.display = showProgress ? 'block' : 'none';
+    updateProgress();
+  }
+
+  function updateProgress() {
+    const cd = S.startDate ? calcCalendarDay() : 0;
+    const pct = Math.min(100, Math.round((cd / 42) * 100));
+    document.getElementById('progress-fill').style.width = pct + '%';
+    document.getElementById('progress-pct').textContent = pct + '%';
+    const p = PROTOCOL[Math.min(cd - 1, 41)] || PROTOCOL[0];
+    document.getElementById('phase-label').textContent = p ? p.phaseName : 'Phase 0 — Entry';
+  }
+
+  // ── ORIENTATION ────────────────────────────────────────────────────────────
+  function acceptContract() {
+    if (!S.startDate) {
+      // Don't set start date yet — set it when baseline is saved
+    }
+    showView('baseline');
+    renderBaselineSliders();
+  }
+
+  // ── BASELINE ───────────────────────────────────────────────────────────────
+  function renderBaselineSliders() {
+    const container = document.getElementById('baseline-sliders');
+    container.innerHTML = BASELINE_METRICS.map(m => `
+      <div class="slider-group">
+        <div class="slider-label">
+          <span class="slider-name">${m.label}</span>
+          <span class="slider-val" id="bval-${m.id}">5</span>
+        </div>
+        <input type="range" id="bslider-${m.id}" min="1" max="10" value="5"
+          oninput="document.getElementById('bval-${m.id}').textContent=this.value">
+      </div>
+    `).join('');
+  }
+
+  function saveBaseline() {
+    const baseline = {};
+    BASELINE_METRICS.forEach(m => {
+      baseline[m.id] = parseInt(document.getElementById('bslider-' + m.id).value);
+    });
+    S.baseline = baseline;
+    S.startDate = new Date().toISOString().split('T')[0];
+    S.calendarDay = 1;
+    save();
+    showView('daily');
+    renderDailyView();
+  }
+
+  // ── DAILY ──────────────────────────────────────────────────────────────────
+  function renderDailyView() {
+    const cd = calcCalendarDay();
+    S.calendarDay = cd;
+    save();
+
+    // Check if complete
+    if (cd > 42) { showView('exit'); renderExitView(); return; }
+
+    runRuleEngine();
+
+    const protocol = getProtocolForDay(cd);
+    const todayLogged = getTodayLogged();
+
+    // Day number
+    document.getElementById('day-num').textContent = String(cd).padStart(2,'0');
+    document.getElementById('phase-tag').textContent = protocol.phaseName;
+
+    // Status
+    const statusEl = document.getElementById('status-val');
+    if (S.loadLevel === 'reduced') { statusEl.textContent = '● REDUCED'; statusEl.className = 'status-val reduced'; }
+    else if (S.loadLevel === 'frozen') { statusEl.textContent = '● FROZEN'; statusEl.className = 'status-val frozen'; }
+    else { statusEl.textContent = '● STABLE'; statusEl.className = 'status-val stable'; }
+
+    // System message
+    const msgEl = document.getElementById('sys-msg');
+    msgEl.textContent = getSystemMessage(cd, S.loadLevel);
+    msgEl.className = 'sys-msg' + (S.consecutiveMissed >= 2 ? ' alert' : '');
+
+    // Tasks
+    const tasks = buildTaskList(protocol, protocol.autonomy);
+    document.getElementById('task-list').innerHTML = tasks.length > 0
+      ? tasks.map(t => `
+          <div class="task-item">
+            <span class="task-icon">${t.tag}</span>
+            <div class="task-body">
+              <div class="task-name">${t.name}</div>
+              <div class="task-detail">${t.detail}</div>
+            </div>
+          </div>`).join('')
+      : `<div class="sys-msg">Baseline phase — no tasks assigned. Process begins tomorrow.</div>`;
+
+    // Log form state
+    if (todayLogged) {
+      document.getElementById('log-btn').textContent = 'SESSION LOGGED';
+      document.getElementById('log-btn').disabled = true;
+      document.getElementById('chip-yes').classList.toggle('on', todayLogged.completed);
+      document.getElementById('chip-skip').classList.toggle('on', !todayLogged.completed);
+    } else {
+      document.getElementById('log-btn').textContent = 'LOG SESSION →';
+      document.getElementById('log-btn').disabled = true;
+      completionSelected = null;
+      document.getElementById('chip-yes').classList.remove('on');
+      document.getElementById('chip-skip').classList.remove('on');
+    }
+
+    checkAvenue2(cd);
+    updateProgress();
+  }
+
+  function selectCompletion(val) {
+    completionSelected = val;
+    document.getElementById('chip-yes').classList.toggle('on', val === true);
+    document.getElementById('chip-skip').classList.toggle('on', val === false);
+    document.getElementById('log-btn').disabled = false;
+  }
+
+  function logDay() {
+    if (completionSelected === null) return;
+    const cd = calcCalendarDay();
+    if (getTodayLogged()) return;
+
+    const entry = {
+      calendarDay: cd,
+      completed: completionSelected,
+      effort: parseInt(document.getElementById('log-effort').value),
+      post: parseInt(document.getElementById('log-post').value),
+      timestamp: Date.now()
+    };
+    S.logs.push(entry);
+
+    if (completionSelected) {
+      S.completedDays++;
+      S.consecutiveMissed = 0;
+    } else {
+      S.consecutiveMissed++;
+    }
+
+    save();
+    renderDailyView();
+  }
+
+  // ── AI OVERLAY ─────────────────────────────────────────────────────────────
+  function openAI() {
+    document.getElementById('ai-overlay').classList.add('open');
+    document.getElementById('ai-response').textContent = '';
+    document.getElementById('ai-status-line').textContent = '> status: receiving...';
+    callGemini();
+  }
+
+  function closeAI() {
+    document.getElementById('ai-overlay').classList.remove('open');
+  }
+
+  async function callGemini() {
+    const cd = calcCalendarDay();
+    const last14 = S.logs.slice(-14);
+    const consistency7 = S.logs.filter(l => l.calendarDay >= cd - 6).filter(l => l.completed).length;
+    const totalLogged = S.logs.length;
+    const totalCompleted = S.logs.filter(l => l.completed).length;
+    const overallPct = totalLogged > 0 ? Math.round((totalCompleted / totalLogged) * 100) : 0;
+    const recentEfforts = last14.filter(l => l.effort).map(l => l.effort);
+    const avgEffort = recentEfforts.length ? (recentEfforts.reduce((a,b)=>a+b,0)/recentEfforts.length).toFixed(1) : 'N/A';
+    const recentPost = last14.filter(l => l.post).map(l => l.post);
+    const avgPost = recentPost.length ? (recentPost.reduce((a,b)=>a+b,0)/recentPost.length).toFixed(1) : 'N/A';
+
+    const prompt = `You are the data interpreter for Grounded, a 42-day behavioral stability system. Your role is to observe and report on user data — not to encourage, reassure, or interpret emotional states. You are a system auditor, not a coach.
+
+Rules:
+- Neutral tone only
+- Report data as data
+- No motivational language
+- No emotional interpretation
+- No recommendations beyond load adjustment if warranted
+- Speak in present tense observations
+
+User data:
+- Calendar day: ${cd} of 42
+- Phase: ${getProtocolForDay(cd).phaseName}
+- System load status: ${S.loadLevel}
+- Overall consistency: ${overallPct}% (${totalCompleted} of ${totalLogged} logged days completed)
+- Last 7-day completions: ${consistency7} of 7
+- Consecutive missed days: ${S.consecutiveMissed}
+- Average effort (last 14 days): ${avgEffort}/10
+- Average post-state (last 14 days): ${avgPost}/10
+- Avenue 2 sessions used: ${S.avenue2Used} of 2
+
+Provide a data interpretation in 3-4 sentences. State what the numbers show. Note any patterns. State the current system status. Do not add anything else.`;
+
+    if (!apiKey) {
+      document.getElementById('ai-status-line').textContent = '> status: no api key found';
+      document.getElementById('ai-response').textContent = 'No API key configured. Add your Gemini key in the orientation screen to enable data interpretation.';
+      return;
+    }
+
+    const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+    try {
+      const res = await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(()=>({}));
+        throw new Error(err?.error?.message || `HTTP ${res.status}`);
+      }
+      const data = await res.json();
+      const text = data.candidates[0].content.parts[0].text;
+      document.getElementById('ai-status-line').textContent = '> status: complete';
+      document.getElementById('ai-response').textContent = text;
+    } catch (e) {
+      document.getElementById('ai-status-line').textContent = '> status: error';
+      document.getElementById('ai-response').textContent = 'Interpretation failed: ' + e.message;
+    }
+  }
+
+  // ── EXIT VIEW ──────────────────────────────────────────────────────────────
+  function renderExitView() {
+    const totalLogged = S.logs.length;
+    const totalCompleted = S.logs.filter(l => l.completed).length;
+    const consistency = totalLogged > 0 ? Math.round((totalCompleted / totalLogged) * 100) : 0;
+    const avgEffort = S.logs.filter(l=>l.effort).length
+      ? (S.logs.filter(l=>l.effort).map(l=>l.effort).reduce((a,b)=>a+b,0) / S.logs.filter(l=>l.effort).length).toFixed(1)
+      : '—';
+    const baselineAvg = S.baseline
+      ? (Object.values(S.baseline).reduce((a,b)=>a+b,0) / Object.values(S.baseline).length).toFixed(1)
+      : '—';
+
+    document.getElementById('summary-grid').innerHTML = `
+      <div class="summary-card">
+        <div class="summary-card-label">Overall consistency</div>
+        <div class="summary-card-val">${consistency}%</div>
+        <div class="summary-card-sub">${totalCompleted} of ${totalLogged} days</div>
+      </div>
+      <div class="summary-card">
+        <div class="summary-card-label">Days completed</div>
+        <div class="summary-card-val">${S.completedDays}</div>
+        <div class="summary-card-sub">of 42 total</div>
+      </div>
+      <div class="summary-card">
+        <div class="summary-card-label">Avg effort logged</div>
+        <div class="summary-card-val">${avgEffort}</div>
+        <div class="summary-card-sub">out of 10</div>
+      </div>
+      <div class="summary-card">
+        <div class="summary-card-label">Baseline avg score</div>
+        <div class="summary-card-val">${baselineAvg}</div>
+        <div class="summary-card-sub">at entry</div>
+      </div>
+      <div class="summary-card">
+        <div class="summary-card-label">Avenue 2 used</div>
+        <div class="summary-card-val">${S.avenue2Used}</div>
+        <div class="summary-card-sub">of 2 available</div>
+      </div>
+      <div class="summary-card">
+        <div class="summary-card-label">Load level at exit</div>
+        <div class="summary-card-val" style="font-size:14px;padding-top:4px">${S.loadLevel.toUpperCase()}</div>
+        <div class="summary-card-sub">final system status</div>
+      </div>
+    `;
+    updateProgress();
+  }
+
+  function exportData() {
+    const payload = { system: 'Grounded v1', exportDate: new Date().toISOString(), ...S };
+    const a = document.createElement('a');
+    a.href = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(payload, null, 2));
+    a.download = 'grounded_audit.json';
+    a.click();
+  }
+
+  function purgeData() {
+    if (confirm('Permanent data destruction. All local records will be deleted. Confirm?')) {
+      localStorage.removeItem(STORAGE_KEY);
+      location.reload();
+    }
+  }
+
+  // ── API KEY ────────────────────────────────────────────────────────────────
+  function saveKey() {
+    const val = document.getElementById('api-key-input').value.trim();
+    if (!val || val.length < 10) { showKeyStatus('Invalid key.', false); return; }
+    apiKey = val;
+    localStorage.setItem('pumpo_grounded_key', apiKey);
+    showKeyStatus('Key saved.', true);
+  }
+  function showKeyStatus(msg, ok) {
+    const el = document.getElementById('key-status');
+    el.style.display = 'block';
+    el.textContent = msg;
+    el.className = 'key-status ' + (ok ? 'ok' : 'err');
+  }
+
+  // ── DEBUG MODE ─────────────────────────────────────────────────────────────
+  function toggleDebug() {
+    debugMode = !debugMode;
+    document.getElementById('debug-toggle').classList.toggle('active', debugMode);
+    document.getElementById('debug-panel').classList.toggle('open', debugMode);
+  }
+
+  function debugSkipDay() {
+    if (!S.startDate) return;
+    const d = new Date(S.startDate);
+    d.setDate(d.getDate() - 1);
+    S.startDate = d.toISOString().split('T')[0];
+    save(); renderDailyView();
+  }
+
+  function debugSkipWeek() {
+    if (!S.startDate) return;
+    const d = new Date(S.startDate);
+    d.setDate(d.getDate() - 7);
+    S.startDate = d.toISOString().split('T')[0];
+    save(); renderDailyView();
+  }
+
+  function debugGoPhase(phase) {
+    const targets = { 1:3, 2:11, 3:25 };
+    const targetDay = targets[phase];
+    if (!S.startDate) { S.startDate = new Date().toISOString().split('T')[0]; }
+    const d = new Date(S.startDate);
+    d.setDate(d.getDate() - (targetDay - 1));
+    S.startDate = d.toISOString().split('T')[0];
+    if (!S.baseline) S.baseline = { restlessness:5, sleep:5, energy:5, tension:5, activity:5 };
+    save(); showView('daily'); renderDailyView();
+  }
+
+  function debugUnlockAvenue2() {
+    S.avenue2Unlocked = true;
+    save(); renderDailyView();
+  }
+
+  function debugSimulateLapse() {
+    S.consecutiveMissed = 5;
+    S.loadLevel = 'reduced';
+    for (let i = 0; i < 5; i++) {
+      const cd = calcCalendarDay() - i;
+      if (cd > 0 && !S.logs.find(l => l.calendarDay === cd)) {
+        S.logs.push({ calendarDay: cd, completed: false, effort: 3, post: 3, timestamp: Date.now() });
+      }
+    }
+    save(); renderDailyView();
+  }
+
+  function debugReset() {
+    if (confirm('Reset all state for debug?')) {
+      localStorage.removeItem(STORAGE_KEY);
+      S = defaultState();
+      location.reload();
+    }
+  }
+
+  // ── INIT ───────────────────────────────────────────────────────────────────
+  window.onload = function() {
+    if (apiKey) {
+      document.getElementById('api-key-input').value = apiKey;
+      showKeyStatus('Key loaded.', true);
+    }
+
+    const view = S.view || 'orientation';
+
+    if (view === 'daily' || (S.startDate && S.view !== 'orientation' && S.view !== 'baseline')) {
+      showView('daily');
+      renderDailyView();
+    } else if (view === 'baseline') {
+      showView('baseline');
+      renderBaselineSliders();
+    } else if (view === 'exit') {
+      showView('exit');
+      renderExitView();
+    } else {
+      showView('orientation');
+    }
+  };
+  </script>
+</body>
+</html>
