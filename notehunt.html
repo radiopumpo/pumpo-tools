@@ -585,29 +585,76 @@
   let lpIndicator;
   function setupMapEvents() {
     lpIndicator = document.getElementById('lp-indicator');
+    const mapContainer = document.getElementById('map');
 
-  function startLongPress(e) {
-    const point = e.containerPoint || map.latLngToContainerPoint(e.latlng);
-    lpIndicator.style.left = point.x + 'px';
-    lpIndicator.style.top = (point.y + 52) + 'px';
-    lpIndicator.className = 'longpress-indicator active';
+    // ── iOS Safari fix: attach touch events directly to DOM, not via Leaflet ──
+    // Leaflet intercepts and cancels touch events on mobile before they reach
+    // the map event system, so long press never fires. We bypass Leaflet entirely
+    // for touch input and use native DOM touch events on the container.
 
-    longPressTimer = setTimeout(() => {
-      longPressActive = true;
-      pendingLat = e.latlng.lat;
-      pendingLng = e.latlng.lng;
-      openCompose();
-    }, 800);
-  }
+    let touchStartX = 0, touchStartY = 0;
 
-  function cancelLongPress() {
-    clearTimeout(longPressTimer);
-    lpIndicator.className = 'longpress-indicator';
-  }
+    function startLongPressTouch(e) {
+      if (e.touches.length !== 1) return;
+      const touch = e.touches[0];
+      touchStartX = touch.clientX;
+      touchStartY = touch.clientY;
 
-  map.on('mousedown touchstart', startLongPress);
-  map.on('mouseup touchend mousemove', cancelLongPress);
-  map.on('click', cancelLongPress);
+      // Convert screen coords to map latlng
+      const containerRect = mapContainer.getBoundingClientRect();
+      const x = touch.clientX - containerRect.left;
+      const y = touch.clientY - containerRect.top;
+      const latlng = map.containerPointToLatLng(L.point(x, y));
+
+      lpIndicator.style.left = x + 'px';
+      lpIndicator.style.top = (y + 52) + 'px';
+      lpIndicator.className = 'longpress-indicator active';
+
+      longPressTimer = setTimeout(() => {
+        longPressActive = true;
+        pendingLat = latlng.lat;
+        pendingLng = latlng.lng;
+        // Haptic feedback on iOS if available
+        if (navigator.vibrate) navigator.vibrate(30);
+        openCompose();
+      }, 700);
+    }
+
+    function moveLongPressTouch(e) {
+      if (e.touches.length !== 1) return;
+      const touch = e.touches[0];
+      const dx = Math.abs(touch.clientX - touchStartX);
+      const dy = Math.abs(touch.clientY - touchStartY);
+      // Cancel if finger moved more than 10px (user is panning, not pressing)
+      if (dx > 10 || dy > 10) cancelLongPress();
+    }
+
+    function cancelLongPress() {
+      clearTimeout(longPressTimer);
+      lpIndicator.className = 'longpress-indicator';
+    }
+
+    // Desktop: use Leaflet mouse events
+    map.on('mousedown', function(e) {
+      const point = e.containerPoint;
+      lpIndicator.style.left = point.x + 'px';
+      lpIndicator.style.top = (point.y + 52) + 'px';
+      lpIndicator.className = 'longpress-indicator active';
+      longPressTimer = setTimeout(() => {
+        longPressActive = true;
+        pendingLat = e.latlng.lat;
+        pendingLng = e.latlng.lng;
+        openCompose();
+      }, 700);
+    });
+    map.on('mouseup mousemove', cancelLongPress);
+    map.on('click', cancelLongPress);
+
+    // Mobile: attach directly to DOM container, bypass Leaflet touch handling
+    mapContainer.addEventListener('touchstart', startLongPressTouch, { passive: true });
+    mapContainer.addEventListener('touchmove', moveLongPressTouch, { passive: true });
+    mapContainer.addEventListener('touchend', cancelLongPress, { passive: true });
+    mapContainer.addEventListener('touchcancel', cancelLongPress, { passive: true });
   } // end setupMapEvents
 
   // ── TYPE GRID ─────────────────────────────────────────────────────────────
