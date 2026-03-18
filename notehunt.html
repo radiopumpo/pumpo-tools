@@ -1,0 +1,1047 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="NoteHunt">
+  <title>NoteHunt | Pumpo Tools</title>
+  <link rel="icon" type="image/png" href="https://radiopumpo.github.io/radiopumpologo.png">
+  <link href="https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Rajdhani:wght@400;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css">
+  <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
+  <style>
+    :root {
+      --pink: #ff0080;
+      --cyan: #40e0d0;
+      --bg: #0d0d0d;
+      --bg2: #141414;
+      --bg3: #1a1a1a;
+      --bg4: #222;
+      --border: rgba(255,255,255,0.08);
+      --border2: rgba(255,255,255,0.15);
+      --text: #f0ede6;
+      --muted: #666;
+      --dimmed: #333;
+      --green: #00ff88;
+      --green2: #00cc6a;
+      --green-bg: rgba(0,255,136,0.08);
+      --green-glow: rgba(0,255,136,0.3);
+      --red: #e24b4a;
+      --amber: #ffaa00;
+      --mono: 'Space Mono', monospace;
+      --sans: 'Rajdhani', sans-serif;
+      --display: 'Black Ops One', cursive;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { -webkit-text-size-adjust: 100%; }
+
+    body {
+      font-family: var(--sans);
+      background: var(--bg);
+      color: var(--text);
+      height: 100vh;
+      overflow: hidden;
+      -webkit-tap-highlight-color: transparent;
+      padding-top: env(safe-area-inset-top);
+    }
+
+    /* NAV */
+    .top-nav {
+      position: fixed; top: 0; left: 0; right: 0;
+      height: 52px;
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 0 16px;
+      background: rgba(13,13,13,0.95);
+      backdrop-filter: blur(12px);
+      z-index: 1000;
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-brand { font-family: var(--display); font-size: .85rem; color: var(--green); letter-spacing: 2px; text-decoration: none; }
+    .nav-center { display: flex; gap: 4px; }
+    .mode-btn {
+      font-family: var(--mono); font-size: 9px; letter-spacing: .12em;
+      text-transform: uppercase; padding: 5px 10px; border-radius: 20px;
+      border: 1px solid var(--border2); background: transparent;
+      color: var(--muted); cursor: pointer; transition: all .2s;
+    }
+    .mode-btn.active { background: var(--green); color: var(--bg); border-color: var(--green); }
+    .mode-btn.disabled { opacity: .3; cursor: not-allowed; }
+    .nav-right { display: flex; gap: 8px; align-items: center; }
+    .nav-link { color: var(--muted); text-decoration: none; font-weight: 700; font-size: .65rem; border: 1px solid var(--border2); padding: 4px 10px; border-radius: 20px; font-family: var(--mono); transition: .2s; }
+    .nav-link:hover { border-color: var(--cyan); color: var(--cyan); }
+    .nav-icon-btn { background: transparent; border: 1px solid var(--border); color: var(--muted); font-family: var(--mono); font-size: 10px; padding: 4px 9px; border-radius: 20px; cursor: pointer; transition: .2s; }
+    .nav-icon-btn:hover { border-color: var(--green); color: var(--green); }
+
+    /* MAP */
+    #map {
+      position: fixed;
+      top: 52px; left: 0; right: 0;
+      bottom: 0;
+      z-index: 1;
+    }
+
+    /* Override Leaflet popup */
+    .leaflet-popup-content-wrapper {
+      background: var(--bg3) !important;
+      border: 1px solid var(--border2) !important;
+      border-radius: 10px !important;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.6) !important;
+      color: var(--text) !important;
+    }
+    .leaflet-popup-tip { background: var(--bg3) !important; }
+    .leaflet-popup-content { margin: 12px 14px !important; min-width: 180px; }
+
+    /* FLOATING CONTROLS */
+    .map-controls {
+      position: fixed;
+      bottom: calc(env(safe-area-inset-bottom) + 20px);
+      right: 16px;
+      z-index: 900;
+      display: flex; flex-direction: column; gap: 8px;
+      align-items: flex-end;
+    }
+    .map-btn {
+      background: var(--bg2);
+      border: 1px solid var(--border2);
+      color: var(--text);
+      font-family: var(--mono);
+      font-size: 10px; letter-spacing: .1em;
+      padding: .6rem 1rem;
+      border-radius: 20px;
+      cursor: pointer; transition: all .2s;
+      white-space: nowrap;
+      display: flex; align-items: center; gap: 6px;
+      backdrop-filter: blur(8px);
+    }
+    .map-btn:hover { border-color: var(--green); color: var(--green); }
+    .map-btn.primary { background: var(--green); color: var(--bg); border-color: var(--green); font-weight: 700; }
+    .map-btn.primary:hover { background: var(--green2); }
+    .map-btn.scan-btn { border-color: var(--cyan); color: var(--cyan); }
+    .map-btn.scan-btn:hover { background: var(--cyan); color: var(--bg); }
+    .map-btn.scanning { animation: scanpulse 1s ease-in-out infinite; }
+    @keyframes scanpulse { 0%,100%{opacity:1} 50%{opacity:.5} }
+
+    /* MODE INDICATOR */
+    .mode-indicator {
+      position: fixed;
+      top: 60px; left: 50%; transform: translateX(-50%);
+      z-index: 900;
+      font-family: var(--mono); font-size: 9px; letter-spacing: .18em;
+      text-transform: uppercase; color: var(--muted);
+      background: rgba(13,13,13,0.85);
+      padding: 4px 12px; border-radius: 20px;
+      border: 1px solid var(--border);
+      backdrop-filter: blur(8px);
+      pointer-events: none;
+    }
+    .mode-indicator.discovery { color: var(--green); border-color: rgba(0,255,136,0.2); }
+    .mode-indicator.review { color: var(--cyan); border-color: rgba(64,224,208,0.2); }
+
+    /* SCAN OVERLAY */
+    .scan-overlay {
+      position: fixed; inset: 0;
+      z-index: 800; pointer-events: none;
+      display: none;
+    }
+    .scan-overlay.active { display: block; }
+    .scan-ring {
+      position: absolute; top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      border: 1px solid var(--green);
+      border-radius: 50%;
+      animation: expandring 1.5s ease-out forwards;
+    }
+    @keyframes expandring {
+      0% { width: 0; height: 0; opacity: .8; }
+      100% { width: 200vw; height: 200vw; opacity: 0; }
+    }
+
+    /* LONG PRESS INDICATOR */
+    .longpress-indicator {
+      position: fixed; z-index: 950;
+      width: 60px; height: 60px;
+      border-radius: 50%;
+      border: 2px solid var(--green);
+      pointer-events: none;
+      display: none;
+      transform: translate(-50%, -50%);
+    }
+    .longpress-indicator.active { display: block; animation: lpress .8s ease-out forwards; }
+    @keyframes lpress { 0%{transform:translate(-50%,-50%) scale(0);opacity:1} 100%{transform:translate(-50%,-50%) scale(1);opacity:0} }
+
+    /* BOTTOM SHEET */
+    .sheet-backdrop {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.6);
+      z-index: 1100;
+      display: none; opacity: 0;
+      transition: opacity .25s;
+    }
+    .sheet-backdrop.open { display: block; opacity: 1; }
+
+    .bottom-sheet {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      z-index: 1200;
+      background: var(--bg2);
+      border-top: 1px solid var(--border2);
+      border-radius: 16px 16px 0 0;
+      padding: 0 0 env(safe-area-inset-bottom);
+      transform: translateY(100%);
+      transition: transform .3s cubic-bezier(.4,0,.2,1);
+      max-height: 92vh;
+      overflow-y: auto;
+    }
+    .bottom-sheet.open { transform: translateY(0); }
+
+    .sheet-handle { width: 36px; height: 4px; background: var(--dimmed); border-radius: 2px; margin: 12px auto 0; }
+    .sheet-header { padding: 12px 16px 0; display: flex; justify-content: space-between; align-items: center; }
+    .sheet-title { font-family: var(--display); font-size: 16px; color: var(--text); letter-spacing: .5px; }
+    .sheet-close { background: transparent; border: none; color: var(--muted); font-family: var(--mono); font-size: 11px; cursor: pointer; padding: 4px 8px; }
+    .sheet-body { padding: 16px; }
+
+    /* TYPE PICKER */
+    .type-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 1rem; }
+    .type-card {
+      background: var(--bg3); border: 1px solid var(--border);
+      border-radius: 10px; padding: .75rem .5rem;
+      text-align: center; cursor: pointer; transition: all .15s;
+    }
+    .type-card:hover { border-color: var(--border2); }
+    .type-card.selected { border-color: var(--green); background: var(--green-bg); }
+    .type-emoji { font-size: 22px; display: block; margin-bottom: 4px; }
+    .type-label { font-family: var(--mono); font-size: 8px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+    .type-card.selected .type-label { color: var(--green); }
+
+    /* COMPOSE */
+    .compose-area { margin-bottom: 1rem; }
+    .compose-label { font-family: var(--mono); font-size: 9px; letter-spacing: .18em; text-transform: uppercase; color: var(--muted); margin-bottom: .5rem; display: flex; justify-content: space-between; }
+    .compose-label .char-count { color: var(--dimmed); }
+    .compose-label .char-count.warn { color: var(--amber); }
+    textarea.compose-input {
+      width: 100%; min-height: 90px;
+      background: var(--bg3); border: 1px solid var(--border);
+      border-radius: 8px; padding: .75rem .9rem;
+      font-size: 14px; font-family: var(--sans); font-weight: 600;
+      color: var(--text); resize: none; outline: none;
+      line-height: 1.6; transition: border-color .15s;
+    }
+    textarea.compose-input:focus { border-color: var(--green); }
+    textarea.compose-input::placeholder { color: var(--dimmed); }
+
+    /* LOCK OPTIONS */
+    .lock-section { margin-bottom: 1rem; }
+    .lock-toggle { display: flex; align-items: center; gap: 10px; margin-bottom: .75rem; cursor: pointer; }
+    .lock-toggle-label { font-family: var(--mono); font-size: 9px; letter-spacing: .15em; text-transform: uppercase; color: var(--muted); }
+    .toggle-switch { width: 36px; height: 20px; background: var(--bg4); border-radius: 10px; position: relative; transition: background .2s; flex-shrink: 0; }
+    .toggle-switch.on { background: var(--green); }
+    .toggle-switch::after { content:''; position:absolute; width:14px;height:14px;background:#fff;border-radius:50%;top:3px;left:3px;transition:transform .2s; }
+    .toggle-switch.on::after { transform: translateX(16px); }
+    .lock-options { display: flex; flex-direction: column; gap: 8px; display: none; }
+    .lock-options.visible { display: flex; }
+    .lock-option { background: var(--bg3); border: 1px solid var(--border); border-radius: 8px; padding: .65rem .9rem; }
+    .lock-option-label { font-family: var(--mono); font-size: 9px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin-bottom: .4rem; display: flex; align-items: center; gap: 8px; }
+    .lock-option-label input[type="checkbox"] { accent-color: var(--green); width: 14px; height: 14px; cursor: pointer; }
+    .lock-option-inputs { display: none; flex-direction: column; gap: 6px; margin-top: 6px; }
+    .lock-option-inputs.visible { display: flex; }
+    .lock-input { background: var(--bg2); border: 1px solid var(--border); color: var(--text); font-family: var(--mono); font-size: 11px; padding: .4rem .7rem; border-radius: 6px; outline: none; width: 100%; transition: border-color .15s; }
+    .lock-input:focus { border-color: var(--green); }
+    .lock-input-row { display: flex; gap: 8px; align-items: center; }
+    .lock-input-hint { font-family: var(--mono); font-size: 9px; color: var(--dimmed); flex-shrink: 0; }
+
+    /* CUSTOM TYPE */
+    .custom-type-row { display: flex; gap: 8px; margin-bottom: 1rem; }
+    .custom-emoji-input { width: 48px; background: var(--bg3); border: 1px solid var(--border); color: var(--text); font-size: 20px; text-align: center; padding: .4rem; border-radius: 8px; outline: none; }
+    .custom-name-input { flex: 1; background: var(--bg3); border: 1px solid var(--border); color: var(--text); font-family: var(--mono); font-size: 11px; padding: .4rem .8rem; border-radius: 8px; outline: none; }
+    .custom-name-input::placeholder { color: var(--dimmed); }
+
+    /* SHEET BUTTONS */
+    .sheet-btn { width: 100%; padding: .9rem; font-family: var(--display); font-size: 13px; letter-spacing: .1em; border: none; border-radius: 8px; cursor: pointer; transition: all .2s; margin-bottom: 8px; }
+    .sheet-btn.primary { background: var(--green); color: var(--bg); }
+    .sheet-btn.primary:hover { background: var(--green2); }
+    .sheet-btn.primary:disabled { opacity: .3; cursor: not-allowed; }
+    .sheet-btn.secondary { background: transparent; border: 1px solid var(--border2); color: var(--muted); font-family: var(--mono); font-size: 10px; }
+    .sheet-btn.danger { background: rgba(226,75,74,0.1); border: 1px solid var(--red); color: var(--red); font-family: var(--mono); font-size: 10px; }
+
+    /* NOTE POPUP */
+    .popup-type { font-family: var(--mono); font-size: 9px; letter-spacing: .15em; text-transform: uppercase; color: var(--green); margin-bottom: 4px; }
+    .popup-text { font-size: 13px; line-height: 1.55; font-weight: 600; color: var(--text); margin-bottom: 8px; }
+    .popup-meta { font-family: var(--mono); font-size: 9px; color: var(--dimmed); line-height: 1.6; }
+    .popup-lock { font-family: var(--mono); font-size: 9px; color: var(--amber); margin-top: 4px; }
+    .popup-actions { display: flex; gap: 6px; margin-top: 8px; }
+    .popup-btn { font-family: var(--mono); font-size: 9px; letter-spacing: .08em; padding: 4px 10px; border-radius: 20px; border: 1px solid var(--border2); background: transparent; color: var(--muted); cursor: pointer; transition: .15s; }
+    .popup-btn:hover { border-color: var(--red); color: var(--red); }
+    .popup-btn.unlock { border-color: var(--green); color: var(--green); }
+    .popup-btn.unlock:hover { background: var(--green); color: var(--bg); }
+
+    /* BLURRED MARKER */
+    .blurred-marker { filter: blur(3px); opacity: .5; }
+
+    /* HUNT MODE OVERLAY */
+    .hunt-overlay {
+      position: fixed; inset: 0;
+      z-index: 1300;
+      background: rgba(13,13,13,0.96);
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+      text-align: center;
+    }
+    .hunt-overlay.open { display: flex; }
+    .hunt-title { font-family: var(--display); font-size: 28px; color: var(--green); letter-spacing: 1px; margin-bottom: .5rem; }
+    .hunt-sub { font-family: var(--mono); font-size: 10px; letter-spacing: .15em; text-transform: uppercase; color: var(--muted); margin-bottom: 1.5rem; line-height: 1.8; }
+    .hunt-badge { font-family: var(--mono); font-size: 9px; letter-spacing: .15em; text-transform: uppercase; border: 1px solid var(--amber); color: var(--amber); padding: 4px 14px; border-radius: 20px; margin-bottom: 1.5rem; display: inline-block; }
+    .hunt-close { background: transparent; border: 1px solid var(--border2); color: var(--muted); font-family: var(--mono); font-size: 10px; padding: .55rem 1.25rem; border-radius: 20px; cursor: pointer; transition: .2s; }
+    .hunt-close:hover { border-color: var(--cyan); color: var(--cyan); }
+
+    /* STATS BAR */
+    .stats-bar {
+      position: fixed;
+      bottom: calc(env(safe-area-inset-bottom) + 20px);
+      left: 16px;
+      z-index: 900;
+      font-family: var(--mono); font-size: 9px; letter-spacing: .1em;
+      color: var(--muted);
+      background: rgba(13,13,13,0.85);
+      padding: 5px 12px; border-radius: 20px;
+      border: 1px solid var(--border);
+      backdrop-filter: blur(8px);
+    }
+    .stats-bar span { color: var(--text); }
+
+    /* TOAST */
+    .toast {
+      position: fixed;
+      top: 62px; left: 50%; transform: translateX(-50%);
+      z-index: 1400;
+      background: var(--bg3); border: 1px solid var(--border2);
+      font-family: var(--mono); font-size: 10px; letter-spacing: .1em;
+      color: var(--text); padding: .55rem 1.1rem; border-radius: 20px;
+      backdrop-filter: blur(8px);
+      opacity: 0; transition: opacity .25s;
+      pointer-events: none; white-space: nowrap;
+    }
+    .toast.green { border-color: var(--green); color: var(--green); }
+    .toast.amber { border-color: var(--amber); color: var(--amber); }
+    .toast.show { opacity: 1; }
+
+    @media (max-width: 400px) {
+      .type-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav class="top-nav">
+    <a href="index.html" class="nav-brand">NOTEHUNT</a>
+    <div class="nav-center">
+      <button class="mode-btn active" id="btn-note" onclick="setMode('note')">Note</button>
+      <button class="mode-btn disabled" id="btn-hunt" onclick="showHunt()">Hunt</button>
+    </div>
+    <div class="nav-right">
+      <button class="nav-icon-btn" onclick="openReview()" title="Review all notes">☰</button>
+      <a href="index.html" class="nav-link">← HUB</a>
+    </div>
+  </nav>
+
+  <!-- MODE INDICATOR -->
+  <div class="mode-indicator discovery" id="mode-indicator">● Discovery Mode</div>
+
+  <!-- MAP -->
+  <div id="map"></div>
+
+  <!-- FLOATING CONTROLS -->
+  <div class="map-controls">
+    <button class="map-btn scan-btn" id="scan-btn" onclick="triggerScan()">⊙ Scan</button>
+    <button class="map-btn" onclick="locateMe()">⌖ Locate Me</button>
+    <button class="map-btn" id="review-toggle" onclick="toggleReviewMode()">◎ Review Mode</button>
+  </div>
+
+  <!-- STATS BAR -->
+  <div class="stats-bar" id="stats-bar"><span id="note-count">0</span> notes placed</div>
+
+  <!-- SCAN OVERLAY -->
+  <div class="scan-overlay" id="scan-overlay">
+    <div class="scan-ring"></div>
+  </div>
+
+  <!-- LONG PRESS INDICATOR -->
+  <div class="longpress-indicator" id="lp-indicator"></div>
+
+  <!-- TOAST -->
+  <div class="toast" id="toast"></div>
+
+  <!-- SHEET BACKDROP -->
+  <div class="sheet-backdrop" id="sheet-backdrop" onclick="closeSheet()"></div>
+
+  <!-- COMPOSE SHEET -->
+  <div class="bottom-sheet" id="compose-sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-header">
+      <div class="sheet-title">Leave a note</div>
+      <button class="sheet-close" onclick="closeSheet()">✕</button>
+    </div>
+    <div class="sheet-body">
+
+      <!-- Step 1: Type picker -->
+      <div id="step-type">
+        <div style="font-family:var(--mono);font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin-bottom:.75rem">Choose type</div>
+        <div class="type-grid" id="type-grid"></div>
+
+        <!-- Custom type -->
+        <div id="custom-type-section" style="display:none">
+          <div style="font-family:var(--mono);font-size:9px;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);margin-bottom:.5rem">Custom type</div>
+          <div class="custom-type-row">
+            <input type="text" class="custom-emoji-input" id="custom-emoji" placeholder="🗂️" maxlength="2">
+            <input type="text" class="custom-name-input" id="custom-name" placeholder="Name your type...">
+          </div>
+        </div>
+
+        <button class="sheet-btn primary" id="type-next-btn" onclick="goToCompose()" disabled>NEXT →</button>
+      </div>
+
+      <!-- Step 2: Compose -->
+      <div id="step-compose" style="display:none">
+        <div class="compose-area">
+          <div class="compose-label">
+            <span id="compose-type-label">Note</span>
+            <span class="char-count" id="char-count">0 / 200</span>
+          </div>
+          <textarea class="compose-input" id="compose-text" maxlength="200" placeholder="What do you want to leave here?" oninput="updateCharCount()"></textarea>
+        </div>
+
+        <!-- Lock options -->
+        <div class="lock-section">
+          <div class="lock-toggle" onclick="toggleLock()">
+            <div class="toggle-switch" id="lock-toggle-switch"></div>
+            <span class="lock-toggle-label">Add lock conditions</span>
+          </div>
+
+          <div class="lock-options" id="lock-options">
+
+            <!-- Proximity -->
+            <div class="lock-option">
+              <label class="lock-option-label">
+                <input type="checkbox" id="lock-proximity" onchange="toggleLockInput('proximity-inputs')">
+                Proximity — must be within distance
+              </label>
+              <div class="lock-option-inputs" id="proximity-inputs">
+                <div class="lock-input-row">
+                  <input type="number" class="lock-input" id="proximity-metres" placeholder="100" min="10" max="5000" value="100">
+                  <span class="lock-input-hint">metres</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Time-based -->
+            <div class="lock-option">
+              <label class="lock-option-label">
+                <input type="checkbox" id="lock-time" onchange="toggleLockInput('time-inputs')">
+                Time-based — unlocks after X days
+              </label>
+              <div class="lock-option-inputs" id="time-inputs">
+                <div class="lock-input-row">
+                  <input type="number" class="lock-input" id="time-days" placeholder="7" min="1" max="3650" value="7">
+                  <span class="lock-input-hint">days</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Date-specific -->
+            <div class="lock-option">
+              <label class="lock-option-label">
+                <input type="checkbox" id="lock-date" onchange="toggleLockInput('date-inputs')">
+                Date-specific — unlocks on a date
+              </label>
+              <div class="lock-option-inputs" id="date-inputs">
+                <input type="date" class="lock-input" id="date-unlock">
+              </div>
+            </div>
+
+            <!-- Visit count -->
+            <div class="lock-option">
+              <label class="lock-option-label">
+                <input type="checkbox" id="lock-visits" onchange="toggleLockInput('visits-inputs')">
+                Visit count — unlocks after X returns
+              </label>
+              <div class="lock-option-inputs" id="visits-inputs">
+                <div class="lock-input-row">
+                  <input type="number" class="lock-input" id="visits-count" placeholder="3" min="2" max="100" value="3">
+                  <span class="lock-input-hint">visits</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Sequence -->
+            <div class="lock-option">
+              <label class="lock-option-label">
+                <input type="checkbox" id="lock-sequence" onchange="toggleLockInput('sequence-inputs')">
+                Sequence — unlocks after another note found
+              </label>
+              <div class="lock-option-inputs" id="sequence-inputs">
+                <input type="text" class="lock-input" id="sequence-id" placeholder="Note ID to find first..." readonly>
+                <div style="font-family:var(--mono);font-size:9px;color:var(--dimmed);margin-top:3px">Open another note's popup to copy its ID</div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <button class="sheet-btn primary" id="save-btn" onclick="saveNote()">PLACE NOTE →</button>
+        <button class="sheet-btn secondary" onclick="backToType()">← Back</button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- REVIEW SHEET -->
+  <div class="bottom-sheet" id="review-sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-header">
+      <div class="sheet-title">All Notes</div>
+      <button class="sheet-close" onclick="closeReview()">✕</button>
+    </div>
+    <div class="sheet-body" id="review-body"></div>
+  </div>
+
+  <!-- HUNT MODE OVERLAY -->
+  <div class="hunt-overlay" id="hunt-overlay">
+    <div class="hunt-badge">Coming Soon</div>
+    <div class="hunt-title">HUNT MODE</div>
+    <div class="hunt-sub">
+      Create and share scavenger hunts.<br>
+      Clues placed in the real world.<br>
+      Discover, rate, and rank hunts.<br><br>
+      Requires backend infrastructure.<br>
+      Currently in design.
+    </div>
+    <button class="hunt-close" onclick="closeHunt()">← Back to Notes</button>
+  </div>
+
+  <script>
+  // ── GLOBALS (declared first to avoid hoisting issues) ─────────────────────
+  let toastTimer = null;
+
+  // ── STORAGE ───────────────────────────────────────────────────────────────
+  const STORAGE_KEY = 'notehunt_v1';
+
+  function loadNotes() { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); }
+  function saveNotes(notes) { localStorage.setItem(STORAGE_KEY, JSON.stringify(notes)); }
+
+  // ── STATE ─────────────────────────────────────────────────────────────────
+  let notes = loadNotes();
+  let markers = {};
+  let currentMode = 'note';
+  let viewMode = 'discovery'; // discovery | review
+  let pendingLat = null, pendingLng = null;
+  let selectedType = null;
+  let lockEnabled = false;
+  let userLat = null, userLng = null;
+  let longPressTimer = null;
+  let longPressActive = false;
+
+  const NOTE_TYPES = [
+    { id:'idea',       emoji:'💡', label:'Idea' },
+    { id:'memory',     emoji:'🌀', label:'Memory' },
+    { id:'reminder',   emoji:'⚠️', label:'Reminder' },
+    { id:'reflection', emoji:'🧠', label:'Reflection' },
+    { id:'locked',     emoji:'🔒', label:'Locked' },
+    { id:'custom',     emoji:'＋', label:'Custom' },
+  ];
+
+  // ── MAP INIT ──────────────────────────────────────────────────────────────
+  let map;
+  function initMap() {
+    if (typeof L === 'undefined') {
+      document.getElementById('map').innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;font-family:Space Mono,monospace;font-size:11px;color:#666;text-align:center;padding:2rem">Map failed to load.<br>Check your internet connection.</div>';
+      return;
+    }
+    map = L.map('map', { zoomControl: false, attributionControl: true })
+      .setView([41.9028, 12.4964], 13);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+      attribution: '&copy; <a href="https://carto.com/">CARTO</a>',
+      subdomains: 'abcd', maxZoom: 19
+    }).addTo(map);
+    L.control.zoom({ position: 'topleft' }).addTo(map);
+    setupMapEvents();
+    loadAllMarkersIfReview();
+    updateStats();
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(pos => {
+        userLat = pos.coords.latitude;
+        userLng = pos.coords.longitude;
+        map.setView([userLat, userLng], 15);
+      }, () => {}, { timeout: 5000 });
+    }
+  }
+
+  // ── LONG PRESS TO PLACE ───────────────────────────────────────────────────
+  let lpIndicator;
+  function setupMapEvents() {
+    lpIndicator = document.getElementById('lp-indicator');
+
+  function startLongPress(e) {
+    const point = e.containerPoint || map.latLngToContainerPoint(e.latlng);
+    lpIndicator.style.left = point.x + 'px';
+    lpIndicator.style.top = (point.y + 52) + 'px';
+    lpIndicator.className = 'longpress-indicator active';
+
+    longPressTimer = setTimeout(() => {
+      longPressActive = true;
+      pendingLat = e.latlng.lat;
+      pendingLng = e.latlng.lng;
+      openCompose();
+    }, 800);
+  }
+
+  function cancelLongPress() {
+    clearTimeout(longPressTimer);
+    lpIndicator.className = 'longpress-indicator';
+  }
+
+  map.on('mousedown touchstart', startLongPress);
+  map.on('mouseup touchend mousemove', cancelLongPress);
+  map.on('click', cancelLongPress);
+  } // end setupMapEvents
+
+  // ── TYPE GRID ─────────────────────────────────────────────────────────────
+  function renderTypeGrid() {
+    const grid = document.getElementById('type-grid');
+    grid.innerHTML = NOTE_TYPES.map(t => `
+      <div class="type-card" data-id="${t.id}" onclick="selectType('${t.id}')">
+        <span class="type-emoji">${t.emoji}</span>
+        <span class="type-label">${t.label}</span>
+      </div>
+    `).join('');
+  }
+  renderTypeGrid();
+
+  function selectType(id) {
+    selectedType = id;
+    document.querySelectorAll('.type-card').forEach(c => c.classList.remove('selected'));
+    document.querySelector(`.type-card[data-id="${id}"]`)?.classList.add('selected');
+    document.getElementById('custom-type-section').style.display = id === 'custom' ? 'block' : 'none';
+    document.getElementById('type-next-btn').disabled = false;
+  }
+
+  // ── COMPOSE FLOW ──────────────────────────────────────────────────────────
+  function openCompose() {
+    selectedType = null;
+    document.querySelectorAll('.type-card').forEach(c => c.classList.remove('selected'));
+    document.getElementById('type-next-btn').disabled = true;
+    document.getElementById('step-type').style.display = 'block';
+    document.getElementById('step-compose').style.display = 'none';
+    document.getElementById('compose-text').value = '';
+    document.getElementById('char-count').textContent = '0 / 200';
+    document.getElementById('custom-type-section').style.display = 'none';
+    lockEnabled = false;
+    document.getElementById('lock-toggle-switch').className = 'toggle-switch';
+    document.getElementById('lock-options').className = 'lock-options';
+    document.querySelectorAll('.lock-option-inputs').forEach(el => el.className = 'lock-option-inputs');
+    document.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
+    openSheet('compose-sheet');
+  }
+
+  function goToCompose() {
+    if (!selectedType) return;
+    const t = selectedType === 'custom'
+      ? { emoji: document.getElementById('custom-emoji').value || '🗂️', label: document.getElementById('custom-name').value || 'Custom' }
+      : NOTE_TYPES.find(x => x.id === selectedType);
+    document.getElementById('compose-type-label').textContent = `${t.emoji} ${t.label}`;
+    document.getElementById('step-type').style.display = 'none';
+    document.getElementById('step-compose').style.display = 'block';
+  }
+
+  function backToType() {
+    document.getElementById('step-type').style.display = 'block';
+    document.getElementById('step-compose').style.display = 'none';
+  }
+
+  function updateCharCount() {
+    const len = document.getElementById('compose-text').value.length;
+    const el = document.getElementById('char-count');
+    el.textContent = `${len} / 200`;
+    el.className = 'char-count' + (len > 160 ? ' warn' : '');
+  }
+
+  function toggleLock() {
+    lockEnabled = !lockEnabled;
+    document.getElementById('lock-toggle-switch').className = 'toggle-switch' + (lockEnabled ? ' on' : '');
+    document.getElementById('lock-options').className = 'lock-options' + (lockEnabled ? ' visible' : '');
+  }
+
+  function toggleLockInput(id) {
+    const cb = document.getElementById(id.replace('-inputs', '').replace('proximity','lock-proximity').replace('time','lock-time').replace('date','lock-date').replace('visits','lock-visits').replace('sequence','lock-sequence'));
+    const inputs = document.getElementById(id);
+    // Find checkbox in same lock-option
+    const container = inputs.closest('.lock-option');
+    const checkbox = container.querySelector('input[type="checkbox"]');
+    inputs.className = 'lock-option-inputs' + (checkbox.checked ? ' visible' : '');
+  }
+
+  // ── SAVE NOTE ─────────────────────────────────────────────────────────────
+  function saveNote() {
+    const text = document.getElementById('compose-text').value.trim();
+    if (!text) { showToast('Add some text first', 'amber'); return; }
+    if (pendingLat === null) { showToast('No location selected', 'amber'); return; }
+
+    const t = selectedType === 'custom'
+      ? { id:'custom', emoji: document.getElementById('custom-emoji').value || '🗂️', label: document.getElementById('custom-name').value || 'Custom' }
+      : NOTE_TYPES.find(x => x.id === selectedType);
+
+    const locks = {};
+    if (lockEnabled) {
+      if (document.getElementById('lock-proximity').checked) locks.proximity = parseInt(document.getElementById('proximity-metres').value) || 100;
+      if (document.getElementById('lock-time').checked) locks.timeDays = parseInt(document.getElementById('time-days').value) || 7;
+      if (document.getElementById('lock-date').checked) locks.date = document.getElementById('date-unlock').value;
+      if (document.getElementById('lock-visits').checked) locks.visits = parseInt(document.getElementById('visits-count').value) || 3;
+      if (document.getElementById('lock-sequence').checked) locks.sequenceId = document.getElementById('sequence-id').value;
+    }
+
+    const note = {
+      id: Date.now().toString(36) + Math.random().toString(36).slice(2,6),
+      lat: pendingLat, lng: pendingLng,
+      text, type: t,
+      locks,
+      created: Date.now(),
+      visitCount: 0,
+      unlocked: Object.keys(locks).length === 0,
+    };
+
+    notes.push(note);
+    saveNotes(notes);
+    closeSheet();
+    placeMarker(note);
+    updateStats();
+    showToast('Note placed', 'green');
+  }
+
+  // ── MARKERS ───────────────────────────────────────────────────────────────
+  function placeMarker(note, forceReveal = false) {
+    if (markers[note.id]) { map.removeLayer(markers[note.id]); }
+
+    const revealed = forceReveal || note.unlocked || viewMode === 'review';
+    const isLocked = Object.keys(note.locks || {}).length > 0 && !note.unlocked;
+
+    const color = revealed ? (isLocked ? '#ffaa00' : '#00ff88') : 'rgba(0,255,136,0.3)';
+    const emoji = revealed ? (note.type?.emoji || '📍') : '?';
+
+    const icon = L.divIcon({
+      className: '',
+      html: `<div style="
+        width:36px;height:36px;
+        background:${revealed ? 'rgba(13,13,13,0.9)' : 'rgba(0,255,136,0.08)'};
+        border:1.5px solid ${color};
+        border-radius:50%;
+        display:flex;align-items:center;justify-content:center;
+        font-size:${revealed ? '16px' : '14px'};
+        box-shadow:0 0 ${revealed ? '12px' : '6px'} ${color};
+        transition:all .3s;
+        ${!revealed ? 'filter:blur(2px)' : ''}
+      ">${emoji}</div>`,
+      iconSize: [36,36], iconAnchor: [18,18], popupAnchor: [0,-20]
+    });
+
+    const marker = L.marker([note.lat, note.lng], { icon })
+      .addTo(map)
+      .on('click', () => onMarkerClick(note));
+
+    markers[note.id] = marker;
+  }
+
+  function onMarkerClick(note) {
+    const revealed = note.unlocked || viewMode === 'review';
+    if (!revealed) {
+      // Increment visit count
+      note.visitCount = (note.visitCount || 0) + 1;
+      const needed = note.locks?.visits || 0;
+      if (needed && note.visitCount >= needed) {
+        note.unlocked = true;
+        showToast('Visit lock unlocked!', 'green');
+      }
+      saveNotes(notes);
+      if (!note.unlocked) {
+        showToast('Note locked. Return closer or wait.', 'amber');
+        return;
+      }
+    }
+
+    const lockDesc = buildLockDesc(note);
+    if (!map) return;
+    const popup = L.popup()
+      .setLatLng([note.lat, note.lng])
+      .setContent(`
+        <div class="popup-type">${note.type?.emoji || '📍'} ${note.type?.label || 'Note'}</div>
+        <div class="popup-text">${esc(note.text)}</div>
+        <div class="popup-meta">
+          ${new Date(note.created).toLocaleDateString('en-GB', {day:'numeric',month:'short',year:'numeric'})}
+          · ${note.visitCount || 0} visit${note.visitCount !== 1 ? 's' : ''}
+        </div>
+        ${lockDesc ? `<div class="popup-lock">🔒 ${lockDesc}</div>` : ''}
+        <div class="popup-actions">
+          <button class="popup-btn" onclick="deleteNote('${note.id}')">Delete</button>
+          <button class="popup-btn" style="font-family:var(--mono);font-size:8px;color:var(--dimmed);border:none;background:none;cursor:default">ID: ${note.id}</button>
+        </div>
+      `)
+      .openOn(map);
+  }
+
+  function buildLockDesc(note) {
+    if (!note.locks || Object.keys(note.locks).length === 0) return '';
+    const parts = [];
+    if (note.locks.proximity) parts.push(`within ${note.locks.proximity}m`);
+    if (note.locks.timeDays) {
+      const unlockDate = new Date(note.created + note.locks.timeDays * 86400000);
+      parts.push(`after ${unlockDate.toLocaleDateString('en-GB')}`);
+    }
+    if (note.locks.date) parts.push(`on ${note.locks.date}`);
+    if (note.locks.visits) parts.push(`after ${note.locks.visits} visits`);
+    if (note.locks.sequenceId) parts.push('sequence locked');
+    return parts.join(' · ');
+  }
+
+  function loadAllMarkers() {
+    Object.values(markers).forEach(m => map.removeLayer(m));
+    markers = {};
+    notes.forEach(note => placeMarker(note));
+    updateStats();
+  }
+
+  function deleteNote(id) {
+    notes = notes.filter(n => n.id !== id);
+    saveNotes(notes);
+    if (markers[id]) { map.removeLayer(markers[id]); delete markers[id]; }
+    map.closePopup();
+    updateStats();
+    showToast('Note deleted', 'amber');
+  }
+
+  // ── SCAN ──────────────────────────────────────────────────────────────────
+  function triggerScan() {
+    const btn = document.getElementById('scan-btn');
+    btn.classList.add('scanning');
+    btn.textContent = '⊙ Scanning...';
+
+    const overlay = document.getElementById('scan-overlay');
+    overlay.classList.add('active');
+    setTimeout(() => overlay.classList.remove('active'), 1500);
+
+    if (!navigator.geolocation) {
+      showToast('Geolocation not available', 'amber');
+      btn.classList.remove('scanning');
+      btn.textContent = '⊙ Scan';
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(pos => {
+      userLat = pos.coords.latitude;
+      userLng = pos.coords.longitude;
+      let revealed = 0;
+
+      notes.forEach(note => {
+        const dist = getDistance(userLat, userLng, note.lat, note.lng);
+
+        // Check and apply lock conditions
+        if (!note.unlocked) {
+          let canUnlock = true;
+
+          if (note.locks?.proximity && dist > note.locks.proximity) canUnlock = false;
+          if (note.locks?.timeDays) {
+            const unlockTime = note.created + note.locks.timeDays * 86400000;
+            if (Date.now() < unlockTime) canUnlock = false;
+          }
+          if (note.locks?.date) {
+            const unlockDate = new Date(note.locks.date);
+            if (new Date() < unlockDate) canUnlock = false;
+          }
+          if (note.locks?.sequenceId) {
+            const prereq = notes.find(n => n.id === note.locks.sequenceId);
+            if (!prereq?.unlocked) canUnlock = false;
+          }
+
+          if (canUnlock && Object.keys(note.locks || {}).length > 0) {
+            note.unlocked = true;
+            revealed++;
+          }
+        }
+
+        // Update marker based on distance (discovery mode visuals)
+        if (viewMode === 'discovery') {
+          if (markers[note.id]) map.removeLayer(markers[note.id]);
+          if (dist <= 100) {
+            placeMarker(note, true);
+          } else if (dist <= 500) {
+            placeGlowMarker(note, dist);
+          }
+          // Beyond 500m: not shown in discovery mode
+        }
+      });
+
+      if (revealed > 0) {
+        saveNotes(notes);
+        showToast(`${revealed} note${revealed>1?'s':''} unlocked!`, 'green');
+      } else {
+        showToast('Scan complete', 'green');
+      }
+
+      btn.classList.remove('scanning');
+      btn.textContent = '⊙ Scan';
+    }, err => {
+      const msg = err.code === 1 ? 'Location permission denied' : err.code === 2 ? 'Location unavailable' : 'Location request timed out';
+      showToast(msg, 'amber');
+      btn.classList.remove('scanning');
+      btn.textContent = '⊙ Scan';
+    }, { enableHighAccuracy: true, timeout: 10000 });
+  }
+
+  function placeGlowMarker(note, dist) {
+    // Faint pulse marker for 100-500m range
+    const opacity = 1 - ((dist - 100) / 400);
+    const icon = L.divIcon({
+      className: '',
+      html: `<div style="
+        width:24px;height:24px;
+        background:rgba(0,255,136,0.05);
+        border:1px solid rgba(0,255,136,${opacity * 0.4});
+        border-radius:50%;
+        box-shadow:0 0 8px rgba(0,255,136,${opacity * 0.2});
+        animation:scanpulse 2s ease-in-out infinite;
+      "></div>`,
+      iconSize:[24,24], iconAnchor:[12,12]
+    });
+    const marker = L.marker([note.lat, note.lng], { icon, interactive: false }).addTo(map);
+    markers[note.id] = marker;
+  }
+
+  function loadAllMarkersIfReview() {
+    if (viewMode === 'review') loadAllMarkers();
+  }
+
+  // ── VIEW MODE TOGGLE ──────────────────────────────────────────────────────
+  function toggleReviewMode() {
+    viewMode = viewMode === 'discovery' ? 'review' : 'discovery';
+    const indicator = document.getElementById('mode-indicator');
+    const btn = document.getElementById('review-toggle');
+
+    if (viewMode === 'review') {
+      indicator.textContent = '◎ Review Mode — all notes visible';
+      indicator.className = 'mode-indicator review';
+      btn.textContent = '● Discovery Mode';
+      loadAllMarkers();
+      showToast('Review Mode — all notes visible', 'green');
+    } else {
+      indicator.textContent = '● Discovery Mode';
+      indicator.className = 'mode-indicator discovery';
+      btn.textContent = '◎ Review Mode';
+      // In discovery mode, hide markers — show only via scan
+      Object.values(markers).forEach(m => map.removeLayer(m));
+      markers = {};
+      showToast('Discovery Mode — scan to reveal', 'green');
+    }
+  }
+
+  // ── REVIEW SHEET ──────────────────────────────────────────────────────────
+  function openReview() {
+    const body = document.getElementById('review-body');
+    if (!notes.length) {
+      body.innerHTML = '<div style="font-family:var(--mono);font-size:10px;color:var(--muted);text-align:center;padding:2rem 0">No notes placed yet.<br>Long press on the map to leave one.</div>';
+    } else {
+      body.innerHTML = notes.map(n => `
+        <div style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:.85rem 1rem;margin-bottom:8px;cursor:pointer" onclick="flyToNote('${n.id}')">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+            <div>
+              <div style="font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--green);margin-bottom:3px">${n.type?.emoji || '📍'} ${n.type?.label || 'Note'}</div>
+              <div style="font-size:13px;font-weight:600;color:var(--text);line-height:1.5">${esc(n.text.slice(0,80))}${n.text.length>80?'…':''}</div>
+              <div style="font-family:var(--mono);font-size:9px;color:var(--dimmed);margin-top:3px">${new Date(n.created).toLocaleDateString('en-GB')} · ${n.unlocked?'<span style="color:var(--green)">unlocked</span>':'<span style="color:var(--amber)">locked</span>'}</div>
+            </div>
+            <button onclick="event.stopPropagation();deleteNote('${n.id}')" style="background:transparent;border:none;color:var(--dimmed);cursor:pointer;font-size:14px;flex-shrink:0">✕</button>
+          </div>
+        </div>
+      `).join('');
+    }
+    openSheet('review-sheet');
+  }
+
+  function closeReview() { closeSheet(); }
+
+  function flyToNote(id) {
+    const note = notes.find(n => n.id === id);
+    if (!note) return;
+    closeSheet();
+    map.flyTo([note.lat, note.lng], 16, { duration: 1 });
+    // Switch to review mode so marker is visible
+    if (viewMode === 'discovery') toggleReviewMode();
+    setTimeout(() => { if (markers[id]) markers[id].fire('click'); }, 1200);
+  }
+
+  // ── LOCATE ────────────────────────────────────────────────────────────────
+  function locateMe() {
+    if (!navigator.geolocation) { showToast('Geolocation not available', 'amber'); return; }
+    navigator.geolocation.getCurrentPosition(pos => {
+      userLat = pos.coords.latitude;
+      userLng = pos.coords.longitude;
+      map.flyTo([userLat, userLng], 16, { duration: 1.5 });
+    }, err => { const msg = err.code === 1 ? 'Location permission denied' : 'Location unavailable'; showToast(msg, 'amber'); }, { enableHighAccuracy: true });
+  }
+
+  // ── HUNT MODE ─────────────────────────────────────────────────────────────
+  function setMode(mode) {
+    currentMode = mode;
+    document.getElementById('btn-note').className = 'mode-btn' + (mode==='note'?' active':'');
+  }
+  function showHunt() { document.getElementById('hunt-overlay').classList.add('open'); }
+  function closeHunt() { document.getElementById('hunt-overlay').classList.remove('open'); }
+
+  // ── SHEET HELPERS ─────────────────────────────────────────────────────────
+  function openSheet(id) {
+    document.getElementById('sheet-backdrop').classList.add('open');
+    document.getElementById(id).classList.add('open');
+  }
+  function closeSheet() {
+    document.getElementById('sheet-backdrop').classList.remove('open');
+    document.querySelectorAll('.bottom-sheet').forEach(s => s.classList.remove('open'));
+    longPressActive = false;
+  }
+
+  // ── STATS ─────────────────────────────────────────────────────────────────
+  function updateStats() {
+    document.getElementById('note-count').textContent = notes.length;
+  }
+
+  // ── TOAST ─────────────────────────────────────────────────────────────────
+  function showToast(msg, type='') {
+    const el = document.getElementById('toast');
+    el.textContent = msg;
+    el.className = 'toast show' + (type ? ' '+type : '');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => { el.className = 'toast'; }, 2500);
+  }
+
+  // ── DISTANCE ──────────────────────────────────────────────────────────────
+  function getDistance(lat1, lon1, lat2, lon2) {
+    const R = 6371e3;
+    const f1 = lat1 * Math.PI/180, f2 = lat2 * Math.PI/180;
+    const df = (lat2-lat1)*Math.PI/180, dl = (lon2-lon1)*Math.PI/180;
+    const a = Math.sin(df/2)**2 + Math.cos(f1)*Math.cos(f2)*Math.sin(dl/2)**2;
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  }
+
+  // ── HELPERS ───────────────────────────────────────────────────────────────
+  function esc(s) {
+    if (typeof s !== 'string') return '';
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  // ── INIT ──────────────────────────────────────────────────────────────────
+  window.onload = function() {
+    initMap();
+  };
+  </script>
+</body>
+</html>
