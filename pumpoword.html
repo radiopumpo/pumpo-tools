@@ -1,0 +1,971 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>PUMPO WORD | Daily Word Game</title>
+  <link rel="icon" type="image/png" href="https://radiopumpo.github.io/radiopumpologo.png">
+  <link href="https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Space+Mono:wght@400;700&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --pink: #ff0080;
+      --cyan: #40e0d0;
+      --bg: #0d0d0d;
+      --bg2: #141414;
+      --bg3: #1e1e1e;
+      --text: #f0ede6;
+      --muted: #666;
+      --dimmed: #2a2a2a;
+      --border: rgba(255,255,255,0.08);
+      --correct: #00c46a;
+      --present: #ffaa00;
+      --absent: #333;
+      --correct-glow: rgba(0,196,106,0.3);
+      --present-glow: rgba(255,170,0,0.3);
+      --pink-glow: rgba(255,0,128,0.3);
+      --cyan-glow: rgba(64,224,208,0.2);
+      --tile-size: min(62px, 13vw);
+      --tile-gap: min(6px, 1.2vw);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { -webkit-text-size-adjust: 100%; }
+
+    body {
+      font-family: 'Rajdhani', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      overflow-x: hidden;
+      padding-bottom: 140px;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.025) 2px, rgba(0,0,0,0.025) 4px);
+      pointer-events: none; z-index: 9999;
+    }
+
+    /* NAV */
+    .top-nav {
+      position: fixed; top: 0; left: 0; right: 0;
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 11px 16px;
+      background: rgba(13,13,13,0.94);
+      backdrop-filter: blur(12px);
+      z-index: 500;
+      border-bottom: 1px solid rgba(255,0,128,0.2);
+    }
+    .nav-brand { font-family: 'Black Ops One', cursive; font-size: .85rem; color: var(--pink); letter-spacing: 2px; text-decoration: none; }
+    .nav-right { display: flex; gap: 8px; align-items: center; }
+    .nav-link { color: var(--cyan); text-decoration: none; font-weight: 700; font-size: .65rem; border: 1px solid var(--cyan); padding: 5px 10px; border-radius: 20px; transition: .2s; letter-spacing: .5px; font-family: 'Space Mono', monospace; }
+    .nav-link:hover { background: var(--cyan); color: #0d0d0d; }
+    .nav-link.radio { border-color: #ff0033; color: #ff6666; }
+    .nav-link.radio:hover { background: #ff0033; color: #fff; }
+
+    /* PAGE */
+    .page { width: 100%; max-width: 480px; padding: 0 12px; display: flex; flex-direction: column; align-items: center; margin-top: 56px; }
+
+    /* HEADER */
+    .game-header { width: 100%; display: flex; align-items: center; justify-content: space-between; padding: 14px 0 8px; border-bottom: 1px solid var(--border); margin-bottom: 10px; }
+    .game-title { font-family: 'Black Ops One', cursive; font-size: 1.5rem; letter-spacing: 3px; color: var(--text); }
+    .game-title span { color: var(--pink); }
+    .header-meta { display: flex; gap: 12px; align-items: center; }
+    .mode-toggle { display: flex; background: var(--bg3); border-radius: 20px; overflow: hidden; border: 1px solid var(--border); }
+    .mode-btn { font-family: 'Space Mono', monospace; font-size: 8px; letter-spacing: .1em; padding: 5px 10px; cursor: pointer; border: none; background: transparent; color: var(--muted); transition: .2s; text-transform: uppercase; }
+    .mode-btn.active { background: var(--pink); color: #fff; }
+    .icon-btn { background: none; border: 1px solid var(--border); color: var(--muted); width: 28px; height: 28px; border-radius: 8px; cursor: pointer; font-size: 14px; display: flex; align-items: center; justify-content: center; transition: .2s; }
+    .icon-btn:hover { border-color: var(--cyan); color: var(--cyan); }
+
+    /* DAILY STRIP */
+    .daily-strip {
+      width: 100%; display: flex; align-items: center; justify-content: space-between;
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: 10px; padding: 8px 14px; margin-bottom: 14px;
+      font-family: 'Space Mono', monospace; font-size: 9px; letter-spacing: .12em; text-transform: uppercase;
+    }
+    .daily-label { color: var(--pink); }
+    .daily-num { color: var(--muted); }
+    .daily-countdown { color: var(--cyan); }
+
+    /* PRACTICE STRIP */
+    .practice-strip {
+      width: 100%; display: flex; align-items: center; justify-content: space-between;
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: 10px; padding: 8px 14px; margin-bottom: 14px;
+      font-family: 'Space Mono', monospace; font-size: 9px; letter-spacing: .12em; text-transform: uppercase;
+    }
+    .practice-label { color: var(--cyan); }
+    .new-game-btn {
+      background: var(--cyan); color: #000; border: none;
+      padding: 4px 10px; border-radius: 20px; cursor: pointer;
+      font-family: 'Space Mono', monospace; font-size: 8px; font-weight: 700;
+      letter-spacing: .1em; text-transform: uppercase; transition: .2s;
+    }
+    .new-game-btn:hover { background: #2ec4b6; }
+
+    /* BOARD */
+    .board {
+      display: grid;
+      grid-template-rows: repeat(6, var(--tile-size));
+      gap: var(--tile-gap);
+      margin-bottom: 16px;
+    }
+    .board-row { display: flex; gap: var(--tile-gap); }
+
+    .tile {
+      width: var(--tile-size);
+      height: var(--tile-size);
+      border: 2px solid var(--dimmed);
+      border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Black Ops One', cursive;
+      font-size: calc(var(--tile-size) * 0.42);
+      color: var(--text);
+      transition: border-color .1s;
+      position: relative;
+      overflow: hidden;
+    }
+    .tile.filled { border-color: rgba(255,255,255,0.25); animation: tilePop .1s ease; }
+    .tile.active-row { border-color: rgba(255,255,255,0.35); }
+    @keyframes tilePop { 0%{transform:scale(1)} 50%{transform:scale(1.08)} 100%{transform:scale(1)} }
+
+    /* Flip animation */
+    .tile.flip { animation: tileFlip .5s ease forwards; }
+    .tile:nth-child(2).flip { animation-delay: .1s; }
+    .tile:nth-child(3).flip { animation-delay: .2s; }
+    .tile:nth-child(4).flip { animation-delay: .3s; }
+    .tile:nth-child(5).flip { animation-delay: .4s; }
+    @keyframes tileFlip {
+      0%  { transform: rotateX(0); }
+      49% { transform: rotateX(90deg); }
+      50% { transform: rotateX(90deg); }
+      100%{ transform: rotateX(0); }
+    }
+
+    .tile.correct  { background: var(--correct); border-color: var(--correct); color: #fff; box-shadow: 0 0 12px var(--correct-glow); }
+    .tile.present  { background: var(--present); border-color: var(--present); color: #000; box-shadow: 0 0 12px var(--present-glow); }
+    .tile.absent   { background: var(--absent);  border-color: var(--absent);  color: var(--muted); }
+
+    /* Shake */
+    .shake { animation: rowShake .4s ease; }
+    @keyframes rowShake {
+      0%,100%{transform:translateX(0)}
+      20%{transform:translateX(-6px)}
+      40%{transform:translateX(6px)}
+      60%{transform:translateX(-4px)}
+      80%{transform:translateX(4px)}
+    }
+
+    /* Bounce win */
+    .bounce .tile { animation: tileBounce .6s ease forwards; }
+    .bounce .tile:nth-child(1){animation-delay:.0s}
+    .bounce .tile:nth-child(2){animation-delay:.1s}
+    .bounce .tile:nth-child(3){animation-delay:.2s}
+    .bounce .tile:nth-child(4){animation-delay:.3s}
+    .bounce .tile:nth-child(5){animation-delay:.4s}
+    @keyframes tileBounce {
+      0%,100%{transform:translateY(0)}
+      40%{transform:translateY(-14px)}
+      70%{transform:translateY(-6px)}
+    }
+
+    /* KEYBOARD */
+    .keyboard { width: 100%; display: flex; flex-direction: column; gap: 6px; max-width: 420px; }
+    .key-row { display: flex; gap: 5px; justify-content: center; }
+    .key {
+      height: 54px;
+      flex: 1;
+      max-width: 40px;
+      background: var(--bg3);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 7px;
+      cursor: pointer;
+      font-family: 'Space Mono', monospace;
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: .05em;
+      transition: all .15s;
+      display: flex; align-items: center; justify-content: center;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .key:active { transform: scale(.94); }
+    .key.wide { max-width: 58px; font-size: 8px; letter-spacing: 0; }
+    .key.correct { background: var(--correct); border-color: var(--correct); color: #fff; }
+    .key.present { background: var(--present); border-color: var(--present); color: #000; }
+    .key.absent  { background: var(--absent);  border-color: #444; color: #555; }
+
+    /* TOAST */
+    .toast-wrap { position: fixed; top: 70px; left: 50%; transform: translateX(-50%); z-index: 600; display: flex; flex-direction: column; align-items: center; gap: 6px; pointer-events: none; }
+    .toast {
+      background: var(--text); color: var(--bg);
+      font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 700;
+      letter-spacing: .08em; padding: 8px 16px; border-radius: 20px;
+      animation: toastIn .2s ease, toastOut .3s ease 1.7s forwards;
+      white-space: nowrap;
+    }
+    @keyframes toastIn  { from{opacity:0;transform:translateY(-8px)} to{opacity:1;transform:translateY(0)} }
+    @keyframes toastOut { from{opacity:1} to{opacity:0} }
+
+    /* RESULT PANEL */
+    .result-panel {
+      position: fixed; inset: 0; z-index: 550;
+      background: rgba(10,10,10,0.92); backdrop-filter: blur(12px);
+      display: flex; align-items: center; justify-content: center;
+      padding: 20px;
+      animation: fadeIn .3s ease;
+    }
+    @keyframes fadeIn { from{opacity:0} to{opacity:1} }
+    .result-card {
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: 20px; padding: 2rem 1.75rem;
+      max-width: 360px; width: 100%; text-align: center;
+      display: flex; flex-direction: column; align-items: center; gap: 16px;
+    }
+    .result-emoji { font-size: 48px; }
+    .result-title { font-family: 'Black Ops One', cursive; font-size: 22px; letter-spacing: 1px; }
+    .result-title.win { color: var(--correct); text-shadow: 0 0 20px var(--correct-glow); }
+    .result-title.lose { color: var(--pink); text-shadow: 0 0 20px var(--pink-glow); }
+    .result-word { font-family: 'Space Mono', monospace; font-size: 11px; color: var(--muted); letter-spacing: .2em; text-transform: uppercase; }
+    .result-word strong { color: var(--text); font-size: 18px; display: block; margin-top: 4px; letter-spacing: 3px; }
+    .result-def { font-size: 12px; color: var(--muted); line-height: 1.6; font-weight: 600; max-width: 280px; }
+    .result-stats { display: flex; gap: 20px; }
+    .stat { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+    .stat-val { font-family: 'Black Ops One', cursive; font-size: 28px; color: var(--text); }
+    .stat-lbl { font-family: 'Space Mono', monospace; font-size: 8px; color: var(--muted); letter-spacing: .12em; text-transform: uppercase; }
+    .share-btn {
+      background: var(--pink); color: #fff; border: none;
+      padding: .75rem 1.5rem; border-radius: 10px; cursor: pointer;
+      font-family: 'Black Ops One', cursive; font-size: 14px; letter-spacing: .5px;
+      width: 100%; transition: .2s; box-shadow: 0 4px 20px var(--pink-glow);
+    }
+    .share-btn:hover { background: #cc0066; }
+    .result-next { font-family: 'Space Mono', monospace; font-size: 9px; color: var(--muted); letter-spacing: .12em; }
+    .result-close {
+      background: transparent; border: 1px solid var(--border);
+      color: var(--muted); padding: .5rem 1rem; border-radius: 8px;
+      cursor: pointer; font-family: 'Space Mono', monospace; font-size: 9px;
+      letter-spacing: .1em; text-transform: uppercase; transition: .2s; width: 100%;
+    }
+    .result-close:hover { border-color: var(--cyan); color: var(--cyan); }
+
+    /* HOW TO PLAY */
+    .how-panel {
+      position: fixed; inset: 0; z-index: 560;
+      background: rgba(10,10,10,0.92); backdrop-filter: blur(12px);
+      display: flex; align-items: center; justify-content: center;
+      padding: 20px;
+    }
+    .how-card {
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: 20px; padding: 1.75rem;
+      max-width: 340px; width: 100%;
+    }
+    .how-title { font-family: 'Black Ops One', cursive; font-size: 16px; letter-spacing: 2px; color: var(--text); margin-bottom: 1rem; }
+    .how-text { font-size: 12px; color: var(--muted); line-height: 1.7; font-weight: 600; margin-bottom: 1rem; }
+    .how-example { display: flex; gap: 5px; margin-bottom: 8px; }
+    .how-tile { width: 36px; height: 36px; border-radius: 5px; display: flex; align-items: center; justify-content: center; font-family: 'Black Ops One', cursive; font-size: 14px; }
+    .how-tile.eg-correct { background: var(--correct); color: #fff; }
+    .how-tile.eg-present { background: var(--present); color: #000; }
+    .how-tile.eg-absent  { background: var(--absent);  color: var(--muted); border: 1px solid #444; }
+    .how-tile.eg-blank   { background: var(--dimmed);  color: var(--muted); }
+    .how-eg-lbl { font-size: 11px; color: var(--muted); font-weight: 600; margin-bottom: 10px; }
+    .how-eg-lbl strong { color: var(--text); }
+    .how-close {
+      background: var(--pink); color: #fff; border: none;
+      padding: .65rem 1rem; border-radius: 8px; cursor: pointer;
+      font-family: 'Black Ops One', cursive; font-size: 12px; letter-spacing: .5px;
+      width: 100%; margin-top: .5rem; transition: .2s;
+    }
+    .how-close:hover { background: #cc0066; }
+
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+
+  <nav class="top-nav">
+    <a href="index.html" class="nav-brand">PUMPO<span style="color:var(--cyan)">WORD</span></a>
+    <div class="nav-right">
+      <a href="index.html" class="nav-link">← TOOLS</a>
+      <a href="https://radiopumpo.github.io" class="nav-link radio">📻 RADIO</a>
+    </div>
+  </nav>
+
+  <div class="toast-wrap" id="toastWrap"></div>
+
+  <!-- HOW TO PLAY -->
+  <div class="how-panel hidden" id="howPanel">
+    <div class="how-card">
+      <div class="how-title">HOW TO PLAY</div>
+      <p class="how-text">Guess the word in 6 tries. Each guess must be a valid 5-letter word. The tiles change colour after each guess.</p>
+
+      <div class="how-example">
+        <div class="how-tile eg-correct">P</div>
+        <div class="how-tile eg-blank">U</div>
+        <div class="how-tile eg-blank">M</div>
+        <div class="how-tile eg-blank">P</div>
+        <div class="how-tile eg-blank">O</div>
+      </div>
+      <p class="how-eg-lbl"><strong style="color:var(--correct)">P</strong> is in the word and in the correct spot.</p>
+
+      <div class="how-example">
+        <div class="how-tile eg-blank">R</div>
+        <div class="how-tile eg-present">A</div>
+        <div class="how-tile eg-blank">D</div>
+        <div class="how-tile eg-blank">I</div>
+        <div class="how-tile eg-blank">O</div>
+      </div>
+      <p class="how-eg-lbl"><strong style="color:var(--present)">A</strong> is in the word but in the wrong spot.</p>
+
+      <div class="how-example">
+        <div class="how-tile eg-blank">C</div>
+        <div class="how-tile eg-blank">R</div>
+        <div class="how-tile eg-blank">E</div>
+        <div class="how-tile eg-absent">W</div>
+        <div class="how-tile eg-blank">S</div>
+      </div>
+      <p class="how-eg-lbl"><strong style="color:var(--muted)">W</strong> is not in the word at all.</p>
+
+      <p class="how-text" style="margin-top:.5rem">A new <strong style="color:var(--pink)">DAILY</strong> word every day. <strong style="color:var(--cyan)">PRACTICE</strong> mode lets you play unlimited rounds anytime.</p>
+      <button class="how-close" onclick="closeHow()">GOT IT</button>
+    </div>
+  </div>
+
+  <!-- RESULT PANEL -->
+  <div class="result-panel hidden" id="resultPanel">
+    <div class="result-card">
+      <div class="result-emoji" id="resultEmoji"></div>
+      <div class="result-title" id="resultTitle"></div>
+      <div class="result-word">
+        The word was
+        <strong id="resultWord"></strong>
+      </div>
+      <div class="result-def" id="resultDef"></div>
+      <div class="result-stats">
+        <div class="stat"><div class="stat-val" id="statPlayed">0</div><div class="stat-lbl">Played</div></div>
+        <div class="stat"><div class="stat-val" id="statWon">0</div><div class="stat-lbl">Won</div></div>
+        <div class="stat"><div class="stat-val" id="statStreak">0</div><div class="stat-lbl">Streak</div></div>
+      </div>
+      <button class="share-btn" onclick="shareResult()">SHARE RESULT 📋</button>
+      <div class="result-next" id="resultNext"></div>
+      <button class="result-close" id="resultClose" onclick="closeResult()">KEEP PLAYING</button>
+    </div>
+  </div>
+
+  <div class="page">
+
+    <div class="game-header">
+      <div class="game-title">PUMPO<span>WORD</span></div>
+      <div class="header-meta">
+        <div class="mode-toggle">
+          <button class="mode-btn active" id="btnDaily" onclick="setMode('daily')">Daily</button>
+          <button class="mode-btn" id="btnPractice" onclick="setMode('practice')">Practice</button>
+        </div>
+        <button class="icon-btn" onclick="showHow()">?</button>
+      </div>
+    </div>
+
+    <div class="daily-strip" id="dailyStrip">
+      <span class="daily-label">● DAILY CHALLENGE</span>
+      <span class="daily-num" id="puzzleNum">#001</span>
+      <span class="daily-countdown" id="countdown">next in --:--:--</span>
+    </div>
+
+    <div class="practice-strip hidden" id="practiceStrip">
+      <span class="practice-label">∞ PRACTICE MODE</span>
+      <button class="new-game-btn" onclick="newPracticeGame()">NEW WORD</button>
+    </div>
+
+    <div class="board" id="board"></div>
+    <div class="keyboard" id="keyboard"></div>
+
+  </div>
+
+  <script>
+  // ── WORD BANK ──────────────────────────────────────────────────────────────
+  // Mixed: Pumpo-universe words + common 5-letter English words
+  // Pumpo words are marked with a definition for the result panel
+
+  const PUMPO_WORDS = [
+    { w:'GRIND', d:'The daily work that builds something real.' },
+    { w:'SQUAD', d:'Your people. The ones who were here before it was anything.' },
+    { w:'DROPS', d:'New content, new tools, new sounds. When Pumpo delivers.' },
+    { w:'VIBES', d:'The frequency Radio Pumpo runs on. You either feel it or you don\'t.' },
+    { w:'TOOLS', d:'The Pumpo Tools suite. Built for builders.' },
+    { w:'WAVES', d:'What Radio Pumpo sends out. 24/7.' },
+    { w:'CHAOS', d:'Where the best ideas come from.' },
+    { w:'CREWS', d:'The 300 Spartans. The people who were here first.' },
+    { w:'SCOUT', d:'Finding what\'s next before everyone else.' },
+    { w:'LOOPS', d:'The daily habit. The check-in. The ritual.' },
+    { w:'NOISE', d:'Everything that isn\'t signal. Pumpo cuts through it.' },
+    { w:'PULSE', d:'GitWire. The weekly signal from the GitHub universe.' },
+    { w:'FRESH', d:'The badge on every new Pumpo tool.' },
+    { w:'FORGE', d:'Where tools get built. The Pumpo workshop.' },
+    { w:'CODED', d:'What every Pumpo tool is. One HTML file.' },
+    { w:'REIGN', d:'What a Pumpo Empire does once it\'s established.' },
+    { w:'FLAME', d:'The energy behind Radio Pumpo.' },
+    { w:'SHARP', d:'How a good Pumpo tool feels when you use it.' },
+    { w:'DRIFT', d:'NoteHunt mode. Following the signal to where it leads.' },
+    { w:'CLASH', d:'What happens when good ideas compete. Pumpo Empires energy.' },
+  ];
+
+  const COMMON_WORDS = [
+    'ABOUT','ABOVE','ABUSE','ACTOR','ACUTE','ADMIT','ADOBE','ADOPT',
+    'ADULT','AFTER','AGAIN','AGENT','AGREE','AHEAD','ALARM','ALBUM',
+    'ALERT','ALIKE','ALIGN','ALIVE','ALLEY','ALLOW','ALONE','ALONG',
+    'ALTER','ANGEL','ANGER','ANGLE','ANGRY','ANIME','ANKLE','ANNEX',
+    'ANTIC','ANVIL','APART','APPLE','APPLY','ARENA','ARGUE','ARISE',
+    'ARMOR','AROMA','AROSE','ARRAY','ARROW','ASIDE','ASKED','ATLAS',
+    'ATTIC','AUDIO','AUDIT','AUNTS','AVOID','AWAKE','AWARD','AWARE',
+    'AWFUL','BADGE','BASIC','BASIS','BATCH','BEACH','BEGAN','BEGIN',
+    'BEING','BELOW','BENCH','BIBLE','BIRTH','BLACK','BLADE','BLAME',
+    'BLAND','BLANK','BLAST','BLAZE','BLEED','BLEND','BLESS','BLIND',
+    'BLOCK','BLOOD','BLOWN','BLUES','BLUNT','BOARD','BONUS','BOOST',
+    'BOOTH','BOUND','BRAIN','BRAND','BRAVE','BREAD','BREAK','BREED',
+    'BRICK','BRIDE','BRIEF','BRING','BROAD','BROKE','BROWN','BRUSH',
+    'BUILD','BUILT','BUNCH','BURST','BUYER','CABIN','CABLE','CAMEL',
+    'CARRY','CATCH','CAUSE','CEDAR','CHAIN','CHAIR','CHALK','CHASE',
+    'CHECK','CHEEK','CHEER','CHESS','CHEST','CHIEF','CHILD','CHINA',
+    'CHOIR','CHUNK','CIVIL','CLAIM','CLAMP','CLANG','CLASH','CLASS',
+    'CLEAN','CLEAR','CLIMB','CLING','CLOCK','CLONE','CLOSE','CLOUD',
+    'COACH','COAST','COLOR','COMBO','COMIC','COULD','COUNT','COURT',
+    'COVER','CRACK','CRAFT','CRANE','CRASH','CRAZY','CREAM','CRIME',
+    'CROSS','CROWD','CROWN','CRUEL','CRUSH','CURVE','CYCLE','DAILY',
+    'DANCE','DEALT','DEATH','DEBUT','DELAY','DELTA','DENSE','DEPOT',
+    'DEPOT','DEPTH','DERBY','DEVIL','DIGIT','DIRTY','DISCO','DITCH',
+    'DIZZY','DODGE','DOING','DOUBT','DOUGH','DRAFT','DRAIN','DRAMA',
+    'DRANK','DRAWN','DREAM','DRESS','DRILL','DRINK','DRIVE','DROVE',
+    'DROVE','DROWN','DRUNK','DRYER','EBOOK','EIGHT','ELITE','EMBER',
+    'ENEMY','ENJOY','ENTER','ENTRY','EQUAL','ERROR','ESSAY','EVENT',
+    'EXACT','EXIST','EXTRA','FABLE','FACET','FAITH','FANCY','FATAL',
+    'FAULT','FEAST','FETCH','FEVER','FIBER','FIELD','FIFTH','FIFTY',
+    'FIGHT','FINAL','FIRST','FIXED','FLAKE','FLASH','FLEET','FLESH',
+    'FLOAT','FLOOR','FLOUR','FLUID','FLUTE','FOCAL','FOCUS','FORCE',
+    'FORGE','FORTH','FOUND','FOXES','FRAME','FRANK','FRAUD','FRONT',
+    'FROST','FRUIT','FULLY','FUNNY','FUZZY','GHOST','GIVEN','GLAND',
+    'GLASS','GLOBE','GLOOM','GLORY','GLOSS','GLOVE','GOING','GRACE',
+    'GRADE','GRAIN','GRAND','GRANT','GRASP','GRASS','GRAZE','GREAT',
+    'GREEN','GREET','GRIEF','GRILL','GROUP','GROVE','GROWN','GUARD',
+    'GUESS','GUEST','GUIDE','GUILD','GUILE','GUISE','GULCH','GUSTO',
+    'HABIT','HANDS','HAPPY','HARSH','HASTE','HAVEN','HEART','HEAVY',
+    'HERBY','HERBS','HILLS','HINGE','HITCH','HOLLY','HORDE','HOTEL',
+    'HOUSE','HUMAN','HUMID','HUMOR','HYPER','IDEAL','IMAGE','IMPLY',
+    'INBOX','INDEX','INDIE','INFER','INNER','INPUT','IRONY','ISSUE',
+    'JAPAN','JEWEL','JOINT','JOKER','JUICE','JUMPY','KARMA','KNACK',
+    'KNEEL','KNIFE','KNOCK','KNOWN','LABEL','LANCE','LARGE','LASER',
+    'LATER','LAUGH','LAYER','LEARN','LEAST','LEAVE','LEGAL','LEVEL',
+    'LIGHT','LIMIT','LINED','LINER','LINGO','LIVER','LOCAL','LODGE',
+    'LOGIC','LONELY','LOOSE','LOVER','LOWER','LUCKY','LUNAR','LYRIC',
+    'MAGIC','MAJOR','MAKER','MANOR','MARCH','MATCH','MAYOR','MEDAL',
+    'MEDIA','MEDIC','MERCY','MERIT','METAL','MIGHT','MINOR','MINUS',
+    'MODEL','MONEY','MONTH','MORAL','MOTOR','MOUNT','MOUSE','MOUTH',
+    'MOVED','MOVIE','MUSIC','NAIVE','NERVE','NEVER','NIGHT','NINJA',
+    'NOBLE','NORTH','NOTED','NOVEL','NURSE','NYMPH','OCEAN','OFFER',
+    'OFTEN','ONSET','OPERA','ORDER','OTHER','OUGHT','OUTER','OWNED',
+    'OWNER','OZONE','PAINT','PANIC','PAPER','PARTY','PEACE','PEARL',
+    'PHASE','PHONE','PHOTO','PIECE','PILOT','PIVOT','PIXEL','PIZZA',
+    'PLACE','PLAIN','PLANE','PLANT','PLATE','PLAZA','PLEAD','PLUCK',
+    'POINT','POLAR','POSER','POWER','PRESS','PRICE','PRIDE','PRIME',
+    'PRINT','PRIOR','PRIZE','PROBE','PROOF','PROUD','PROVE','PROWL',
+    'PROXY','PUPIL','QUEEN','QUERY','QUEST','QUEUE','QUICK','QUIET',
+    'QUOTA','QUOTE','RACER','RADIO','RAISE','RALLY','RANCH','RANGE',
+    'RAPID','RATIO','REACH','READY','REALM','REBEL','RECON','REIGN',
+    'RELAX','REMIX','REPAY','REPLY','RIDER','RIGHT','RIGID','RISKY',
+    'RIVET','ROBOT','ROCKY','ROMAN','ROUGE','ROUGH','ROUND','ROUTE',
+    'ROYAL','RULER','RURAL','RUSTY','SADLY','SAINT','SAUCE','SCALE',
+    'SCENE','SCOPE','SCORE','SCOUT','SCREW','SEIZE','SENSE','SERVE',
+    'SETUP','SEVEN','SHAFT','SHAKE','SHALL','SHAME','SHAPE','SHARE',
+    'SHELF','SHELL','SHIFT','SHINY','SHIRT','SHOCK','SHOOT','SHORE',
+    'SHORT','SHOUT','SIGHT','SINCE','SIXTH','SIXTY','SIZED','SKILL',
+    'SLAVE','SLEEP','SLICE','SLIDE','SLOPE','SMART','SMELL','SMILE',
+    'SMOKE','SNAKE','SOLAR','SOLID','SOLVE','SORRY','SOUTH','SPACE',
+    'SPARE','SPARK','SPAWN','SPEAK','SPEED','SPEND','SPINE','SPITE',
+    'SPLIT','SPOKE','SPOON','SPORT','SPRAY','STAGE','STAIN','STAKE',
+    'STARE','START','STATE','STAYS','STEAM','STEEL','STEEP','STEER',
+    'STERN','STICK','STILL','STOCK','STONE','STOOD','STORE','STORM',
+    'STORY','STRAP','STRAW','STRIP','STUCK','STUDY','STUMP','STYLE',
+    'SUGAR','SUITE','SUPER','SURGE','SWAMP','SWEAR','SWEEP','SWEET',
+    'SWEPT','SWIFT','SWING','SWORD','SWORN','TABLE','TAUNT','TEACH',
+    'TEETH','THANK','THEIR','THEME','THERE','THESE','THICK','THING',
+    'THINK','THIRD','THORN','THOSE','THREE','THREW','THROW','TIGER',
+    'TIMER','TITLE','TODAY','TOKEN','TOPIC','TOTAL','TOUCH','TOUGH',
+    'TOWEL','TOWER','TOXIC','TRACK','TRADE','TRAIL','TRAIN','TRAIT',
+    'TRAMP','TRASH','TREAT','TREND','TRIAL','TRIBE','TRICK','TRIED',
+    'TROLL','TROOP','TRUST','TRUTH','TUMOR','TUNER','TWICE','TWIST',
+    'ULTRA','UNIFY','UNION','UNITE','UNTIL','UPPER','UPSET','URBAN',
+    'USAGE','USHER','VALID','VALUE','VALVE','VAPOR','VAULT','VERSE',
+    'VIDEO','VIGOR','VIRAL','VIRUS','VISIT','VISTA','VITAL','VIVID',
+    'VOCAL','VOICE','VOTER','VAGUE','WAGON','WASTE','WATCH','WATER',
+    'WEARY','WEDGE','WEIRD','WHALE','WHEAT','WHERE','WHICH','WHILE',
+    'WHITE','WHOLE','WHOSE','WIELD','WITTY','WOMAN','WOMEN','WORLD',
+    'WORRY','WORSE','WORST','WORTH','WOULD','WOUND','WRATH','WRITE',
+    'WROTE','YACHT','YIELD','YOUNG','YOUTH','ZEBRA','ZESTY','ZILCH',
+  ];
+
+  // All valid guess words (answers + common)
+  const PUMPO_ANSWERS = PUMPO_WORDS.map(p => p.w);
+  const ALL_WORDS = new Set([...PUMPO_ANSWERS, ...COMMON_WORDS]);
+
+  // Daily word: seeded by days since epoch
+  const EPOCH = new Date('2025-01-01').getTime();
+  function getDayIndex() {
+    return Math.floor((Date.now() - EPOCH) / 86400000);
+  }
+  function getDailyWord() {
+    // Cycle through combined answer pool (Pumpo words appear more frequently)
+    const pool = [...PUMPO_ANSWERS, ...PUMPO_ANSWERS, ...COMMON_WORDS.slice(0, 180)];
+    const idx = getDayIndex() % pool.length;
+    return pool[idx];
+  }
+  function getPumpoWordDef(word) {
+    const pw = PUMPO_WORDS.find(p => p.w === word);
+    return pw ? pw.d : null;
+  }
+
+  // ── STATE ─────────────────────────────────────────────────────────────────
+  let mode = 'daily'; // 'daily' | 'practice'
+  let answer = '';
+  let guesses = []; // array of strings
+  let currentGuess = '';
+  let gameOver = false;
+  let currentRow = 0;
+  let keyStates = {}; // letter -> 'correct'|'present'|'absent'
+
+  // Stats stored in localStorage
+  let stats = JSON.parse(localStorage.getItem('pumpoword_stats') || '{"played":0,"won":0,"streak":0,"lastWin":-1,"guessDistrib":[0,0,0,0,0,0]}');
+  // Daily state
+  let dailyState = JSON.parse(localStorage.getItem('pumpoword_daily') || 'null');
+
+  // ── INIT ──────────────────────────────────────────────────────────────────
+  function init() {
+    buildBoard();
+    buildKeyboard();
+    updateCountdown();
+    setInterval(updateCountdown, 1000);
+    document.addEventListener('keydown', onKeyDown);
+
+    // Check if daily already played today
+    const today = getDayIndex();
+    if (mode === 'daily' && dailyState && dailyState.day === today) {
+      restoreDailyState();
+    } else {
+      newGame();
+    }
+  }
+
+  function newGame() {
+    guesses = [];
+    currentGuess = '';
+    gameOver = false;
+    currentRow = 0;
+    keyStates = {};
+    answer = mode === 'daily' ? getDailyWord() : randomPracticeWord();
+    clearBoard();
+    resetKeyColors();
+    updatePuzzleNum();
+  }
+
+  function newPracticeGame() {
+    if (mode !== 'practice') return;
+    newGame();
+  }
+
+  function randomPracticeWord() {
+    const pool = [...PUMPO_ANSWERS, ...COMMON_WORDS.slice(0, 200)];
+    return pool[Math.floor(Math.random() * pool.length)];
+  }
+
+  // ── MODE ──────────────────────────────────────────────────────────────────
+  function setMode(m) {
+    mode = m;
+    document.getElementById('btnDaily').classList.toggle('active', m === 'daily');
+    document.getElementById('btnPractice').classList.toggle('active', m === 'practice');
+    document.getElementById('dailyStrip').classList.toggle('hidden', m !== 'daily');
+    document.getElementById('practiceStrip').classList.toggle('hidden', m !== 'practice');
+
+    const today = getDayIndex();
+    if (m === 'daily' && dailyState && dailyState.day === today) {
+      restoreDailyState();
+    } else {
+      newGame();
+    }
+  }
+
+  // ── BOARD ─────────────────────────────────────────────────────────────────
+  function buildBoard() {
+    const board = document.getElementById('board');
+    board.innerHTML = '';
+    for (let r = 0; r < 6; r++) {
+      const row = document.createElement('div');
+      row.className = 'board-row';
+      row.id = `row-${r}`;
+      for (let c = 0; c < 5; c++) {
+        const tile = document.createElement('div');
+        tile.className = 'tile';
+        tile.id = `tile-${r}-${c}`;
+        row.appendChild(tile);
+      }
+      board.appendChild(row);
+    }
+  }
+
+  function clearBoard() {
+    for (let r = 0; r < 6; r++) {
+      for (let c = 0; c < 5; c++) {
+        const t = document.getElementById(`tile-${r}-${c}`);
+        t.textContent = '';
+        t.className = 'tile';
+      }
+    }
+  }
+
+  function updateBoard() {
+    // Render committed guesses
+    for (let r = 0; r < guesses.length; r++) {
+      for (let c = 0; c < 5; c++) {
+        const t = document.getElementById(`tile-${r}-${c}`);
+        t.textContent = guesses[r][c];
+      }
+    }
+    // Render current guess
+    for (let c = 0; c < 5; c++) {
+      const t = document.getElementById(`tile-${currentRow}-${c}`);
+      t.textContent = currentGuess[c] || '';
+      t.className = 'tile' + (currentGuess[c] ? ' filled' : '') + (c < currentGuess.length ? ' active-row' : '');
+    }
+  }
+
+  // ── KEYBOARD ──────────────────────────────────────────────────────────────
+  const ROWS = [
+    ['Q','W','E','R','T','Y','U','I','O','P'],
+    ['A','S','D','F','G','H','J','K','L'],
+    ['ENTER','Z','X','C','V','B','N','M','⌫']
+  ];
+
+  function buildKeyboard() {
+    const kb = document.getElementById('keyboard');
+    kb.innerHTML = '';
+    ROWS.forEach(row => {
+      const rowEl = document.createElement('div');
+      rowEl.className = 'key-row';
+      row.forEach(k => {
+        const btn = document.createElement('button');
+        btn.className = 'key' + (k.length > 1 ? ' wide' : '');
+        btn.textContent = k;
+        btn.dataset.key = k;
+        btn.addEventListener('click', () => handleKey(k));
+        btn.id = `key-${k}`;
+        rowEl.appendChild(btn);
+      });
+      kb.appendChild(rowEl);
+    });
+  }
+
+  function resetKeyColors() {
+    document.querySelectorAll('.key').forEach(k => {
+      k.classList.remove('correct','present','absent');
+    });
+  }
+
+  function updateKeyColors(guess, result) {
+    guess.split('').forEach((letter, i) => {
+      const key = document.getElementById(`key-${letter}`);
+      if (!key) return;
+      const newState = result[i];
+      // Only upgrade: absent < present < correct
+      const priority = { correct: 2, present: 1, absent: 0 };
+      const current = keyStates[letter];
+      if (!current || priority[newState] > priority[current]) {
+        key.classList.remove('correct','present','absent');
+        key.classList.add(newState);
+        keyStates[letter] = newState;
+      }
+    });
+  }
+
+  // ── INPUT ─────────────────────────────────────────────────────────────────
+  function onKeyDown(e) {
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+    if (e.key === 'Enter') handleKey('ENTER');
+    else if (e.key === 'Backspace') handleKey('⌫');
+    else if (/^[a-zA-Z]$/.test(e.key)) handleKey(e.key.toUpperCase());
+  }
+
+  function handleKey(key) {
+    if (gameOver) return;
+    if (key === '⌫') {
+      currentGuess = currentGuess.slice(0, -1);
+      updateBoard();
+    } else if (key === 'ENTER') {
+      submitGuess();
+    } else if (currentGuess.length < 5 && /^[A-Z]$/.test(key)) {
+      currentGuess += key;
+      // Pop animation on tile
+      const t = document.getElementById(`tile-${currentRow}-${currentGuess.length - 1}`);
+      t.textContent = key;
+      t.className = 'tile filled active-row';
+      void t.offsetWidth; // reflow
+      t.className = 'tile filled active-row';
+    }
+  }
+
+  // ── SUBMIT ────────────────────────────────────────────────────────────────
+  function submitGuess() {
+    if (currentGuess.length < 5) { showToast('Not enough letters'); shakeRow(currentRow); return; }
+    if (!ALL_WORDS.has(currentGuess) && !PUMPO_ANSWERS.includes(currentGuess)) {
+      showToast('Not in word list'); shakeRow(currentRow); return;
+    }
+
+    const result = evaluateGuess(currentGuess, answer);
+    guesses.push(currentGuess);
+
+    // Flip tiles with delay then color
+    flipRow(currentRow, currentGuess, result, () => {
+      updateKeyColors(currentGuess, result);
+      const won = result.every(r => r === 'correct');
+      const lost = !won && guesses.length === 6;
+
+      if (mode === 'daily') saveDailyState();
+
+      if (won) {
+        if (mode === 'daily') {
+          bounceRow(currentRow);
+          setTimeout(() => {
+            const phrases = ['PUMPO!','SIGNAL!','LOCKED IN!','NICE ONE!','DIALED!','SHARP!'];
+            showToast(phrases[guesses.length - 1] || 'PUMPO!');
+            setTimeout(() => endGame(true), 500);
+          }, 300);
+        } else {
+          bounceRow(currentRow);
+          setTimeout(() => endGame(true), 800);
+        }
+      } else if (lost) {
+        setTimeout(() => { showToast(answer, 3500); endGame(false); }, 400);
+      }
+
+      currentRow++;
+      currentGuess = '';
+      if (!won && !lost) updateBoard();
+    });
+  }
+
+  function evaluateGuess(guess, answer) {
+    const result = Array(5).fill('absent');
+    const answerArr = answer.split('');
+    const guessArr = guess.split('');
+    const used = Array(5).fill(false);
+
+    // First pass: correct
+    guessArr.forEach((l, i) => {
+      if (l === answerArr[i]) { result[i] = 'correct'; used[i] = true; }
+    });
+    // Second pass: present
+    guessArr.forEach((l, i) => {
+      if (result[i] === 'correct') return;
+      const j = answerArr.findIndex((a, idx) => a === l && !used[idx]);
+      if (j !== -1) { result[i] = 'present'; used[j] = true; }
+    });
+    return result;
+  }
+
+  // ── ANIMATIONS ────────────────────────────────────────────────────────────
+  function flipRow(row, guess, result, cb) {
+    const tiles = Array.from(document.getElementById(`row-${row}`).children);
+    let done = 0;
+    tiles.forEach((tile, i) => {
+      setTimeout(() => {
+        tile.classList.add('flip');
+        setTimeout(() => {
+          tile.classList.add(result[i]);
+          done++;
+          if (done === 5 && cb) cb();
+        }, 250);
+      }, i * 100);
+    });
+  }
+
+  function shakeRow(row) {
+    const rowEl = document.getElementById(`row-${row}`);
+    rowEl.classList.add('shake');
+    rowEl.addEventListener('animationend', () => rowEl.classList.remove('shake'), { once: true });
+  }
+
+  function bounceRow(row) {
+    const rowEl = document.getElementById(`row-${row}`);
+    rowEl.classList.add('bounce');
+  }
+
+  // ── GAME END ──────────────────────────────────────────────────────────────
+  function endGame(won) {
+    gameOver = true;
+
+    if (mode === 'daily') {
+      const today = getDayIndex();
+      stats.played++;
+      if (won) {
+        stats.won++;
+        const lastWinDay = stats.lastWin || -1;
+        stats.streak = (lastWinDay === today - 1 || lastWinDay === today) ? stats.streak + 1 : 1;
+        stats.lastWin = today;
+      } else {
+        stats.streak = 0;
+      }
+      localStorage.setItem('pumpoword_stats', JSON.stringify(stats));
+    }
+
+    setTimeout(() => showResult(won), won ? 1200 : 600);
+  }
+
+  function showResult(won) {
+    document.getElementById('resultEmoji').textContent = won ? ['🎯','🔥','⚡','💥','✨','🎉'][guesses.length - 1] || '🎯' : '😮';
+    const title = document.getElementById('resultTitle');
+    title.textContent = won ? ['PUMPO!','SHARP!','LOCKED IN!','SOLID!','PHEW!','BARELY!'][guesses.length - 1] || 'WON!' : 'GOT IT?';
+    title.className = 'result-title ' + (won ? 'win' : 'lose');
+    document.getElementById('resultWord').textContent = answer;
+    const def = getPumpoWordDef(answer);
+    const defEl = document.getElementById('resultDef');
+    defEl.textContent = def || '';
+    defEl.style.display = def ? 'block' : 'none';
+    document.getElementById('statPlayed').textContent = stats.played;
+    document.getElementById('statWon').textContent = stats.won;
+    document.getElementById('statStreak').textContent = stats.streak;
+
+    const closeBtn = document.getElementById('resultClose');
+    if (mode === 'daily') {
+      document.getElementById('resultNext').textContent = 'Next word in ' + getCountdownStr();
+      closeBtn.textContent = 'CLOSE';
+    } else {
+      document.getElementById('resultNext').textContent = '';
+      closeBtn.textContent = 'PLAY AGAIN';
+    }
+
+    document.getElementById('resultPanel').classList.remove('hidden');
+  }
+
+  function closeResult() {
+    document.getElementById('resultPanel').classList.add('hidden');
+    if (mode === 'practice' && gameOver) newPracticeGame();
+  }
+
+  // ── SHARE ─────────────────────────────────────────────────────────────────
+  function shareResult() {
+    const today = getDayIndex();
+    const squares = guesses.map(g => {
+      const r = evaluateGuess(g, answer);
+      return r.map(s => s === 'correct' ? '🟩' : s === 'present' ? '🟨' : '⬛').join('');
+    }).join('\n');
+
+    const won = guesses[guesses.length - 1] === answer;
+    const score = won ? guesses.length : 'X';
+    const text = `PUMPO WORD #${today}\n${score}/6\n\n${squares}\n\nradiopumpo.github.io/pumpo-tools/pumpoword.html`;
+
+    if (navigator.share) {
+      navigator.share({ text }).catch(() => {});
+    } else {
+      navigator.clipboard.writeText(text).then(() => showToast('Result copied! 📋'));
+    }
+  }
+
+  // ── DAILY STATE ───────────────────────────────────────────────────────────
+  function saveDailyState() {
+    const today = getDayIndex();
+    dailyState = { day: today, guesses: [...guesses], currentGuess, gameOver, keyStates, answer };
+    localStorage.setItem('pumpoword_daily', JSON.stringify(dailyState));
+  }
+
+  function restoreDailyState() {
+    guesses = dailyState.guesses || [];
+    currentGuess = '';
+    gameOver = dailyState.gameOver || false;
+    keyStates = dailyState.keyStates || {};
+    answer = dailyState.answer || getDailyWord();
+    currentRow = guesses.length;
+
+    clearBoard();
+    resetKeyColors();
+
+    // Restore committed guesses without animation
+    guesses.forEach((guess, r) => {
+      const result = evaluateGuess(guess, answer);
+      const row = document.getElementById(`row-${r}`);
+      Array.from(row.children).forEach((tile, c) => {
+        tile.textContent = guess[c];
+        tile.className = 'tile ' + result[c];
+      });
+      // Restore key colors
+      guess.split('').forEach((letter, i) => {
+        const key = document.getElementById(`key-${letter}`);
+        if (!key) return;
+        const newState = result[i];
+        const priority = { correct: 2, present: 1, absent: 0 };
+        const current = keyStates[letter];
+        if (!current || priority[newState] > priority[current]) {
+          key.classList.remove('correct','present','absent');
+          key.classList.add(newState);
+          keyStates[letter] = newState;
+        }
+      });
+    });
+
+    updatePuzzleNum();
+    if (gameOver) setTimeout(() => showResult(guesses[guesses.length-1] === answer), 300);
+  }
+
+  // ── COUNTDOWN ─────────────────────────────────────────────────────────────
+  function getCountdownStr() {
+    const now = new Date();
+    const midnight = new Date(now);
+    midnight.setHours(24, 0, 0, 0);
+    const diff = midnight - now;
+    const h = String(Math.floor(diff / 3600000)).padStart(2, '0');
+    const m = String(Math.floor((diff % 3600000) / 60000)).padStart(2, '0');
+    const s = String(Math.floor((diff % 60000) / 1000)).padStart(2, '0');
+    return `${h}:${m}:${s}`;
+  }
+
+  function updateCountdown() {
+    document.getElementById('countdown').textContent = 'next in ' + getCountdownStr();
+  }
+
+  function updatePuzzleNum() {
+    document.getElementById('puzzleNum').textContent = '#' + String(getDayIndex()).padStart(3, '0');
+  }
+
+  // ── TOAST ─────────────────────────────────────────────────────────────────
+  function showToast(msg, duration = 2000) {
+    const wrap = document.getElementById('toastWrap');
+    const el = document.createElement('div');
+    el.className = 'toast';
+    el.textContent = msg;
+    wrap.appendChild(el);
+    setTimeout(() => el.remove(), duration);
+  }
+
+  // ── HOW TO PLAY ───────────────────────────────────────────────────────────
+  function showHow() { document.getElementById('howPanel').classList.remove('hidden'); }
+  function closeHow() { document.getElementById('howPanel').classList.add('hidden'); }
+
+  // ── START ─────────────────────────────────────────────────────────────────
+  init();
+
+  // Show how-to on first ever visit
+  if (!localStorage.getItem('pumpoword_seen')) {
+    localStorage.setItem('pumpoword_seen', '1');
+    setTimeout(showHow, 400);
+  }
+  </script>
+
+  <!-- PUMPO BAR — paste shared snippet here -->
+
+</body>
+</html>
