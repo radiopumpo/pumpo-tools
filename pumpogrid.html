@@ -1,0 +1,1487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>Pumpo's Empire: The Grid</title>
+  <link rel="icon" type="image/png" href="https://radiopumpo.github.io/radiopumpologo.png">
+  <link href="https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Space+Mono:wght@400;700&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --pink:#ff0080; --cyan:#40e0d0; --bg:#060608;
+      --bg2:#0d0d12; --bg3:#14141c;
+      --text:#f0ede6; --muted:#555; --dim:#222;
+      --green:#00c46a; --amber:#ffaa00; --red:#e24b4a;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);}
+    body{font-family:'Rajdhani',sans-serif;color:var(--text);user-select:none;-webkit-user-select:none;}
+
+    /* ── SCREENS ── */
+    .screen{position:fixed;inset:0;z-index:100;display:flex;align-items:center;justify-content:center;}
+    .screen.hidden{display:none;}
+
+    /* TITLE */
+    #titleScreen{background:var(--bg);flex-direction:column;}
+    #titleCanvas{position:absolute;inset:0;z-index:0;}
+    .title-content{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;gap:20px;padding:2rem;max-width:440px;width:100%;}
+    .title-eyebrow{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:.22em;text-transform:uppercase;color:var(--muted);}
+    .title-h1{font-family:'Black Ops One',cursive;font-size:clamp(28px,6vw,46px);text-align:center;line-height:1;color:var(--text);}
+    .title-h1 span{color:var(--pink);}
+    .title-sub{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--cyan);text-align:center;}
+    .title-tagline{font-size:13px;color:var(--muted);text-align:center;line-height:1.65;font-weight:600;max-width:320px;}
+    .empire-name-wrap{width:100%;display:flex;flex-direction:column;gap:8px;}
+    .empire-name-label{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);}
+    .empire-name-input{width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.15);color:var(--text);font-family:'Black Ops One',cursive;font-size:18px;letter-spacing:2px;padding:.75rem 1rem;border-radius:10px;outline:none;text-align:center;transition:border-color .2s;}
+    .empire-name-input:focus{border-color:var(--cyan);}
+    .empire-name-input::placeholder{color:var(--dim);font-size:14px;letter-spacing:1px;}
+    .start-btn{width:100%;background:var(--pink);color:#fff;border:none;padding:.85rem;font-family:'Black Ops One',cursive;font-size:16px;letter-spacing:2px;border-radius:10px;cursor:pointer;transition:all .2s;box-shadow:0 4px 24px rgba(255,0,128,0.3);}
+    .start-btn:hover{background:#cc0066;transform:translateY(-2px);}
+    .obs-link{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);cursor:pointer;text-decoration:underline;text-underline-offset:3px;}
+    .obs-link:hover{color:var(--cyan);}
+
+    /* GAME UI */
+    #gameScreen{background:transparent;flex-direction:column;z-index:10;pointer-events:none;}
+
+
+    /* NAV BAR */
+    .game-nav{position:fixed;top:0;left:0;right:0;z-index:500;display:flex;justify-content:space-between;align-items:center;padding:10px 16px;background:rgba(6,6,8,0.92);backdrop-filter:blur(12px);border-bottom:1px solid rgba(255,0,128,0.15);pointer-events:all;}
+    .game-nav-left{display:flex;align-items:center;gap:10px;}
+    .empire-name-display{font-family:'Black Ops One',cursive;font-size:.9rem;color:var(--text);letter-spacing:1px;}
+    .tier-badge{font-family:'Space Mono',monospace;font-size:8px;letter-spacing:.12em;text-transform:uppercase;padding:3px 8px;border-radius:20px;border:1px solid;white-space:nowrap;}
+    .tier-badge.settlement{border-color:var(--muted);color:var(--muted);}
+    .tier-badge.outpost{border-color:var(--cyan);color:var(--cyan);}
+    .tier-badge.colony{border-color:var(--green);color:var(--green);}
+    .tier-badge.city{border-color:var(--amber);color:var(--amber);}
+    .game-nav-right{display:flex;gap:8px;align-items:center;}
+    .nav-btn{background:none;border:1px solid rgba(255,255,255,0.12);color:var(--muted);font-family:'Space Mono',monospace;font-size:8px;letter-spacing:.1em;text-transform:uppercase;padding:5px 10px;border-radius:20px;cursor:pointer;transition:.2s;text-decoration:none;display:flex;align-items:center;}
+    .nav-btn:hover{border-color:var(--cyan);color:var(--cyan);}
+    .nav-btn.obs{border-color:rgba(64,224,208,0.3);color:rgba(64,224,208,0.6);}
+
+    /* STATS BAR */
+    .stats-bar{position:fixed;bottom:0;left:0;right:0;z-index:400;display:flex;align-items:center;justify-content:space-between;padding:8px 16px;background:rgba(6,6,8,0.92);backdrop-filter:blur(12px);border-top:1px solid rgba(255,255,255,0.06);pointer-events:all;flex-wrap:wrap;gap:6px;}
+    .stat-pill{display:flex;align-items:center;gap:6px;font-family:'Space Mono',monospace;font-size:9px;}
+    .stat-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+    .stat-val{color:var(--text);font-weight:700;}
+    .stat-lbl{color:var(--muted);}
+    .cooldown-pill{font-family:'Space Mono',monospace;font-size:8px;letter-spacing:.1em;color:var(--muted);border:1px solid rgba(255,255,255,0.08);padding:3px 8px;border-radius:20px;}
+    .cooldown-pill.ready{border-color:var(--green);color:var(--green);cursor:pointer;}
+
+    /* NARRATIVE TOAST */
+    .narrative{position:fixed;top:60px;left:50%;transform:translateX(-50%);z-index:200;font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.12em;color:var(--cyan);background:rgba(6,6,8,0.95);border:1px solid rgba(64,224,208,0.2);padding:8px 16px;border-radius:20px;white-space:nowrap;pointer-events:none;opacity:0;transition:opacity .4s;}
+    .narrative.show{opacity:1;}
+
+    /* NODE INFO POPUP */
+    .node-info{position:fixed;z-index:200;background:rgba(10,10,16,0.96);border:1px solid rgba(255,255,255,0.12);border-radius:10px;padding:.7rem .9rem;font-family:'Space Mono',monospace;font-size:9px;pointer-events:none;max-width:180px;opacity:0;transition:opacity .2s;}
+    .node-info.show{opacity:1;}
+    .node-info-name{font-size:10px;font-weight:700;margin-bottom:4px;}
+    .node-info-desc{color:var(--muted);line-height:1.5;}
+
+    /* OBSERVATORY */
+    #obsScreen{position:fixed;inset:0;z-index:300;background:var(--bg);overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;}
+    .obs-wrap{max-width:760px;width:100%;margin:0 auto;padding:56px 1rem 6rem;display:flex;flex-direction:column;gap:16px;box-sizing:border-box;}
+    .obs-back-bar{position:fixed;top:0;left:0;right:0;z-index:400;background:rgba(6,6,8,0.97);backdrop-filter:blur(10px);border-bottom:1px solid rgba(255,255,255,0.07);padding:10px 16px;display:flex;align-items:center;gap:12px;pointer-events:all;}
+    .obs-back{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);cursor:pointer;background:none;border:1px solid var(--dim);padding:5px 12px;border-radius:20px;transition:.2s;}
+    .obs-back:hover{border-color:var(--cyan);color:var(--cyan);}
+    .obs-bar-title{font-family:'Black Ops One',cursive;font-size:13px;letter-spacing:2px;color:var(--cyan);}
+    .obs-back:hover{border-color:var(--cyan);color:var(--cyan);}
+    .obs-title{font-family:'Black Ops One',cursive;font-size:clamp(24px,5vw,38px);color:var(--cyan);}
+    .obs-subtitle{font-size:13px;color:var(--muted);line-height:1.65;font-weight:600;}
+    .obs-section{display:flex;flex-direction:column;gap:12px;}
+    .obs-section-title{font-family:'Black Ops One',cursive;font-size:13px;letter-spacing:1px;color:var(--text);border-bottom:1px solid var(--dim);padding-bottom:8px;}
+    .node-grid{display:grid;grid-template-columns:1fr;gap:8px;width:100%;}
+    .node-card{background:var(--bg3);border:1px solid var(--dim);border-radius:10px;padding:.75rem .85rem;display:flex;gap:10px;align-items:flex-start;min-height:0;}
+    .node-visual{flex-shrink:0;display:flex;align-items:center;justify-content:center;width:36px;height:36px;}
+    .node-card-info{}
+    .node-card-name{font-family:'Black Ops One',cursive;font-size:11px;letter-spacing:.5px;margin-bottom:3px;}
+    .node-card-desc{font-size:10px;color:var(--muted);line-height:1.5;font-weight:600;}
+    .obs-canvas-wrap{border-radius:12px;overflow:hidden;border:1px solid var(--dim);}
+    #obsCanvas{display:block;width:100%;}
+    .obs-controls{display:flex;gap:10px;flex-wrap:wrap;}
+    .obs-ctrl-btn{background:var(--bg3);border:1px solid var(--dim);color:var(--muted);font-family:'Space Mono',monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;padding:8px 14px;border-radius:20px;cursor:pointer;transition:.2s;-webkit-tap-highlight-color:transparent;touch-action:manipulation;}
+    .obs-ctrl-btn:hover{border-color:var(--pink);color:var(--pink);}
+    .tier-preview-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px;}
+    @media(min-width:480px){.node-grid{grid-template-columns:repeat(2,1fr);}}
+    @media(min-width:700px){.node-grid{grid-template-columns:repeat(3,1fr);}}
+    .tier-card{background:var(--bg3);border:1px solid var(--dim);border-radius:10px;padding:.65rem .75rem;text-align:center;min-width:0;}
+    .tier-card-name{font-family:'Black Ops One',cursive;font-size:10px;letter-spacing:.5px;margin-bottom:4px;}
+    .tier-card-desc{font-size:10px;color:var(--muted);line-height:1.5;}
+    .interaction-list{display:flex;flex-direction:column;gap:8px;}
+    /* Node action panel */
+    .node-action-panel{position:fixed;bottom:0;left:0;right:0;z-index:500;background:rgba(6,6,8,0.97);border-top:1px solid rgba(255,255,255,0.12);padding:10px 16px 12px;padding-bottom:max(12px,env(safe-area-inset-bottom));display:none;flex-direction:column;gap:8px;animation:slideUp .2s ease;pointer-events:all;}
+    .node-action-panel.open{display:flex;}
+    @keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+    .nap-label{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);}
+    .nap-options{display:flex;gap:10px;}
+    .nap-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;background:var(--bg3);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:.6rem .5rem;cursor:pointer;transition:all .15s;}
+    .nap-btn:hover{transform:translateY(-2px);}
+    .nap-dot{width:18px;height:18px;border-radius:50%;}
+    .nap-name{font-family:'Space Mono',monospace;font-size:8px;letter-spacing:.08em;text-transform:uppercase;}
+    .nap-desc{font-size:10px;color:var(--muted);font-weight:600;text-align:center;line-height:1.4;}
+    .nap-cancel{background:none;border:1px solid rgba(255,255,255,0.08);color:var(--muted);font-family:'Space Mono',monospace;font-size:8px;letter-spacing:.1em;text-transform:uppercase;padding:5px;border-radius:8px;cursor:pointer;transition:.15s;align-self:flex-end;}
+    .nap-cancel:hover{border-color:var(--pink);color:var(--pink);}
+    .interaction-item{display:flex;gap:12px;align-items:flex-start;background:var(--bg3);border:1px solid var(--dim);border-radius:8px;padding:.65rem .85rem;}
+    .interaction-key{font-family:'Black Ops One',cursive;font-size:10px;color:var(--pink);white-space:nowrap;min-width:60px;}
+    .interaction-desc{font-size:11px;color:var(--muted);line-height:1.5;font-weight:600;}
+  </style>
+</head>
+<body>
+
+<!-- ══ TITLE SCREEN ══ -->
+<div class="screen" id="titleScreen">
+  <canvas id="titleCanvas"></canvas>
+  <div class="title-content">
+    <div class="title-eyebrow">pumpo ecosystem // game</div>
+    <div class="title-h1">PUMPO'S EMPIRE<br><span>THE GRID</span></div>
+    <div class="title-sub">A signal in the dark. Build your world.</div>
+    <div class="title-tagline">An empire built one pulse at a time. Grow your nodes. Discover your territory. Watch your grid become a civilisation.</div>
+    <div class="empire-name-wrap">
+      <div class="empire-name-label">Name your empire</div>
+      <input type="text" class="empire-name-input" id="empireNameInput" placeholder="Enter empire name..." maxlength="24" autocomplete="off" spellcheck="false">
+    </div>
+    <button class="start-btn" onclick="startGame()">BEGIN YOUR EMPIRE →</button>
+    <span class="obs-link" onclick="openObs()">📡 Observatory — learn the nodes</span>
+  </div>
+</div>
+
+<!-- ══ GAME SCREEN ══ -->
+<canvas id="gameCanvas" style="position:fixed;inset:0;z-index:1;cursor:crosshair;display:none;"></canvas>
+
+<div class="screen hidden" id="gameScreen" style="background:transparent;pointer-events:none;">
+
+  <div class="game-nav">
+    <div class="game-nav-left">
+      <div class="empire-name-display" id="empireNameDisplay">—</div>
+      <div class="tier-badge settlement" id="tierBadge">Settlement</div>
+    </div>
+    <div class="game-nav-right">
+      <button class="nav-btn obs" onclick="openObs()">📡 Observatory</button>
+      <a href="index.html" class="nav-btn">← Tools</a>
+    </div>
+  </div>
+
+  <!-- Node action panel -->
+  <div class="node-action-panel" id="nodeActionPanel">
+    <div style="display:flex;justify-content:space-between;align-items:center;">
+      <div class="nap-label" id="napLabel">Choose node type</div>
+      <button class="nap-cancel" onclick="closeNodePanel()">✕ cancel</button>
+    </div>
+    <div class="nap-options">
+      <button class="nap-btn" id="napCyan" onclick="resolveNodePanel('cyan')">
+        <div class="nap-dot" style="background:#40e0d0"></div>
+        <div class="nap-name" style="color:#40e0d0">Infrastructure</div>
+        <div class="nap-desc">Anchors the grid. Connects to nearby nodes.</div>
+      </button>
+      <button class="nap-btn" id="napGreen" onclick="resolveNodePanel('green')">
+        <div class="nap-dot" style="background:#00c46a"></div>
+        <div class="nap-name" style="color:#00c46a">Growth</div>
+        <div class="nap-desc">Expands territory. Spawns new nodes nearby.</div>
+      </button>
+      <button class="nap-btn" id="napPink" onclick="resolveNodePanel('pink')">
+        <div class="nap-dot" style="background:#ff0080"></div>
+        <div class="nap-name" style="color:#ff0080">Energy</div>
+        <div class="nap-desc">Powers the empire. Attracts population.</div>
+      </button>
+    </div>
+  </div>
+
+  <div class="stats-bar" id="statsBar">
+    <div class="stat-pill"><div class="stat-dot" style="background:#ffffff"></div><span class="stat-val" id="statPop">0</span><span class="stat-lbl">pop</span></div>
+    <div class="stat-pill"><div class="stat-dot" style="background:#40e0d0"></div><span class="stat-val" id="statInfra">0</span><span class="stat-lbl">infra</span></div>
+    <div class="stat-pill"><div class="stat-dot" style="background:#00c46a"></div><span class="stat-val" id="statGrowth">0</span><span class="stat-lbl">growth</span></div>
+    <div class="stat-pill"><div class="stat-dot" style="background:#ff0080"></div><span class="stat-val" id="statEnergy">0</span><span class="stat-lbl">energy</span></div>
+    <div class="stat-pill"><div class="stat-dot" style="background:#ffaa00"></div><span class="stat-val" id="statEff">0</span><span class="stat-lbl">efficiency</span></div>
+    <div class="stat-pill"><div class="stat-dot" style="background:#333"></div><span class="stat-val" id="statDistricts">0</span><span class="stat-lbl">districts</span></div>
+    <div class="cooldown-pill" id="dailyPill">daily bonus</div>
+  </div>
+</div>
+
+<!-- ══ OBSERVATORY ══ -->
+<div class="obs-back-bar hidden" id="obsBackBar">
+  <button class="obs-back" onclick="closeObs()">← Back</button>
+  <div class="obs-bar-title">OBSERVATORY</div>
+</div>
+<div id="obsScreen" style="display:none;">
+  <div class="obs-wrap">
+    <div class="obs-subtitle">Tap any node in the sandbox to send a pulse. Study the node types, learn the interactions, and see where your empire is headed.</div>
+
+    <!-- NODE TAXONOMY -->
+    <div class="obs-section">
+      <div class="obs-section-title">The Nodes</div>
+      <div class="node-grid" id="nodeGrid"></div>
+    </div>
+
+    <!-- INTERACTIONS -->
+    <div class="obs-section">
+      <div class="obs-section-title">How to interact</div>
+      <div class="interaction-list">
+        <div class="interaction-item"><div class="interaction-key">TAP / CLICK</div><div class="interaction-desc">Send a pulse of energy outward from that point. Nearby nodes absorb the pulse and accelerate their growth. The further away, the weaker the effect.</div></div>
+        <div class="interaction-item"><div class="interaction-key">HOLD</div><div class="interaction-desc">Sustain a pulse at a fixed point. Useful for nurturing a specific cluster or stabilising a red instability node. Drains your active energy faster.</div></div>
+        <div class="interaction-item"><div class="interaction-key">DRAG</div><div class="interaction-desc">Draw an energy line between two nodes to attempt a direct connection. If both nodes are compatible, a permanent conduit forms between them.</div></div>
+        <div class="interaction-item"><div class="interaction-key">SCROLL / PINCH</div><div class="interaction-desc">Zoom in and out on your empire. Pan by dragging on empty space. Your empire is larger than your current view — zoom out to explore.</div></div>
+      </div>
+    </div>
+
+    <!-- SANDBOX CANVAS -->
+    <div class="obs-section">
+      <div class="obs-section-title">Live sandbox — interact freely</div>
+      <div class="obs-canvas-wrap">
+        <canvas id="obsCanvas" width="720" height="300" style="touch-action:none;"></canvas>
+      </div>
+      <div class="obs-controls">
+        <button class="obs-ctrl-btn" onclick="obsReset()">↺ Reset sandbox</button>
+        <button class="obs-ctrl-btn" onclick="obsSpawnAll()">✦ Spawn all types</button>
+        <button class="obs-ctrl-btn" onclick="obsShowDistrict()">⬡ Show district</button>
+      </div>
+    </div>
+
+    <!-- TIER PREVIEW -->
+    <div class="obs-section">
+      <div class="obs-section-title">Empire tiers — what you're building toward</div>
+      <div class="tier-preview-row" id="tierPreview"></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- NARRATIVE TOAST -->
+<div class="narrative" id="narrative"></div>
+<!-- NODE INFO -->
+<div class="node-info" id="nodeInfo"><div class="node-info-name" id="nodeInfoName"></div><div class="node-info-desc" id="nodeInfoDesc"></div></div>
+
+<script>
+// ══════════════════════════════════════════════════════════════
+// NODE TAXONOMY
+// ══════════════════════════════════════════════════════════════
+const NODE_TYPES = {
+  white: { name:'Population', color:'#e8e8f0', desc:'The people of your empire. They flock together near energy sources. Large ones explore outward, revealing dormant territory — but must return to recharge.', sizes:{small:4,medium:7,large:11}, speed:{small:0.5,medium:0.35,large:0.2} },
+  cyan:  { name:'Infrastructure', color:'#40e0d0', desc:'The backbone. Cyan nodes anchor and emit connection lines to nearby nodes. Two connected cyan nodes form a conduit other nodes travel along.', sizes:{small:5,medium:8,large:13}, speed:{small:0.05,medium:0.02,large:0.01} },
+  green: { name:'Growth', color:'#00c46a', desc:'Active expansion. Green nodes pulse and slowly spawn new nodes nearby. Their pulse radius shows area of influence.', sizes:{small:5,medium:9,large:0}, speed:{small:0.12,medium:0.08,large:0} },
+  pink:  { name:'Energy', color:'#ff0080', desc:'The heart. Pink nodes attract population and power everything nearby. Large pink nodes are district cores. Guard them.', sizes:{small:6,medium:10,large:16}, speed:{small:0.1,medium:0.05,large:0.01} },
+  amber: { name:'Efficiency', color:'#ffaa00', desc:'Cannot be placed — appears spontaneously when cyan and green work well together. Boosts output of every connected node.', sizes:{small:5,medium:8,large:0}, speed:{small:0.08,medium:0.04,large:0} },
+  red:   { name:'Instability', color:'#e24b4a', desc:'Stress signal. Appears when infrastructure is stretched. Click a red node then send a white node to convert it.', sizes:{small:5,medium:8,large:0}, speed:{small:0.25,medium:0.15,large:0} },
+  dark:  { name:'Dormant', color:'#2a2a3a', desc:'Potential waiting for energy. Large white explorers reveal and seed them. Click a dormant node to choose its awakening type.', sizes:{small:4,medium:6,large:0}, speed:{small:0.01,medium:0.005,large:0} }
+};
+
+const TIER_INFO = [
+  {name:'Settlement',color:'#555',desc:'A few signals in the dark. Your empire begins.'},
+  {name:'Outpost',color:'#40e0d0',desc:'Clusters form. First instability. First amber.'},
+  {name:'Colony',color:'#00c46a',desc:'Districts crystallise. The grid takes shape.'},
+  {name:'City',color:'#ffaa00',desc:'Multiple districts. The empire breathes.'},
+  {name:'Metropolis',color:'#ff0080',desc:'Sub-districts. Infrastructure layers. Dense and alive.'},
+  {name:'Dominion',color:'#ffffff',desc:'A world. Your signal covers everything.'}
+];
+
+// ══════════════════════════════════════════════════════════════
+// TITLE SCREEN ANIMATION
+// ══════════════════════════════════════════════════════════════
+(function initTitle(){
+  const canvas=document.getElementById('titleCanvas');
+  const ctx=canvas.getContext('2d');
+  let W,H,nodes=[],t=0;
+  function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight;}
+  window.addEventListener('resize',resize); resize();
+  const types=['white','cyan','green','pink','amber','dark'];
+  const colors={white:'rgba(232,232,240,',cyan:'rgba(64,224,208,',green:'rgba(0,196,106,',pink:'rgba(255,0,128,',amber:'rgba(255,170,0,',dark:'rgba(42,42,58,'};
+  const baseR={white:7,cyan:9,green:8,pink:12,amber:6,dark:5};
+  function sr(s){let x=s;return()=>{x=((x*1664525+1013904223)>>>0)/4294967296;return x;}}
+  const rng=sr(777);
+  for(let i=0;i<60;i++){
+    const type=types[Math.floor(rng()*types.length)];
+    nodes.push({x:rng()*0.8+0.1,y:rng()*0.8+0.1,type,r:baseR[type]*(0.7+rng()*0.6),vx:(rng()-0.5)*0.0008,vy:(rng()-0.5)*0.0008,phase:rng()*Math.PI*2});
+  }
+  function drawTitle(){
+    t++;
+    ctx.fillStyle='rgba(6,6,8,0.18)'; ctx.fillRect(0,0,W,H);
+    for(let i=0;i<nodes.length;i++){
+      for(let j=i+1;j<nodes.length;j++){
+        if(nodes[i].type!=='cyan'&&nodes[j].type!=='cyan') continue;
+        const ax=nodes[i].x*W,ay=nodes[i].y*H,bx=nodes[j].x*W,by=nodes[j].y*H;
+        const d=Math.hypot(ax-bx,ay-by);
+        if(d>W*0.15) continue;
+        ctx.beginPath(); ctx.moveTo(ax,ay); ctx.lineTo(bx,by);
+        ctx.strokeStyle=`rgba(64,224,208,${(W*0.15-d)/(W*0.15)*0.2})`; ctx.lineWidth=0.5; ctx.stroke();
+      }
+    }
+    nodes.forEach(n=>{
+      n.x+=n.vx; n.y+=n.vy;
+      if(n.x<0.05||n.x>0.95)n.vx*=-1; if(n.y<0.05||n.y>0.95)n.vy*=-1;
+      n.phase+=0.02;
+      const px=n.x*W,py=n.y*H,gv=(Math.sin(n.phase)+1)/2,a=0.4+gv*0.4,col=colors[n.type];
+      if(n.type==='pink'||n.type==='cyan'){
+        const g=ctx.createRadialGradient(px,py,0,px,py,n.r*3);
+        g.addColorStop(0,col+(a*0.4)+')'); g.addColorStop(1,col+'0)');
+        ctx.beginPath(); ctx.arc(px,py,n.r*3,0,Math.PI*2); ctx.fillStyle=g; ctx.fill();
+      }
+      ctx.beginPath(); ctx.arc(px,py,n.r,0,Math.PI*2); ctx.fillStyle=col+a+')'; ctx.fill();
+    });
+    requestAnimationFrame(drawTitle);
+  }
+  drawTitle();
+})();
+
+// ══════════════════════════════════════════════════════════════
+// OBSERVATORY
+// ══════════════════════════════════════════════════════════════
+let obsAnimId=null;
+
+function buildObsUI(){
+  const grid=document.getElementById('nodeGrid'); grid.innerHTML='';
+  Object.entries(NODE_TYPES).forEach(([key,info])=>{
+    const card=document.createElement('div'); card.className='node-card';
+    const sizes=Object.entries(info.sizes).filter(([,v])=>v>0);
+    const svgParts=sizes.map(([sz,r],i)=>`<circle cx="${12+i*14}" cy="18" r="${r}" fill="${info.color}" opacity="${0.5+i*0.25}"/>`).join('');
+    card.innerHTML=`<div class="node-visual"><svg width="52" height="36" viewBox="0 0 52 36"><rect width="52" height="36" fill="#0d0d12" rx="4"/>${svgParts}</svg></div><div class="node-card-info"><div class="node-card-name" style="color:${info.color}">${info.name}</div><div class="node-card-desc">${info.desc}</div></div>`;
+    grid.appendChild(card);
+  });
+  const tp=document.getElementById('tierPreview'); tp.innerHTML='';
+  TIER_INFO.forEach(tier=>{
+    const c=document.createElement('div'); c.className='tier-card';
+    c.innerHTML=`<div class="tier-card-name" style="color:${tier.color}">${tier.name}</div><div class="tier-card-desc">${tier.desc}</div>`;
+    tp.appendChild(c);
+  });
+}
+
+function openObs(){
+  buildObsUI();
+  document.getElementById('obsScreen').style.display='block';
+  document.getElementById('obsBackBar').classList.remove('hidden');
+  document.getElementById('obsScreen').scrollTop=0;
+  initObsCanvas();
+}
+function closeObs(){
+  document.getElementById('obsScreen').style.display='none';
+  document.getElementById('obsBackBar').classList.add('hidden');
+  cancelAnimationFrame(obsAnimId);
+}
+
+function initObsCanvas(){
+  cancelAnimationFrame(obsAnimId);
+  const canvas=document.getElementById('obsCanvas');
+  const ctx=canvas.getContext('2d');
+  // Size canvas to its rendered width
+  const rect0=canvas.getBoundingClientRect();
+  const W=Math.max(rect0.width||320,320), H=Math.round(W*0.44);
+  canvas.width=W; canvas.height=H;
+
+  // Seed all node types at proportional positions
+  const obsNodes=[];
+  const layout=[
+    {type:'dark', x:.06,y:.5, sz:'small'},
+    {type:'white',x:.17,y:.28,sz:'small'},
+    {type:'white',x:.19,y:.72,sz:'medium'},
+    {type:'white',x:.28,y:.5, sz:'large'},
+    {type:'cyan', x:.42,y:.22,sz:'small'},
+    {type:'cyan', x:.40,y:.78,sz:'medium'},
+    {type:'cyan', x:.52,y:.5, sz:'large'},
+    {type:'green',x:.63,y:.28,sz:'small'},
+    {type:'green',x:.65,y:.72,sz:'medium'},
+    {type:'pink', x:.74,y:.28,sz:'medium'},
+    {type:'pink', x:.76,y:.72,sz:'large'},
+    {type:'amber',x:.86,y:.38,sz:'small'},
+    {type:'amber',x:.88,y:.62,sz:'medium'},
+    {type:'red',  x:.13,y:.82,sz:'small'},
+    {type:'red',  x:.54,y:.86,sz:'medium'},
+  ];
+  function sr2(s){return()=>{s=((s*1664525+1013904223)>>>0)/4294967296;return s;};}
+  const r2=sr2(99);
+  layout.forEach(l=>{
+    const info=NODE_TYPES[l.type]; const r=info.sizes[l.sz]||5;
+    const speed=info.speed[l.sz]||0.05;
+    obsNodes.push({
+      x:l.x*W, y:l.y*H, type:l.type, sz:l.sz, r,
+      vx:(r2()-0.5)*speed*0.4, vy:(r2()-0.5)*speed*0.4,
+      phase:r2()*Math.PI*2, pulse:0, pendingChoice:false
+    });
+  });
+
+  // District state
+  let showingDistrict=false;
+  let districtPhase=0;
+
+  // Input helpers — scale to canvas coords
+  function toCanvas(cx,cy){
+    const cr=canvas.getBoundingClientRect();
+    return{x:(cx-cr.left)*(W/cr.width), y:(cy-cr.top)*(H/cr.height)};
+  }
+
+  function obsTap(cx,cy){
+    const {x:mx,y:my}=toCanvas(cx,cy);
+    obsPulses.push({x:mx,y:my,r:0});
+    obsNodes.forEach(n=>{
+      const d=Math.hypot(n.x-mx,n.y-my);
+      const hit=n.r+14;
+      if(d<hit) n.pulse=Math.min(1.5,n.pulse+1.2);
+      else if(d<100) n.pulse=Math.min(1,n.pulse+(1-d/100)*0.6);
+    });
+  }
+
+  // Mouse
+  let obsDrag=false, obsDragStart={x:0,y:0};
+  canvas.addEventListener('mousedown',e=>{obsDrag=false;obsDragStart={x:e.clientX,y:e.clientY};});
+  canvas.addEventListener('mouseup',e=>{
+    if(!obsDrag){obsTap(e.clientX,e.clientY);}
+    obsDrag=false;
+  });
+  canvas.addEventListener('mousemove',e=>{
+    if(e.buttons&&(Math.hypot(e.clientX-obsDragStart.x,e.clientY-obsDragStart.y)>4)) obsDrag=true;
+  });
+
+  // Touch
+  let obsLastTouch={x:0,y:0};
+  canvas.addEventListener('touchstart',e=>{
+    e.preventDefault();
+    if(e.touches.length===1){obsLastTouch={x:e.touches[0].clientX,y:e.touches[0].clientY};}
+  },{passive:false});
+  canvas.addEventListener('touchend',e=>{
+    e.preventDefault();
+    if(e.changedTouches.length===1){
+      const t=e.changedTouches[0];
+      if(Math.hypot(t.clientX-obsLastTouch.x,t.clientY-obsLastTouch.y)<10) obsTap(t.clientX,t.clientY);
+    }
+  },{passive:false});
+
+  const obsPulses=[];
+  let ot=0;
+
+  function drawObs(){
+    ot++;
+    ctx.fillStyle='#060608'; ctx.fillRect(0,0,W,H);
+
+    // Grid dots
+    ctx.fillStyle='rgba(255,255,255,0.025)';
+    for(let x=40;x<W;x+=50) for(let y=20;y<H;y+=50){ctx.beginPath();ctx.arc(x,y,0.8,0,Math.PI*2);ctx.fill();}
+
+    // District overlay
+    if(showingDistrict){
+      districtPhase+=0.02;
+      const gv=(Math.sin(districtPhase)+1)/2;
+      const dcx=W*0.52, dcy=H*0.5, hexR=Math.min(W,H)*0.22;
+      ctx.beginPath();
+      for(let i=0;i<6;i++){const a=Math.PI/180*(60*i-30);i===0?ctx.moveTo(dcx+hexR*Math.cos(a),dcy+hexR*Math.sin(a)):ctx.lineTo(dcx+hexR*Math.cos(a),dcy+hexR*Math.sin(a));}
+      ctx.closePath();
+      ctx.strokeStyle=`rgba(255,0,128,${0.5+gv*0.3})`; ctx.lineWidth=1.5; ctx.stroke();
+      ctx.fillStyle='rgba(255,0,128,0.04)'; ctx.fill();
+      ctx.font='700 9px "Space Mono"'; ctx.fillStyle=`rgba(255,0,128,${0.4+gv*0.2})`;
+      ctx.textAlign='center'; ctx.fillText('DISTRICT FORMS HERE',dcx,dcy-hexR-8);
+      // Label requirements
+      ctx.font='700 8px "Space Mono"'; ctx.fillStyle='rgba(255,255,255,0.3)';
+      ctx.fillText('large CYAN + large PINK + 3× white nearby',dcx,dcy+hexR+14);
+    }
+
+    // Cyan connections
+    const cyans=obsNodes.filter(n=>n.type==='cyan');
+    for(let i=0;i<cyans.length;i++) for(let j=i+1;j<cyans.length;j++){
+      const d=Math.hypot(cyans[i].x-cyans[j].x,cyans[i].y-cyans[j].y);
+      if(d>W*0.35) continue;
+      ctx.beginPath(); ctx.moveTo(cyans[i].x,cyans[i].y); ctx.lineTo(cyans[j].x,cyans[j].y);
+      ctx.strokeStyle=hexAlpha('#40e0d0',(W*0.35-d)/(W*0.35)*0.4); ctx.lineWidth=0.8; ctx.stroke();
+    }
+
+    // Pulses
+    obsPulses.forEach(p=>{p.r+=3;});
+    for(let i=obsPulses.length-1;i>=0;i--){
+      const p=obsPulses[i]; const a=Math.max(0,0.5-p.r/150);
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.strokeStyle=hexAlpha('#ff0080',a); ctx.lineWidth=1; ctx.stroke();
+      if(a<=0) obsPulses.splice(i,1);
+    }
+
+    // Overlap separation (same as main game)
+    for(let i=0;i<obsNodes.length;i++){
+      const a=obsNodes[i]; if(a.type==='dark') continue;
+      for(let j=i+1;j<obsNodes.length;j++){
+        const b=obsNodes[j]; if(b.type==='dark') continue;
+        const md=a.r+b.r+3,dx=b.x-a.x,dy=b.y-a.y,d=Math.hypot(dx,dy)||0.01;
+        if(d<md){
+          const push=(md-d)/md*0.35,nx=dx/d,ny=dy/d;
+          if(a.type!=='cyan'){a.x-=nx*push;a.y-=ny*push;}
+          if(b.type!=='cyan'){b.x+=nx*push;b.y+=ny*push;}
+        }
+      }
+    }
+
+    // Update and draw nodes
+    const whites=obsNodes.filter(n=>n.type==='white');
+    obsNodes.forEach(n=>{
+      n.phase+=0.022; if(n.pulse>0) n.pulse*=0.93;
+      const info=NODE_TYPES[n.type];
+
+      // Movement — same rules as main game
+      if(n.type==='white'){
+        // Boids — orbit nearest pink/cyan
+        const AVOID=n.r*3, MAX_SPEED=0.3;
+        let ax=0,ay=0;
+        whites.forEach(o=>{
+          if(o===n) return;
+          const dx=n.x-o.x,dy=n.y-o.y,d=Math.hypot(dx,dy)||0.1;
+          if(d<AVOID){ax+=dx/d*(AVOID-d)/AVOID*0.1;ay+=dy/d*(AVOID-d)/AVOID*0.1;}
+        });
+        const anchors=obsNodes.filter(p=>p.type==='pink'||p.type==='cyan');
+        const home=anchors.length?anchors.reduce((a,b)=>Math.hypot(b.x-n.x,b.y-n.y)<Math.hypot(a.x-n.x,a.y-n.y)?b:a):null;
+        const leash=n.sz==='small'?W*0.1:n.sz==='medium'?W*0.18:9999;
+        if(home){
+          const dx=home.x-n.x,dy=home.y-n.y,d=Math.hypot(dx,dy)||1;
+          const td=home.r*2+n.r*2;
+          if(d>leash){ax+=dx/d*(d-leash)*0.06;ay+=dy/d*(d-leash)*0.06;}
+          else if(d>td+6){ax+=dx/d*0.04;ay+=dy/d*0.04;}
+          else{ax+=(-dy/d)*0.02;ay+=(dx/d)*0.02;}
+        }
+        n.vx=(n.vx+ax)*0.92; n.vy=(n.vy+ay)*0.92;
+        const spd=Math.hypot(n.vx,n.vy);
+        if(spd>MAX_SPEED){n.vx=n.vx/spd*MAX_SPEED;n.vy=n.vy/spd*MAX_SPEED;}
+        n.x+=n.vx; n.y+=n.vy;
+      } else if(n.type==='cyan'){
+        n.x+=n.vx*0.01; n.y+=n.vy*0.01;
+      } else if(n.type==='red'){
+        n.x+=Math.sin(n.phase*2.1)*0.35; n.y+=Math.cos(n.phase*1.8)*0.35;
+      } else if(n.type==='dark'){
+        n.x+=n.vx*0.05; n.y+=n.vy*0.05;
+      } else {
+        n.x+=n.vx*0.08; n.y+=n.vy*0.08;
+      }
+      // Boundary
+      if(n.x<n.r){n.x=n.r;n.vx=Math.abs(n.vx);}
+      if(n.x>W-n.r){n.x=W-n.r;n.vx=-Math.abs(n.vx);}
+      if(n.y<n.r){n.y=n.r;n.vy=Math.abs(n.vy);}
+      if(n.y>H-n.r){n.y=H-n.r;n.vy=-Math.abs(n.vy);}
+
+      const gv=(Math.sin(n.phase)+1)/2;
+      const R=n.r*(1+n.pulse*0.12);
+
+      // Glow
+      if(['pink','cyan','amber','green'].includes(n.type)){
+        const gr=ctx.createRadialGradient(n.x,n.y,0,n.x,n.y,R*3);
+        gr.addColorStop(0,hexAlpha(info.color,0.1+n.pulse*0.06));
+        gr.addColorStop(1,'rgba(0,0,0,0)');
+        ctx.beginPath(); ctx.arc(n.x,n.y,R*3,0,Math.PI*2); ctx.fillStyle=gr; ctx.fill();
+      }
+      if(n.type==='red'){
+        ctx.beginPath(); ctx.arc(n.x,n.y,R+3+gv*4,0,Math.PI*2);
+        ctx.strokeStyle=hexAlpha('#e24b4a',0.2+gv*0.2); ctx.lineWidth=0.8; ctx.stroke();
+      }
+      // Pulse ring
+      if(n.pulse>0.1){
+        ctx.beginPath(); ctx.arc(n.x,n.y,R+n.pulse*8,0,Math.PI*2);
+        ctx.strokeStyle=hexAlpha(info.color,n.pulse*0.45); ctx.lineWidth=1; ctx.stroke();
+      }
+      // Main circle
+      ctx.beginPath(); ctx.arc(n.x,n.y,R,0,Math.PI*2);
+      ctx.fillStyle=n.type==='dark'?hexAlpha('#2a2a3a',0.4+n.pulse*0.4):info.color;
+      ctx.globalAlpha=0.8+Math.min(0.2,n.pulse*0.15); ctx.fill(); ctx.globalAlpha=1;
+      // Highlight
+      if(n.type!=='dark'&&R>5){
+        ctx.beginPath(); ctx.arc(n.x-R*0.22,n.y-R*0.22,R*0.3,0,Math.PI*2);
+        ctx.fillStyle='rgba(255,255,255,0.13)'; ctx.fill();
+      }
+      // Label — scale font with canvas width
+      const fontSize=Math.max(7,Math.min(9,W/80));
+      ctx.font=`700 ${fontSize}px "Space Mono"`;
+      ctx.fillStyle='rgba(255,255,255,0.4)'; ctx.textAlign='center';
+      ctx.fillText(info.name.toUpperCase(),n.x,n.y+R+fontSize+2);
+    });
+
+    obsAnimId=requestAnimationFrame(drawObs);
+  }
+
+  drawObs();
+
+  // Expose district toggle for button
+  canvas._toggleDistrict=()=>{ showingDistrict=!showingDistrict; };
+}
+
+function obsReset(){initObsCanvas();}
+function obsSpawnAll(){initObsCanvas();}
+function obsShowDistrict(){
+  const canvas=document.getElementById('obsCanvas');
+  if(canvas._toggleDistrict) canvas._toggleDistrict();
+}
+
+// ══════════════════════════════════════════════════════════════
+// COLOR HELPER
+// ══════════════════════════════════════════════════════════════
+function hexAlpha(hex,alpha){
+  const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);
+  return 'rgba('+r+','+g+','+b+','+alpha.toFixed(2)+')';
+}
+
+// ══════════════════════════════════════════════════════════════
+// GAME STATE
+// ══════════════════════════════════════════════════════════════
+let G={
+  nodes:[], connections:[], hexDistricts:[], pulses:[], particles:[],
+  t:0, camX:0, camY:0, camZ:1,
+  holdPos:null,
+  empireName:'', tier:'settlement', lastSave:0, lastDaily:0,
+  seenRed:false, seenAmber:false, seenDistrict:false,
+  // Radial menu
+  radialMenu:null,  // {node, sx, sy, type:'awaken'|'convert'}
+  // Converter white node dispatched
+  converterNode:null, convertTarget:null,
+  // Speed multiplier
+  speedMult:1
+};
+
+let gameCanvas, ctx2, gameAnimId=null, narrativeTimer=null;
+const TIER_THRESHOLDS={settlement:0,outpost:20,colony:50,city:100};
+
+// ── START GAME ──
+function startGame(){
+  const name=document.getElementById('empireNameInput').value.trim();
+  if(!name){document.getElementById('empireNameInput').focus();return;}
+  G.empireName=name;
+  const saved=localStorage.getItem('pumpo_empire_v1');
+  if(saved){
+    try{
+      const s=JSON.parse(saved);
+      if(s.empireName===name){Object.assign(G,s);G.t=s.t||0;}
+      else initFreshEmpire();
+    }catch(e){initFreshEmpire();}
+  } else initFreshEmpire();
+  document.getElementById('titleScreen').classList.add('hidden');
+  document.getElementById('gameScreen').classList.remove('hidden');
+  document.getElementById('gameCanvas').style.display='block';
+  document.getElementById('empireNameDisplay').textContent=name;
+  updateTierBadge();
+  gameCanvas=document.getElementById('gameCanvas');
+  ctx2=gameCanvas.getContext('2d');
+  resizeGameCanvas();
+  window.addEventListener('resize',resizeGameCanvas);
+  setupGameInput();
+  showNarrative(`Welcome to ${name}. Your empire awakens.`);
+  gameLoop();
+}
+
+function initFreshEmpire(){
+  G.nodes=[]; G.connections=[]; G.hexDistricts=[]; G.pulses=[]; G.particles=[];
+  G.t=0; G.camX=0; G.camY=0; G.camZ=1;
+  G.seenRed=false; G.seenAmber=false; G.seenDistrict=false;
+  G.radialMenu=null; G.converterNode=null; G.convertTarget=null;
+  // All starting nodes tight together so user sees them immediately
+  spawnNode('white','small',randomRange(-25,25),randomRange(-25,25));
+  spawnNode('white','small',randomRange(-25,25),randomRange(-25,25));
+  spawnNode('cyan','small',randomRange(-20,20),randomRange(-20,20));
+  spawnNode('cyan','small',randomRange(-20,20),randomRange(-20,20));
+  spawnNode('green','small',randomRange(-18,18),randomRange(-18,18));
+  spawnNode('pink','small',randomRange(-18,18),randomRange(-18,18));
+  // Dormant nodes in outer ring
+  for(let i=0;i<30;i++){
+    const angle=Math.random()*Math.PI*2, dist=200+Math.random()*150;
+    spawnNode('dark','small',Math.cos(angle)*dist,Math.sin(angle)*dist);
+  }
+  G.lastDaily=0;
+}
+
+function spawnNode(type,sz,x,y){
+  const info=NODE_TYPES[type];
+  const r=info.sizes[sz]||5;
+  const speed=info.speed[sz]||0.1;
+  const node={
+    id:Date.now()+Math.random(), type, sz, x, y, r,
+    vx:(Math.random()-0.5)*speed*0.3,
+    vy:(Math.random()-0.5)*speed*0.3,
+    phase:Math.random()*Math.PI*2,
+    pulse:0, age:0, growthProgress:0,
+    exploring:false, exploreTarget:null,
+    converting:false, convertTarget:null,
+    connections:[]
+  };
+  G.nodes.push(node);
+  return node;
+}
+
+function randomRange(a,b){return a+Math.random()*(b-a);}
+
+// ── RESIZE ──
+function resizeGameCanvas(){
+  if(!gameCanvas) return;
+  gameCanvas.width=window.innerWidth;
+  gameCanvas.height=window.innerHeight;
+}
+
+// ══════════════════════════════════════════════════════════════
+// INPUT
+// ══════════════════════════════════════════════════════════════
+function setupGameInput(){
+  const c=gameCanvas;
+  let isHolding=false, holdTimer=null;
+  let isPanning=false;
+  let mouseDown=false;
+  let panStart={x:0,y:0}, camAtPan={x:0,y:0};
+  let touchStartPos=null;
+  let pinchStartDist=0, camZAtPinch=1;
+
+  // ── MOUSE ──
+  c.addEventListener('mousedown',e=>{
+    if(e.button!==0) return;
+    mouseDown=true; isPanning=false;
+    panStart={x:e.clientX,y:e.clientY};
+    camAtPan={x:G.camX,y:G.camY};
+    holdTimer=setTimeout(()=>{
+      isHolding=true;
+      G.holdPos=screenToWorld(e.clientX,e.clientY);
+    },350);
+  });
+
+  c.addEventListener('mousemove',e=>{
+    if(!mouseDown) return;
+    const dx=e.clientX-panStart.x, dy=e.clientY-panStart.y;
+    if(!isPanning&&(Math.abs(dx)>4||Math.abs(dy)>4)){
+      isPanning=true;
+      clearTimeout(holdTimer); isHolding=false; G.holdPos=null;
+    }
+    if(isPanning){
+      G.camX=camAtPan.x+dx/G.camZ;
+      G.camY=camAtPan.y+dy/G.camZ;
+    }
+    if(isHolding) G.holdPos=screenToWorld(e.clientX,e.clientY);
+  });
+
+  c.addEventListener('mouseup',e=>{
+    clearTimeout(holdTimer); G.holdPos=null; isHolding=false;
+    if(!isPanning && mouseDown){
+      const wp=screenToWorld(e.clientX,e.clientY);
+      handleTap(wp.x,wp.y,e.clientX,e.clientY);
+    }
+    mouseDown=false; isPanning=false;
+  });
+
+  c.addEventListener('mouseleave',()=>{
+    clearTimeout(holdTimer); G.holdPos=null; isHolding=false; mouseDown=false; isPanning=false;
+  });
+
+  // ── WHEEL ──
+  c.addEventListener('wheel',e=>{
+    e.preventDefault(); e.stopPropagation();
+    zoomAt(e.clientX,e.clientY,e.deltaY>0?0.88:1.12);
+  },{passive:false,capture:true});
+  window.addEventListener('wheel',e=>{
+    if(document.getElementById('gameScreen').classList.contains('hidden')) return;
+    e.preventDefault();
+    zoomAt(e.clientX,e.clientY,e.deltaY>0?0.88:1.12);
+  },{passive:false});
+
+  // ── TOUCH ──
+  let touches=[];
+  c.addEventListener('touchstart',e=>{
+    e.preventDefault();
+    touches=Array.from(e.touches);
+    if(touches.length===1){
+      touchStartPos={x:touches[0].clientX,y:touches[0].clientY};
+      panStart={x:touches[0].clientX,y:touches[0].clientY};
+      camAtPan={x:G.camX,y:G.camY};
+      isPanning=false;
+      holdTimer=setTimeout(()=>{
+        isHolding=true;
+        G.holdPos=screenToWorld(touches[0].clientX,touches[0].clientY);
+      },400);
+    } else if(touches.length===2){
+      clearTimeout(holdTimer); G.holdPos=null; isHolding=false;
+      pinchStartDist=Math.hypot(touches[0].clientX-touches[1].clientX,touches[0].clientY-touches[1].clientY);
+      camZAtPinch=G.camZ;
+    }
+  },{passive:false});
+
+  c.addEventListener('touchmove',e=>{
+    e.preventDefault(); touches=Array.from(e.touches);
+    if(touches.length===1){
+      const dx=touches[0].clientX-panStart.x,dy=touches[0].clientY-panStart.y;
+      if(!isPanning&&(Math.abs(dx)>8||Math.abs(dy)>8)){isPanning=true;clearTimeout(holdTimer);G.holdPos=null;isHolding=false;}
+      if(isPanning){G.camX=camAtPan.x+dx/G.camZ;G.camY=camAtPan.y+dy/G.camZ;}
+      if(isHolding) G.holdPos=screenToWorld(touches[0].clientX,touches[0].clientY);
+    } else if(touches.length===2){
+      const d=Math.hypot(touches[0].clientX-touches[1].clientX,touches[0].clientY-touches[1].clientY);
+      const newZ=Math.max(0.15,Math.min(4,camZAtPinch*(d/pinchStartDist)));
+      const cx=(touches[0].clientX+touches[1].clientX)/2,cy=(touches[0].clientY+touches[1].clientY)/2;
+      zoomAt(cx,cy,newZ/G.camZ);
+    }
+  },{passive:false});
+
+  c.addEventListener('touchend',e=>{
+    clearTimeout(holdTimer); G.holdPos=null; isHolding=false;
+    if(!isPanning&&e.changedTouches.length===1&&touchStartPos){
+      const t=e.changedTouches[0];
+      if(Math.hypot(t.clientX-touchStartPos.x,t.clientY-touchStartPos.y)<12){
+        const wp=screenToWorld(t.clientX,t.clientY);
+        handleTap(wp.x,wp.y,t.clientX,t.clientY);
+      }
+    }
+    touches=Array.from(e.touches);
+    if(touches.length===0){isPanning=false;touchStartPos=null;}
+  },{passive:false});
+}
+
+// ── COORDINATE HELPERS ──
+function screenToWorld(sx,sy){
+  const W=gameCanvas.width,H=gameCanvas.height;
+  return{x:(sx-W/2)/G.camZ-G.camX,y:(sy-H/2)/G.camZ-G.camY};
+}
+function worldToScreen(wx,wy){
+  const W=gameCanvas.width,H=gameCanvas.height;
+  return{x:(wx+G.camX)*G.camZ+W/2,y:(wy+G.camY)*G.camZ+H/2};
+}
+function zoomAt(sx,sy,factor){
+  const before=screenToWorld(sx,sy);
+  G.camZ=Math.max(0.2,Math.min(5,G.camZ*factor));
+  const after=screenToWorld(sx,sy);
+  G.camX+=after.x-before.x; G.camY+=after.y-before.y;
+}
+
+// ══════════════════════════════════════════════════════════════
+// TAP HANDLER — node hit detection + radial menu
+// ══════════════════════════════════════════════════════════════
+function handleTap(wx,wy,sx,sy){
+  // If panel is open, ignore canvas taps
+  if(G.radialMenu) return;
+
+  // Hit test nodes — generous radius, world space
+  const hitR=Math.max(18, 22/G.camZ);
+  let hit=null;
+  let bestDist=Infinity;
+  for(const n of G.nodes){
+    const d=Math.hypot(n.x-wx,n.y-wy);
+    if(d<n.r+hitR && d<bestDist){hit=n;bestDist=d;}
+  }
+
+  if(hit){
+    if(hit.type==='dark'){
+      openNodePanel(hit,'awaken');
+      hit.pulse=0.8;
+      return;
+    }
+    if(hit.type==='red'){
+      dispatchConverter(hit);
+      hit.pulse=1.0;
+      return;
+    }
+    // Any other node — strong pulse + particles
+    hit.pulse=Math.min(2,hit.pulse+1.4);
+    spawnGrowthParticles(hit.x,hit.y,NODE_TYPES[hit.type].color);
+    firePulse(wx,wy);
+    return;
+  }
+
+  // Empty space — area pulse
+  firePulse(wx,wy);
+}
+
+// resolveRadialMenu — now handled by resolveNodePanel via bottom bar
+function resolveRadialMenu(rm,chosenType){ resolveNodePanel(chosenType); }
+
+function dispatchConverter(redNode){
+  // Find nearest idle white node
+  const whites=G.nodes.filter(n=>n.type==='white'&&!n.converting);
+  if(!whites.length){showNarrative('No available population nodes to send.');return;}
+  const nearest=whites.reduce((a,b)=>Math.hypot(b.x-redNode.x,b.y-redNode.y)<Math.hypot(a.x-redNode.x,a.y-redNode.y)?b:a);
+  nearest.converting=true;
+  nearest.convertTarget=redNode;
+  showNarrative('Population node dispatched to stabilise instability.');
+}
+
+function firePulse(wx,wy){
+  G.pulses.push({x:wx,y:wy,r:0,maxR:130});
+  G.nodes.forEach(n=>{
+    const d=Math.hypot(n.x-wx,n.y-wy);
+    if(d<130) n.pulse=Math.min(1.5,n.pulse+(1-d/130)*0.9);
+  });
+  for(let i=0;i<6;i++){
+    const a=Math.random()*Math.PI*2;
+    G.particles.push({x:wx,y:wy,vx:Math.cos(a)*1.5,vy:Math.sin(a)*1.5,life:1,color:'#ff0080'});
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+// GAME LOOP
+// ══════════════════════════════════════════════════════════════
+let lastGrowthTick=Date.now();
+
+function gameLoop(){
+  G.t++;
+  const now=Date.now();
+  const mult=G.speedMult||1;
+  const tickInterval=Math.max(500,8000/mult);
+
+  if(now-lastGrowthTick>tickInterval){
+    passiveGrowthTick();
+    lastGrowthTick=now;
+  }
+
+  updateNodes();
+  checkDistrictFormation();
+  checkTier();
+  drawGame();
+  if(now-G.lastSave>30000){saveGame();G.lastSave=now;}
+  updateStatsUI();
+  updateDailyUI();
+  gameAnimId=requestAnimationFrame(gameLoop);
+}
+
+// ══════════════════════════════════════════════════════════════
+// PASSIVE GROWTH
+// ══════════════════════════════════════════════════════════════
+function passiveGrowthTick(){
+  const mult=G.speedMult||1;
+  // Green spawns
+  const smallMedWhite=G.nodes.filter(n=>n.type==='white'&&n.sz!=='large').length;
+  const maxSmallMed=6+G.nodes.filter(n=>n.type==='pink').length*3;
+  G.nodes.filter(n=>n.type==='green').forEach(g=>{
+    // Only spawn small whites, capped separately from large explorers
+    if(smallMedWhite<maxSmallMed&&Math.random()<0.18*Math.min(mult,3)){
+      spawnNode('white','small',g.x+randomRange(-40,40),g.y+randomRange(-40,40));
+    }
+  });
+
+  // Node aging — grow small→medium→large
+  G.nodes.forEach(n=>{
+    if(n.type==='dark'||n.type==='red') return;
+    n.age++;
+    const boost=G.nodes.filter(p=>p.type==='pink'&&Math.hypot(p.x-n.x,p.y-n.y)<150).length>0?2:1;
+    n.growthProgress+=0.012*boost*(mult>1?Math.min(mult,4):1);
+    if(n.growthProgress>=1&&n.sz==='small'&&NODE_TYPES[n.type].sizes.medium){
+      n.sz='medium'; n.r=NODE_TYPES[n.type].sizes.medium; n.growthProgress=0;
+      spawnGrowthParticles(n.x,n.y,NODE_TYPES[n.type].color);
+    } else if(n.growthProgress>=1&&n.sz==='medium'&&NODE_TYPES[n.type].sizes.large>0){
+      n.sz='large'; n.r=NODE_TYPES[n.type].sizes.large; n.growthProgress=0;
+      spawnGrowthParticles(n.x,n.y,NODE_TYPES[n.type].color);
+    }
+  });
+
+  // Instability
+  const nonDark=G.nodes.filter(n=>n.type!=='dark');
+  const cyanCount=G.nodes.filter(n=>n.type==='cyan').length;
+  const redCount=G.nodes.filter(n=>n.type==='red').length;
+  if(nonDark.length>12&&cyanCount<nonDark.length*0.12&&redCount<3&&Math.random()<0.25){
+    const target=nonDark[Math.floor(Math.random()*nonDark.length)];
+    if(target.type!=='red'&&target.type!=='pink'&&target.type!=='cyan'){
+      spawnNode('red','small',target.x+randomRange(-25,25),target.y+randomRange(-25,25));
+      if(!G.seenRed){G.seenRed=true;showNarrative('Instability detected. Tap a red node to dispatch a population node to stabilise it.');}
+    }
+  }
+
+  // Amber emergence
+  if(G.nodes.filter(n=>n.type==='amber').length<4){
+    G.nodes.filter(n=>n.type==='cyan'&&n.sz!=='small').forEach(c=>{
+      const ng=G.nodes.filter(g=>g.type==='green'&&Math.hypot(g.x-c.x,g.y-c.y)<80);
+      if(ng.length>0&&Math.random()<0.06){
+        spawnNode('amber','small',(c.x+ng[0].x)/2+randomRange(-15,15),(c.y+ng[0].y)/2+randomRange(-15,15));
+        if(!G.seenAmber){G.seenAmber=true;showNarrative('Efficiency node emerged. Infrastructure and growth are working in harmony.');}
+      }
+    });
+  }
+}
+
+function spawnGrowthParticles(x,y,color){
+  for(let i=0;i<10;i++){
+    const a=Math.random()*Math.PI*2,s=0.8+Math.random()*1.5;
+    G.particles.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:1,color});
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+// UPDATE NODES — boids for white, rules for others
+// ══════════════════════════════════════════════════════════════
+function updateNodes(){
+  const whites=G.nodes.filter(n=>n.type==='white');
+
+  G.nodes.forEach(n=>{
+    n.phase+=0.022;
+    if(n.pulse>0) n.pulse*=0.93;
+    const info=NODE_TYPES[n.type];
+
+    if(n.type==='white'){
+      if(n.converting&&n.convertTarget){
+        updateConverter(n);
+      } else if(n.sz==='large'&&!n.converting){
+        updateExplorer(n);
+      } else {
+        updateBoids(n,whites);
+      }
+    } else if(n.type==='cyan'){
+      // Anchor — micro-drift only
+      n.x+=n.vx*0.015; n.y+=n.vy*0.015;
+    } else if(n.type==='green'){
+      // Slow gentle drift
+      n.x+=n.vx*0.1; n.y+=n.vy*0.1;
+    } else if(n.type==='pink'){
+      // Slow drift
+      n.x+=n.vx*0.06; n.y+=n.vy*0.06;
+    } else if(n.type==='dark'){
+      n.x+=n.vx*0.05; n.y+=n.vy*0.05;
+    } else if(n.type==='red'){
+      // Wobble in place
+      n.x+=Math.sin(n.phase*2.3)*0.3;
+      n.y+=Math.cos(n.phase*1.9)*0.3;
+    } else if(n.type==='amber'){
+      n.x+=n.vx*0.08; n.y+=n.vy*0.08;
+    }
+
+    // Soft world boundary
+    const bound=900;
+    if(Math.abs(n.x)>bound) n.vx*=-1;
+    if(Math.abs(n.y)>bound) n.vy*=-1;
+  });
+
+  // Overlap separation — push overlapping nodes apart
+  for(let i=0;i<G.nodes.length;i++){
+    const a=G.nodes[i];
+    if(a.type==='dark') continue;
+    for(let j=i+1;j<G.nodes.length;j++){
+      const b=G.nodes[j];
+      if(b.type==='dark') continue;
+      const minDist=a.r+b.r+3;
+      const dx=b.x-a.x, dy=b.y-a.y;
+      const d=Math.hypot(dx,dy)||0.01;
+      if(d<minDist){
+        const push=(minDist-d)/minDist*0.4;
+        const nx=dx/d, ny=dy/d;
+        // Only push non-anchored nodes
+        if(a.type!=='cyan'){a.x-=nx*push;a.y-=ny*push;}
+        if(b.type!=='cyan'){b.x+=nx*push;b.y+=ny*push;}
+      }
+    }
+  }
+
+  G.particles=G.particles.filter(p=>p.life>0.01);
+  G.particles.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vx*=0.94;p.vy*=0.94;p.life*=0.91;});
+}
+
+// ── BOIDS for white nodes ──
+function updateBoids(n, whites){
+  const AVOID=n.r*3;
+  const MAX_SPEED=n.sz==='medium'?0.35:0.25;
+
+  // Find home anchor — nearest pink, fallback to nearest cyan
+  const anchors=[...G.nodes.filter(p=>p.type==='pink'),...G.nodes.filter(p=>p.type==='cyan')];
+  let homeNode=null, homeD=Infinity;
+  anchors.forEach(p=>{const d=Math.hypot(p.x-n.x,p.y-n.y);if(d<homeD){homeD=d;homeNode=p;}});
+
+  // Size-based leash radius — how far from home anchor
+  const leash=n.sz==='small'?55:n.sz==='medium'?100:9999;
+
+  let ax=0,ay=0;
+
+  // Separation from other white nodes
+  whites.forEach(other=>{
+    if(other===n) return;
+    const dx=n.x-other.x,dy=n.y-other.y,d=Math.hypot(dx,dy)||0.1;
+    if(d<AVOID){ax+=dx/d*(AVOID-d)/AVOID*0.12;ay+=dy/d*(AVOID-d)/AVOID*0.12;}
+  });
+
+  // Home attraction
+  if(homeNode){
+    const dx=homeNode.x-n.x,dy=homeNode.y-n.y,d=Math.hypot(dx,dy)||1;
+    const targetDist=homeNode.type==='pink'?homeNode.r*3+n.r*2:homeNode.r*2+n.r*2;
+    // Leash — pull back if too far
+    if(d>leash){ax+=dx/d*(d-leash)*0.08;ay+=dy/d*(d-leash)*0.08;}
+    else if(d>targetDist+6){ax+=dx/d*0.05;ay+=dy/d*0.05;}
+    else if(d<targetDist-6){ax-=dx/d*0.03;ay-=dy/d*0.03;}
+    else{ax+=(-dy/d)*0.025;ay+=(dx/d)*0.025;} // gentle orbit
+  } else {
+    ax+=(Math.random()-0.5)*0.015;
+    ay+=(Math.random()-0.5)*0.015;
+  }
+
+  n.vx=(n.vx+ax)*0.92; n.vy=(n.vy+ay)*0.92;
+  const spd=Math.hypot(n.vx,n.vy);
+  if(spd>MAX_SPEED){n.vx=n.vx/spd*MAX_SPEED;n.vy=n.vy/spd*MAX_SPEED;}
+  n.x+=n.vx; n.y+=n.vy;
+}
+
+// ── EXPLORER (large white) ──
+function updateExplorer(n){
+  const pinks=G.nodes.filter(p=>p.type==='pink');
+  const homePink=pinks.length>0?pinks.reduce((a,b)=>Math.hypot(b.x-n.x,b.y-n.y)<Math.hypot(a.x-n.x,a.y-n.y)?b:a):null;
+  const maxRange=homePink?100+pinks.filter(p=>p.sz==='large').length*35:70;
+  const distFromHome=homePink?Math.hypot(n.x-homePink.x,n.y-homePink.y):0;
+
+  if(distFromHome>maxRange){
+    // Return home
+    if(homePink){
+      const dx=homePink.x-n.x,dy=homePink.y-n.y,d=Math.hypot(dx,dy)||1;
+      n.vx+=dx/d*0.1; n.vy+=dy/d*0.1;
+    }
+  } else if(!n.exploreTarget){
+    // Find nearest non-pending dormant node within range
+    const pinks=G.nodes.filter(p=>p.type==='pink');
+    const maxRange=pinks.length>0?100+pinks.filter(p=>p.sz==='large').length*35:70;
+    const dormant=G.nodes.filter(d=>d.type==='dark'&&!d.pendingChoice);
+    const reachable=dormant.filter(d=>Math.hypot(d.x-n.x,d.y-n.y)<maxRange*1.5);
+    if(reachable.length>0){
+      // Pick closest reachable
+      n.exploreTarget=reachable.reduce((a,b)=>Math.hypot(b.x-n.x,b.y-n.y)<Math.hypot(a.x-n.x,a.y-n.y)?b:a);
+    } else {
+      // No reachable target — gentle wander near home
+      const home=pinks.length>0?pinks[0]:null;
+      if(home){
+        const dx=home.x-n.x,dy=home.y-n.y,d=Math.hypot(dx,dy)||1;
+        n.vx+=dx/d*0.04; n.vy+=dy/d*0.04;
+      }
+    }
+  } else {
+    const target=n.exploreTarget;
+    if(!G.nodes.includes(target)){n.exploreTarget=null;return;}
+    const dx=target.x-n.x,dy=target.y-n.y,d=Math.hypot(dx,dy)||1;
+    if(d<14){
+      target.pulse=0.8;
+      G.nodes.filter(nd=>nd.type==='dark'&&Math.hypot(nd.x-target.x,nd.y-target.y)<60).forEach(nd=>nd.pulse=0.3);
+      // Only open panel once per dormant node — mark it
+      if(!G.radialMenu&&!target.pendingChoice){
+        target.pendingChoice=true;
+        openNodePanel(target,'awaken');
+        showNarrative('Explorer reached dormant node. Choose its type.');
+      }
+      n.exploreTarget=null;
+    } else {
+      n.vx+=dx/d*0.08; n.vy+=dy/d*0.08;
+    }
+  }
+  const spd=Math.hypot(n.vx,n.vy);
+  if(spd>0.35){n.vx=n.vx/spd*0.35;n.vy=n.vy/spd*0.35;}
+  n.x+=n.vx; n.y+=n.vy;
+}
+
+// ── CONVERTER (white dispatched to red) ──
+function updateConverter(n){
+  const target=n.convertTarget;
+  if(!target||!G.nodes.includes(target)){n.converting=false;n.convertTarget=null;return;}
+  const dx=target.x-n.x,dy=target.y-n.y,d=Math.hypot(dx,dy)||1;
+  if(d<12){
+    // Reached red — open radial menu
+    if(!G.radialMenu){
+      openNodePanel(target,'convert');
+      showNarrative('Population node reached instability. Choose conversion type.');
+    }
+    // Remove converter white node when menu resolved
+    n.converting=false; n.convertTarget=null;
+    G.nodes.splice(G.nodes.indexOf(n),1);
+  } else {
+    n.vx+=dx/d*0.12; n.vy+=dy/d*0.12;
+    const spd=Math.hypot(n.vx,n.vy);
+    if(spd>0.55){n.vx=n.vx/spd*0.55;n.vy=n.vy/spd*0.55;}
+    n.x+=n.vx; n.y+=n.vy;
+    // Trail
+    if(Math.random()<0.3) G.particles.push({x:n.x,y:n.y,vx:0,vy:0,life:0.5,color:'#e8e8f0'});
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+// DISTRICT FORMATION
+// ══════════════════════════════════════════════════════════════
+function checkDistrictFormation(){
+  G.nodes.filter(n=>n.type==='pink'&&n.sz==='large').forEach(pk=>{
+    G.nodes.filter(n=>n.type==='cyan'&&n.sz==='large').forEach(cy=>{
+      if(Math.hypot(pk.x-cy.x,pk.y-cy.y)>100) return;
+      if(G.hexDistricts.some(h=>Math.hypot(h.cx-pk.x,h.cy-pk.y)<80)) return;
+      const nearWhite=G.nodes.filter(n=>n.type==='white'&&Math.hypot(n.x-pk.x,n.y-pk.y)<80);
+      if(nearWhite.length<3) return;
+      const cx=(pk.x+cy.x)/2,cy2=(pk.y+cy.y)/2;
+      G.hexDistricts.push({cx,cy:cy2,r:55,phase:0,age:0,name:genDistrictName()});
+      spawnGrowthParticles(cx,cy2,'#ff0080');
+      spawnGrowthParticles(cx,cy2,'#40e0d0');
+      if(!G.seenDistrict){G.seenDistrict=true;showNarrative(`A district forms in ${G.empireName}. The signal becomes a city.`);}
+    });
+  });
+}
+
+function genDistrictName(){
+  const p=['Alpha','Beta','Core','Prime','Nexus','Pulse','Grid','Arc','Sigma','Delta'];
+  const s=['Ward','Zone','District','Quarter','Sector','Hub','Array','Ring'];
+  return p[Math.floor(Math.random()*p.length)]+' '+s[Math.floor(Math.random()*s.length)];
+}
+
+function checkTier(){
+  const active=G.nodes.filter(n=>n.type!=='dark').length;
+  const newTier=active>=TIER_THRESHOLDS.city?'city':active>=TIER_THRESHOLDS.colony?'colony':active>=TIER_THRESHOLDS.outpost?'outpost':'settlement';
+  if(newTier!==G.tier){
+    G.tier=newTier; updateTierBadge();
+    const msg={outpost:`${G.empireName} reaches Outpost. The grid expands.`,colony:`${G.empireName} reaches Colony. Districts can now form.`,city:`${G.empireName} reaches City tier. Your empire is alive.`};
+    if(msg[newTier]) showNarrative(msg[newTier]);
+  }
+}
+
+function updateTierBadge(){
+  const b=document.getElementById('tierBadge');
+  b.textContent=G.tier.charAt(0).toUpperCase()+G.tier.slice(1);
+  b.className='tier-badge '+G.tier;
+}
+
+// ══════════════════════════════════════════════════════════════
+// DRAW
+// ══════════════════════════════════════════════════════════════
+function drawGame(){
+  const W=gameCanvas.width,H=gameCanvas.height;
+  ctx2.fillStyle='#060608'; ctx2.fillRect(0,0,W,H);
+  ctx2.save();
+  ctx2.translate(W/2,H/2);
+  ctx2.scale(G.camZ,G.camZ);
+  ctx2.translate(G.camX,G.camY);
+
+  drawGrid();
+  drawConnections();
+  G.hexDistricts.forEach(h=>{h.phase+=0.01;h.age++;drawHexDistrict(h);});
+
+  // Pulses
+  G.pulses=G.pulses.filter(p=>p.r<p.maxR);
+  G.pulses.forEach(p=>{
+    p.r+=3;
+    ctx2.beginPath(); ctx2.arc(p.x,p.y,p.r,0,Math.PI*2);
+    ctx2.strokeStyle=hexAlpha('#ff0080',Math.max(0,0.45-p.r/p.maxR));
+    ctx2.lineWidth=1; ctx2.stroke();
+  });
+
+  // Hold sustain
+  if(G.holdPos){
+    const pr=18+Math.sin(G.t*0.12)*8;
+    ctx2.beginPath(); ctx2.arc(G.holdPos.x,G.holdPos.y,pr,0,Math.PI*2);
+    ctx2.strokeStyle='rgba(255,0,128,0.35)'; ctx2.lineWidth=1.5; ctx2.stroke();
+    G.nodes.forEach(n=>{const d=Math.hypot(n.x-G.holdPos.x,n.y-G.holdPos.y);if(d<55)n.pulse=Math.min(1,n.pulse+0.012);});
+  }
+
+  // Particles
+  G.particles.forEach(p=>{
+    ctx2.beginPath(); ctx2.arc(p.x,p.y,Math.max(0.3,1.8*p.life),0,Math.PI*2);
+    ctx2.fillStyle=hexAlpha(p.color||'#ff0080',p.life); ctx2.fill();
+  });
+
+  drawNodes();
+  ctx2.restore();
+
+  // Node indicator — pulse ring on active radial node
+  if(G.radialMenu&&G.radialMenu.node){
+    const n=G.radialMenu.node;
+    const sp=worldToScreen(n.x,n.y);
+    ctx2.save(); ctx2.setTransform(1,0,0,1,0,0);
+    ctx2.beginPath(); ctx2.arc(sp.x,sp.y,n.r*G.camZ+8+Math.sin(G.t*0.1)*3,0,Math.PI*2);
+    ctx2.strokeStyle='rgba(255,255,255,0.35)'; ctx2.lineWidth=1.5; ctx2.setLineDash([4,4]);
+    ctx2.stroke(); ctx2.setLineDash([]); ctx2.restore();
+  }
+}
+
+function drawGrid(){
+  const spacing=80;
+  const W=gameCanvas.width,H=gameCanvas.height;
+  const x1=-W/2/G.camZ-G.camX-spacing,y1=-H/2/G.camZ-G.camY-spacing;
+  const x2=W/2/G.camZ-G.camX+spacing,y2=H/2/G.camZ-G.camY+spacing;
+  ctx2.fillStyle='rgba(255,255,255,0.025)';
+  for(let x=Math.floor(x1/spacing)*spacing;x<x2;x+=spacing)
+    for(let y=Math.floor(y1/spacing)*spacing;y<y2;y+=spacing){
+      ctx2.beginPath(); ctx2.arc(x,y,1,0,Math.PI*2); ctx2.fill();
+    }
+}
+
+function drawConnections(){
+  const cyans=G.nodes.filter(n=>n.type==='cyan');
+  for(let i=0;i<cyans.length;i++) for(let j=i+1;j<cyans.length;j++){
+    const a=cyans[i],b=cyans[j],d=Math.hypot(a.x-b.x,a.y-b.y);
+    if(d>220) continue;
+    ctx2.beginPath(); ctx2.moveTo(a.x,a.y); ctx2.lineTo(b.x,b.y);
+    ctx2.strokeStyle=hexAlpha('#40e0d0',(220-d)/220*0.35); ctx2.lineWidth=0.8; ctx2.stroke();
+    if(Math.random()<0.003) G.particles.push({x:a.x+(b.x-a.x)*Math.random(),y:a.y+(b.y-a.y)*Math.random(),vx:0,vy:0,life:0.7,color:'#40e0d0'});
+  }
+}
+
+function drawHexDistrict(h){
+  const gv=(Math.sin(h.phase)+1)/2;
+  ctx2.save(); ctx2.translate(h.cx,h.cy);
+  ctx2.beginPath();
+  for(let i=0;i<6;i++){const a=Math.PI/180*(60*i-30);i===0?ctx2.moveTo(h.r*Math.cos(a),h.r*Math.sin(a)):ctx2.lineTo(h.r*Math.cos(a),h.r*Math.sin(a));}
+  ctx2.closePath();
+  ctx2.strokeStyle=hexAlpha('#ff0080',0.45+gv*0.3); ctx2.lineWidth=1.5; ctx2.stroke();
+  ctx2.fillStyle='rgba(255,0,128,0.03)'; ctx2.fill();
+  if(G.camZ>0.35){
+    ctx2.font=`700 ${Math.max(7,9/G.camZ)}px "Space Mono"`;
+    ctx2.fillStyle=hexAlpha('#ff0080',0.35+gv*0.15);
+    ctx2.textAlign='center'; ctx2.textBaseline='middle';
+    ctx2.fillText(h.name.toUpperCase(),0,h.r*0.62);
+  }
+  ctx2.restore();
+}
+
+function drawNodes(){
+  G.nodes.forEach(n=>{
+    const info=NODE_TYPES[n.type]; if(!info) return;
+    const gv=(Math.sin(n.phase)+1)/2;
+    const R=n.r*(1+n.pulse*0.12);
+    const isDark=n.type==='dark';
+
+    // Explorer trail
+    if(n.type==='white'&&n.sz==='large'&&n.exploreTarget){
+      ctx2.beginPath(); ctx2.arc(n.x,n.y,R+3+gv*2,0,Math.PI*2);
+      ctx2.strokeStyle='rgba(232,232,240,0.15)'; ctx2.lineWidth=0.7; ctx2.stroke();
+    }
+    // Converter trail shown via particles already
+
+    // Glow for active types
+    if(!isDark&&['pink','cyan','amber','green'].includes(n.type)){
+      const gr=ctx2.createRadialGradient(n.x,n.y,0,n.x,n.y,R*3.5);
+      gr.addColorStop(0,hexAlpha(info.color,0.12+n.pulse*0.08));
+      gr.addColorStop(1,'rgba(0,0,0,0)');
+      ctx2.beginPath(); ctx2.arc(n.x,n.y,R*3.5,0,Math.PI*2);
+      ctx2.fillStyle=gr; ctx2.fill();
+    }
+
+    // Red wobble ring
+    if(n.type==='red'){
+      ctx2.beginPath(); ctx2.arc(n.x,n.y,R+3+gv*5,0,Math.PI*2);
+      ctx2.strokeStyle=hexAlpha('#e24b4a',0.2+gv*0.2); ctx2.lineWidth=0.8; ctx2.stroke();
+    }
+    // Green influence radius
+    if(n.type==='green'&&n.sz==='medium'){
+      ctx2.beginPath(); ctx2.arc(n.x,n.y,55,0,Math.PI*2);
+      ctx2.strokeStyle='rgba(0,196,106,0.07)'; ctx2.lineWidth=1; ctx2.stroke();
+    }
+
+    // Pulse ring
+    if(n.pulse>0.1&&!isDark){
+      ctx2.beginPath(); ctx2.arc(n.x,n.y,R+n.pulse*10,0,Math.PI*2);
+      ctx2.strokeStyle=hexAlpha(info.color,n.pulse*0.5);
+      ctx2.lineWidth=1.2; ctx2.stroke();
+    }
+
+    // Main circle
+    ctx2.beginPath(); ctx2.arc(n.x,n.y,R,0,Math.PI*2);
+    if(isDark){
+      ctx2.fillStyle=hexAlpha('#2a2a3a',0.3+n.pulse*0.4);
+    } else {
+      ctx2.globalAlpha=0.75+Math.min(0.25,n.pulse*0.2);
+      ctx2.fillStyle=info.color;
+    }
+    ctx2.fill();
+    ctx2.globalAlpha=1;
+
+    // Inner highlight
+    if(!isDark&&R>5){
+      ctx2.beginPath(); ctx2.arc(n.x-R*0.22,n.y-R*0.22,R*0.32,0,Math.PI*2);
+      ctx2.fillStyle='rgba(255,255,255,0.14)'; ctx2.fill();
+    }
+
+    // Growth progress arc
+    if(!isDark&&n.growthProgress>0.1&&n.growthProgress<1){
+      ctx2.beginPath();
+      ctx2.arc(n.x,n.y,R+2,-Math.PI/2,-Math.PI/2+n.growthProgress*Math.PI*2);
+      ctx2.strokeStyle=hexAlpha(info.color,0.4); ctx2.lineWidth=1; ctx2.stroke();
+    }
+  });
+}
+
+// ── NODE ACTION PANEL (bottom bar) ──
+function openNodePanel(node, mode){
+  G.radialMenu={node, mode};
+  const lbl=document.getElementById('napLabel');
+  lbl.textContent=mode==='awaken'?'Awaken this dormant node as:':'Convert instability node to:';
+  document.getElementById('nodeActionPanel').classList.add('open');
+  // Pause stats bar visibility temporarily
+  document.getElementById('statsBar').style.display='none';
+}
+
+function closeNodePanel(){
+  G.radialMenu=null;
+  document.getElementById('nodeActionPanel').classList.remove('open');
+  document.getElementById('statsBar').style.display='';
+}
+
+function resolveNodePanel(chosenType){
+  if(!G.radialMenu) return;
+  const n=G.radialMenu.node;
+  if(!G.nodes.includes(n)){closeNodePanel();return;}
+  const info=NODE_TYPES[chosenType];
+  n.type=chosenType; n.sz='small';
+  n.r=info.sizes.small;
+  n.vx=(Math.random()-0.5)*info.speed.small*0.3;
+  n.vy=(Math.random()-0.5)*info.speed.small*0.3;
+  n.pulse=1.5;
+  n.pendingChoice=false;
+  // If converting red, remove the red node
+  if(G.radialMenu.mode==='convert'){
+    const idx=G.nodes.indexOf(n);
+    if(idx>-1) G.nodes.splice(idx,1);
+    spawnNode(chosenType,'small',n.x,n.y);
+  }
+  spawnGrowthParticles(n.x,n.y,info.color);
+  showNarrative(`Node awakened as ${info.name}.`);
+  closeNodePanel();
+}
+
+// ══════════════════════════════════════════════════════════════
+// UI UPDATES
+// ══════════════════════════════════════════════════════════════
+function updateStatsUI(){
+  document.getElementById('statPop').textContent=G.nodes.filter(n=>n.type==='white').length;
+  document.getElementById('statInfra').textContent=G.nodes.filter(n=>n.type==='cyan').length;
+  document.getElementById('statGrowth').textContent=G.nodes.filter(n=>n.type==='green').length;
+  document.getElementById('statEnergy').textContent=G.nodes.filter(n=>n.type==='pink').length;
+  document.getElementById('statEff').textContent=G.nodes.filter(n=>n.type==='amber').length;
+  document.getElementById('statDistricts').textContent=G.hexDistricts.length;
+}
+
+function updateDailyUI(){
+  const now=Date.now(),elapsed=now-G.lastDaily,cooldown=86400000;
+  const pill=document.getElementById('dailyPill');
+  if(elapsed>=cooldown){
+    pill.className='cooldown-pill ready'; pill.textContent='✦ daily bonus'; pill.onclick=claimDaily;
+  } else {
+    const rem=cooldown-elapsed;
+    pill.className='cooldown-pill'; pill.onclick=null;
+    pill.textContent=`daily in ${Math.floor(rem/3600000)}h ${Math.floor((rem%3600000)/60000)}m`;
+  }
+}
+
+function claimDaily(){
+  G.lastDaily=Date.now();
+  for(let i=0;i<4;i++) spawnNode(['white','cyan','green','pink'][i],'small',randomRange(-80,80),randomRange(-80,80));
+  showNarrative('Daily bonus claimed. Four new nodes enter your empire.'); saveGame();
+}
+
+function showNarrative(msg){
+  clearTimeout(narrativeTimer);
+  const el=document.getElementById('narrative');
+  el.textContent=msg; el.classList.add('show');
+  narrativeTimer=setTimeout(()=>el.classList.remove('show'),4500);
+}
+
+// ══════════════════════════════════════════════════════════════
+// SPEED SLIDER
+// ══════════════════════════════════════════════════════════════
+function initSpeedSlider(){
+  const bar=document.getElementById('statsBar');
+  const wrap=document.createElement('div');
+  wrap.style.cssText='display:flex;align-items:center;gap:6px;';
+  wrap.innerHTML=`
+    <span style="font-family:Space Mono,monospace;font-size:8px;letter-spacing:.1em;color:var(--muted);text-transform:uppercase;">speed</span>
+    <input type="range" id="speedSlider" min="1" max="10" step="1" value="1"
+      style="width:70px;height:3px;accent-color:var(--cyan);cursor:pointer;">
+    <span style="font-family:Space Mono,monospace;font-size:9px;color:var(--cyan);min-width:20px;" id="speedVal">1x</span>`;
+  bar.appendChild(wrap);
+  document.getElementById('speedSlider').addEventListener('input',e=>{
+    G.speedMult=parseInt(e.target.value);
+    document.getElementById('speedVal').textContent=G.speedMult+'x';
+  });
+}
+
+// ══════════════════════════════════════════════════════════════
+// SAVE / LOAD
+// ══════════════════════════════════════════════════════════════
+function saveGame(){
+  localStorage.setItem('pumpo_empire_v1',JSON.stringify({
+    empireName:G.empireName, tier:G.tier, t:G.t,
+    lastDaily:G.lastDaily, seenRed:G.seenRed, seenAmber:G.seenAmber, seenDistrict:G.seenDistrict,
+    nodes:G.nodes.map(n=>({...n,exploreTarget:null,convertTarget:null})),
+    hexDistricts:G.hexDistricts,
+    camX:G.camX, camY:G.camY, camZ:G.camZ
+  }));
+}
+
+document.getElementById('empireNameInput').addEventListener('keydown',e=>{if(e.key==='Enter')startGame();});
+window.addEventListener('beforeunload',()=>{if(G.empireName)saveGame();});
+
+// Init speed slider on DOM ready
+document.addEventListener('DOMContentLoaded',initSpeedSlider);
+if(document.readyState!=='loading') initSpeedSlider();
+
+</script>
+
+<!-- PUMPO BAR — paste shared snippet here -->
+</body>
+</html>
