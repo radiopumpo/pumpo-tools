@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FIXR — Customer Portal</title>
+  <link href="https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --pink: #ff0080; --cyan: #40e0d0; --lime: #cfff04; --orange: #ff8c00;
+      --bg: #0a0a0a; --bg2: #111; --bg3: #161616;
+      --card: rgba(255,255,255,0.04); --border: rgba(255,255,255,0.08);
+      --pink-glow: rgba(255,0,128,0.25);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Rajdhani', sans-serif; background: var(--bg); color: #fff; min-height: 100vh; }
+    body::after { content:''; position:fixed; inset:0; background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.03) 2px,rgba(0,0,0,0.03) 4px); pointer-events:none; z-index:9000; }
+
+    nav { position:fixed; top:0; left:0; right:0; z-index:500; display:flex; justify-content:space-between; align-items:center; padding:12px 28px; background:rgba(10,10,10,0.92); backdrop-filter:blur(12px); border-bottom:1px solid rgba(255,0,128,0.15); }
+    .nav-logo { font-family:'Black Ops One',cursive; font-size:1.2rem; color:var(--pink); letter-spacing:3px; text-decoration:none; }
+    .nav-logo span { color:var(--cyan); }
+    .nav-mid { display:flex; gap:4px; }
+    .nav-tab { font-size:0.7rem; font-weight:700; letter-spacing:1.5px; padding:7px 14px; border-radius:20px; cursor:pointer; border:1px solid transparent; transition:0.2s; text-transform:uppercase; }
+    .nav-tab.active { background:rgba(255,0,128,0.12); border-color:rgba(255,0,128,0.3); color:var(--pink); }
+    .nav-tab:not(.active) { color:#444; }
+    .nav-tab:hover:not(.active) { color:#777; border-color:#222; }
+    .nav-right { display:flex; align-items:center; gap:10px; }
+    .nav-user { font-size:0.78rem; font-weight:700; color:#555; }
+    .nav-exit { font-size:0.65rem; font-weight:700; padding:6px 12px; border:1px solid #222; color:#444; border-radius:8px; cursor:pointer; text-decoration:none; transition:0.2s; }
+    .nav-exit:hover { border-color:#444; color:#777; }
+
+    .app { padding-top:64px; min-height:100vh; }
+    .panel { display:none; }
+    .panel.active { display:block; }
+
+    .page-hdr { padding:32px 28px 20px; }
+    .page-hdr h1 { font-family:'Black Ops One',cursive; font-size:clamp(1.4rem,3vw,2rem); letter-spacing:2px; }
+    .page-hdr p { font-size:0.88rem; font-weight:600; color:#444; margin-top:4px; }
+
+    /* POST JOB */
+    .post-wrap { max-width:620px; padding:0 28px 60px; }
+    .post-card { background:var(--bg2); border:1px solid var(--border); border-radius:20px; padding:32px; }
+    .form-group { margin-bottom:18px; }
+    .form-label { font-size:0.72rem; font-weight:700; letter-spacing:2px; color:#555; text-transform:uppercase; margin-bottom:7px; display:block; }
+    .form-input, .form-select, .form-textarea {
+      width:100%; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:10px;
+      color:#fff; font-family:'Rajdhani',sans-serif; font-size:0.95rem; font-weight:600; padding:12px 14px;
+      outline:none; transition:border-color 0.2s; appearance:none;
+    }
+    .form-input:focus, .form-select:focus, .form-textarea:focus { border-color:var(--pink); }
+    .form-select option { background:#111; }
+    .form-input::placeholder, .form-textarea::placeholder { color:#2a2a2a; }
+    .form-textarea { resize:vertical; min-height:100px; }
+    .trade-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+    .trade-chip { background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:8px; padding:8px 10px; font-size:0.78rem; font-weight:700; color:#555; cursor:pointer; transition:0.2s; text-align:center; }
+    .trade-chip.selected { background:rgba(255,0,128,0.1); border-color:rgba(255,0,128,0.3); color:var(--pink); }
+    .trade-chip:hover:not(.selected) { border-color:#333; color:#888; }
+    .btn-primary { width:100%; padding:14px; font-family:'Black Ops One',cursive; font-size:0.9rem; letter-spacing:2px; border-radius:12px; border:none; cursor:pointer; transition:0.2s; margin-top:4px; background:var(--pink); color:#fff; }
+    .btn-primary:hover { box-shadow:0 8px 24px rgba(255,0,128,0.3); }
+
+    /* FIND WORKERS */
+    .filters { display:flex; gap:8px; flex-wrap:wrap; padding:0 28px 20px; }
+    .filter-btn { font-size:0.72rem; font-weight:700; letter-spacing:1px; padding:7px 14px; border-radius:20px; border:1px solid var(--border); color:#555; cursor:pointer; transition:0.2s; background:none; font-family:'Rajdhani',sans-serif; }
+    .filter-btn.active { background:rgba(255,0,128,0.1); border-color:rgba(255,0,128,0.3); color:var(--pink); }
+    .filter-btn:hover:not(.active) { border-color:#333; color:#888; }
+    .workers-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:14px; padding:0 28px 40px; }
+    .worker-card { background:var(--bg2); border:1px solid var(--border); border-radius:16px; padding:22px; transition:border-color 0.2s,transform 0.2s; }
+    .worker-card:hover { border-color:rgba(255,0,128,0.25); transform:translateY(-2px); }
+    .worker-top { display:flex; align-items:center; gap:14px; margin-bottom:14px; }
+    .avatar { width:48px; height:48px; border-radius:50%; background:rgba(255,0,128,0.1); border:1px solid rgba(255,0,128,0.2); display:flex; align-items:center; justify-content:center; font-family:'Black Ops One',cursive; font-size:0.9rem; color:var(--pink); flex-shrink:0; }
+    .worker-name { font-family:'Black Ops One',cursive; font-size:1rem; letter-spacing:0.5px; color:#fff; }
+    .worker-area { font-size:0.75rem; font-weight:700; color:#444; margin-top:2px; }
+    .worker-rating { font-size:0.78rem; font-weight:700; color:var(--orange); margin-top:2px; }
+    .trades-wrap { display:flex; gap:5px; flex-wrap:wrap; margin-bottom:12px; }
+    .trade-tag { font-size:0.6rem; font-weight:700; letter-spacing:1px; padding:3px 8px; border-radius:20px; }
+    .tag-Plumbing { background:rgba(64,224,208,0.08); color:var(--cyan); border:1px solid rgba(64,224,208,0.15); }
+    .tag-Electrical { background:rgba(255,140,0,0.08); color:var(--orange); border:1px solid rgba(255,140,0,0.15); }
+    .tag-Carpentry { background:rgba(207,255,4,0.07); color:var(--lime); border:1px solid rgba(207,255,4,0.15); }
+    .tag-Painting { background:rgba(255,0,128,0.08); color:var(--pink); border:1px solid rgba(255,0,128,0.15); }
+    .tag-Cleaning { background:rgba(100,200,255,0.08); color:#64c8ff; border:1px solid rgba(100,200,255,0.15); }
+    .tag-Gardening { background:rgba(80,220,120,0.08); color:#50dc78; border:1px solid rgba(80,220,120,0.15); }
+    .tag-Handyman { background:rgba(180,100,255,0.08); color:#b464ff; border:1px solid rgba(180,100,255,0.15); }
+    .tag-Tiling { background:rgba(255,200,60,0.08); color:#ffc83c; border:1px solid rgba(255,200,60,0.15); }
+    .worker-bio { font-size:0.8rem; font-weight:600; color:#444; line-height:1.5; margin-bottom:14px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+    .worker-footer { display:flex; justify-content:space-between; align-items:center; }
+    .worker-rate { font-family:'Black Ops One',cursive; font-size:0.95rem; color:var(--lime); }
+    .worker-stats { font-size:0.7rem; font-weight:700; color:#333; }
+    .btn-request { font-family:'Black Ops One',cursive; font-size:0.68rem; letter-spacing:1.5px; padding:8px 14px; border-radius:10px; border:none; cursor:pointer; background:var(--pink); color:#fff; transition:0.2s; }
+    .btn-request:hover { box-shadow:0 4px 16px rgba(255,0,128,0.3); }
+
+    /* MY JOBS */
+    .myjobs-list { padding:0 28px 40px; display:flex; flex-direction:column; gap:12px; }
+    .myjob-card { background:var(--bg2); border:1px solid var(--border); border-radius:16px; padding:22px; }
+    .myjob-hdr { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:10px; gap:8px; }
+    .myjob-title { font-family:'Black Ops One',cursive; font-size:0.95rem; color:#fff; flex:1; }
+    .status-badge { font-size:0.6rem; font-weight:700; letter-spacing:1.5px; padding:3px 9px; border-radius:20px; flex-shrink:0; }
+    .status-open { background:rgba(64,224,208,0.1); color:var(--cyan); border:1px solid rgba(64,224,208,0.2); }
+    .status-hired { background:rgba(207,255,4,0.1); color:var(--lime); border:1px solid rgba(207,255,4,0.2); }
+    .status-closed { background:rgba(255,255,255,0.04); color:#444; border:1px solid #222; }
+    .applicants-section { margin-top:14px; border-top:1px solid rgba(255,255,255,0.05); padding-top:14px; }
+    .applicants-label { font-size:0.7rem; font-weight:700; letter-spacing:2px; color:#333; text-transform:uppercase; margin-bottom:10px; }
+    .applicant-row { display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.04); }
+    .applicant-name { font-size:0.85rem; font-weight:700; color:#777; }
+    .btn-hire { font-family:'Black Ops One',cursive; font-size:0.62rem; letter-spacing:1px; padding:5px 12px; border-radius:8px; border:none; cursor:pointer; background:var(--lime); color:#0a0a0a; transition:0.2s; }
+    .btn-hire:hover { box-shadow:0 4px 12px rgba(207,255,4,0.3); }
+    .btn-review { font-family:'Black Ops One',cursive; font-size:0.62rem; letter-spacing:1px; padding:5px 12px; border-radius:8px; border:1px solid var(--orange); color:var(--orange); background:transparent; cursor:pointer; transition:0.2s; }
+    .btn-review:hover { background:rgba(255,140,0,0.1); }
+    .no-applicants { font-size:0.8rem; font-weight:600; color:#2a2a2a; }
+    .empty-state { text-align:center; padding:60px 20px; }
+    .empty-icon { font-size:2.5rem; margin-bottom:12px; }
+    .empty-title { font-family:'Black Ops One',cursive; font-size:1.1rem; color:#333; letter-spacing:1px; margin-bottom:6px; }
+    .empty-sub { font-size:0.83rem; font-weight:600; color:#2a2a2a; }
+
+    /* REQUEST MODAL */
+    .modal-overlay { display:none; position:fixed; inset:0; z-index:800; background:rgba(0,0,0,0.85); backdrop-filter:blur(6px); align-items:center; justify-content:center; }
+    .modal-overlay.open { display:flex; }
+    .modal { background:var(--bg2); border-radius:20px; border:1px solid rgba(255,0,128,0.2); padding:36px; width:100%; max-width:420px; margin:20px; animation:modalIn 0.3s ease-out both; position:relative; }
+    @keyframes modalIn { from{transform:translateY(20px);opacity:0} to{transform:translateY(0);opacity:1} }
+    .modal-title { font-family:'Black Ops One',cursive; font-size:1.1rem; letter-spacing:2px; color:var(--pink); margin-bottom:4px; }
+    .modal-sub { font-size:0.82rem; font-weight:600; color:#444; margin-bottom:24px; }
+    .btn-close { position:absolute; top:14px; right:18px; background:none; border:1px solid #333; color:#555; font-family:'Rajdhani',sans-serif; font-weight:700; font-size:0.72rem; padding:4px 10px; border-radius:8px; cursor:pointer; transition:0.2s; }
+    .btn-close:hover { border-color:#555; color:#888; }
+    .btn-send { width:100%; padding:13px; font-family:'Black Ops One',cursive; font-size:0.85rem; letter-spacing:2px; border-radius:12px; border:none; cursor:pointer; background:var(--pink); color:#fff; transition:0.2s; margin-top:4px; }
+    .btn-send:hover { box-shadow:0 8px 24px rgba(255,0,128,0.3); }
+
+    /* TOAST */
+    .toast { position:fixed; bottom:30px; left:50%; transform:translateX(-50%) translateY(40px); background:var(--pink); color:#fff; font-family:'Black Ops One',cursive; font-size:0.8rem; letter-spacing:1.5px; padding:10px 22px; border-radius:20px; z-index:9999; transition:transform 0.3s,opacity 0.3s; opacity:0; pointer-events:none; }
+    .toast.show { transform:translateX(-50%) translateY(0); opacity:1; }
+
+    .badge-Plumbing { background:rgba(64,224,208,0.12); color:var(--cyan); border:1px solid rgba(64,224,208,0.2); }
+    .badge-Electrical { background:rgba(255,140,0,0.12); color:var(--orange); border:1px solid rgba(255,140,0,0.2); }
+    .badge-Carpentry { background:rgba(207,255,4,0.1); color:var(--lime); border:1px solid rgba(207,255,4,0.2); }
+    .badge-Painting { background:rgba(255,0,128,0.1); color:var(--pink); border:1px solid rgba(255,0,128,0.2); }
+    .badge-Cleaning { background:rgba(100,200,255,0.1); color:#64c8ff; border:1px solid rgba(100,200,255,0.2); }
+    .badge-Gardening { background:rgba(80,220,120,0.1); color:#50dc78; border:1px solid rgba(80,220,120,0.2); }
+    .badge-Handyman { background:rgba(180,100,255,0.1); color:#b464ff; border:1px solid rgba(180,100,255,0.2); }
+    .badge-Tiling { background:rgba(255,200,60,0.1); color:#ffc83c; border:1px solid rgba(255,200,60,0.2); }
+    .trade-badge { font-size:0.6rem; font-weight:700; letter-spacing:1.5px; padding:3px 9px; border-radius:20px; }
+
+    @media (max-width:600px) { .nav-mid{display:none} .workers-grid,.myjobs-list{padding-left:16px;padding-right:16px} .filters,.page-hdr{padding-left:16px;padding-right:16px} .post-wrap{padding:0 16px 60px} }
+  </style>
+</head>
+<body>
+<nav>
+  <a class="nav-logo" href="index.html">FIX<span>R</span></a>
+  <div class="nav-mid">
+    <div class="nav-tab active" onclick="showPanel('find',this)">🔍 FIND WORKERS</div>
+    <div class="nav-tab" onclick="showPanel('post',this)">📋 POST A JOB</div>
+    <div class="nav-tab" onclick="showPanel('myjobs',this)">📁 MY JOBS <span id="applicantBadge" style="display:none;background:var(--lime);color:#0a0a0a;font-size:0.55rem;padding:1px 6px;border-radius:10px;margin-left:3px;vertical-align:middle;"></span></div>
+  </div>
+  <div class="nav-right">
+    <span class="nav-user" id="navUser">Customer</span>
+    <a href="index.html" class="nav-exit" onclick="logout()">EXIT</a>
+  </div>
+</nav>
+
+<div class="app">
+  <!-- FIND WORKERS -->
+  <div class="panel active" id="panelFind">
+    <div class="page-hdr">
+      <h1>🔍 FIND WORKERS</h1>
+      <p>Browse trusted tradespeople in Madrid</p>
+    </div>
+    <div class="filters">
+      <button class="filter-btn active" onclick="filterWorkers('all',this)">All trades</button>
+      <button class="filter-btn" onclick="filterWorkers('Plumbing',this)">🔧 Plumbing</button>
+      <button class="filter-btn" onclick="filterWorkers('Electrical',this)">⚡ Electrical</button>
+      <button class="filter-btn" onclick="filterWorkers('Carpentry',this)">🪚 Carpentry</button>
+      <button class="filter-btn" onclick="filterWorkers('Painting',this)">🎨 Painting</button>
+      <button class="filter-btn" onclick="filterWorkers('Cleaning',this)">🧹 Cleaning</button>
+      <button class="filter-btn" onclick="filterWorkers('Gardening',this)">🌿 Gardening</button>
+      <button class="filter-btn" onclick="filterWorkers('Handyman',this)">🛠 Handyman</button>
+      <button class="filter-btn" onclick="filterWorkers('Tiling',this)">🪟 Tiling</button>
+    </div>
+    <div class="workers-grid" id="workersGrid"></div>
+  </div>
+
+  <!-- POST A JOB -->
+  <div class="panel" id="panelPost">
+    <div class="page-hdr">
+      <h1>📋 POST A JOB</h1>
+      <p>Tell workers what you need — get quotes fast</p>
+    </div>
+    <div class="post-wrap">
+      <div class="post-card">
+        <div class="form-group">
+          <label class="form-label">Job title</label>
+          <input class="form-input" id="j-title" type="text" placeholder="e.g. Repair leaking kitchen tap" maxlength="80">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Trade needed</label>
+          <div class="trade-grid" id="postTrades">
+            <div class="trade-chip" data-trade="Plumbing">🔧 Plumbing</div>
+            <div class="trade-chip" data-trade="Electrical">⚡ Electrical</div>
+            <div class="trade-chip" data-trade="Carpentry">🪚 Carpentry</div>
+            <div class="trade-chip" data-trade="Painting">🎨 Painting</div>
+            <div class="trade-chip" data-trade="Cleaning">🧹 Cleaning</div>
+            <div class="trade-chip" data-trade="Gardening">🌿 Gardening</div>
+            <div class="trade-chip" data-trade="Handyman">🛠 Handyman</div>
+            <div class="trade-chip" data-trade="Tiling">🪟 Tiling</div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Neighbourhood</label>
+          <select class="form-select" id="j-area">
+            <option value="">Select area...</option>
+            <option>Salamanca</option><option>Chamberí</option><option>Malasaña</option>
+            <option>Lavapiés</option><option>Retiro</option><option>Moncloa</option>
+            <option>Arganzuela</option><option>Carabanchel</option><option>Vallecas</option>
+            <option>Hortaleza</option><option>Fuencarral</option><option>Usera</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Budget estimate</label>
+          <input class="form-input" id="j-budget" type="text" placeholder="e.g. 100-200€ or Open to quotes">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Job description</label>
+          <textarea class="form-textarea" id="j-desc" placeholder="Describe the work in detail — the more info you give, the better quotes you'll get..." maxlength="500"></textarea>
+        </div>
+        <button class="btn-primary" onclick="postJob()">POST JOB →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MY JOBS -->
+  <div class="panel" id="panelMyjobs">
+    <div class="page-hdr">
+      <h1>📁 MY JOBS</h1>
+      <p>Jobs you've posted and their applicants</p>
+    </div>
+    <div class="myjobs-list" id="myjobsList"></div>
+  </div>
+</div>
+
+<!-- REQUEST MODAL -->
+<div class="modal-overlay" id="requestModal">
+  <div class="modal">
+    <button class="btn-close" onclick="closeRequest()">✕</button>
+    <div class="modal-title">📩 SEND REQUEST</div>
+    <div class="modal-sub" id="requestTo">To: Worker Name</div>
+    <div class="form-group">
+      <label class="form-label">Trade you need</label>
+      <select class="form-select" id="req-trade">
+        <option value="">Select trade...</option>
+        <option>Plumbing</option><option>Electrical</option><option>Carpentry</option>
+        <option>Painting</option><option>Cleaning</option><option>Gardening</option>
+        <option>Handyman</option><option>Tiling</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Your message</label>
+      <textarea class="form-textarea" id="req-msg" placeholder="Describe the job and when you need it done..." maxlength="400" style="min-height:80px"></textarea>
+    </div>
+    <button class="btn-send" onclick="sendRequest()">SEND REQUEST →</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  const session = JSON.parse(localStorage.getItem('fixr_session') || '{}');
+  if (!session.id || session.role !== 'customer') { window.location.href = 'index.html'; }
+  document.getElementById('navUser').textContent = session.name || 'Customer';
+
+  let currentWorkerFilter = 'all';
+  let requestTargetId = null;
+
+  function getWorkers() { return JSON.parse(localStorage.getItem('fixr_workers') || '[]'); }
+  function getJobs() { return JSON.parse(localStorage.getItem('fixr_jobs') || '[]'); }
+  function saveJobs(j) { localStorage.setItem('fixr_jobs', JSON.stringify(j)); }
+
+  function showPanel(name, el) {
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+    document.getElementById('panel' + name.charAt(0).toUpperCase() + name.slice(1)).classList.add('active');
+    if (el) el.classList.add('active');
+    if (name === 'find') renderWorkers();
+    if (name === 'myjobs') renderMyJobs();
+  }
+
+  function filterWorkers(trade, btn) {
+    currentWorkerFilter = trade;
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderWorkers();
+  }
+
+  function starsHTML(rating) {
+    if (!rating) return '<span style="color:#333;font-size:0.75rem;font-weight:700">No reviews yet</span>';
+    const full = Math.floor(rating), half = rating % 1 >= 0.5;
+    return '<span style="color:var(--orange)">★</span>'.repeat(full) + (half ? '<span style="color:var(--orange)">½</span>' : '') + ` <span style="font-size:0.78rem;font-weight:700;color:#555">${rating} (${0} reviews)</span>`;
+  }
+
+  function renderWorkers() {
+    const workers = getWorkers();
+    const filtered = currentWorkerFilter === 'all'
+      ? workers
+      : workers.filter(w => w.trades && w.trades.includes(currentWorkerFilter));
+    const grid = document.getElementById('workersGrid');
+    if (!filtered.length) {
+      grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">👷</div><div class="empty-title">No workers found</div><div class="empty-sub">Try a different trade or area</div></div>';
+      return;
+    }
+    grid.innerHTML = filtered.map(w => `
+      <div class="worker-card">
+        <div class="worker-top">
+          <div class="avatar">${w.avatar || (w.name||'?').slice(0,2).toUpperCase()}</div>
+          <div style="flex:1;min-width:0">
+            <div class="worker-name">${w.name}</div>
+            <div class="worker-area">📍 ${w.area}</div>
+            <div style="margin-top:3px;font-size:0.75rem;font-weight:700;color:var(--orange)">
+              ${w.rating ? '★ ' + w.rating + ' · ' + w.reviews + ' reviews' : '<span style="color:#333">New worker</span>'}
+            </div>
+          </div>
+        </div>
+        <div class="trades-wrap">${(w.trades||[]).map(t => `<span class="trade-tag tag-${t}">${t}</span>`).join('')}</div>
+        ${w.bio ? `<div class="worker-bio">${w.bio}</div>` : ''}
+        <div class="worker-footer">
+          <div>
+            <div class="worker-rate">€${w.rate}/hr</div>
+            <div class="worker-stats">${w.jobs || 0} jobs completed</div>
+          </div>
+          <button class="btn-request" onclick="openRequest('${w.id}','${w.name.replace(/'/g,"\\'")}')">Request →</button>
+        </div>
+      </div>`).join('');
+  }
+
+  // Trade chip single-select for post job
+  document.querySelectorAll('#postTrades .trade-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      document.querySelectorAll('#postTrades .trade-chip').forEach(c => c.classList.remove('selected'));
+      chip.classList.toggle('selected');
+    });
+  });
+
+  function postJob() {
+    const title = document.getElementById('j-title').value.trim();
+    const area = document.getElementById('j-area').value;
+    const budget = document.getElementById('j-budget').value.trim();
+    const desc = document.getElementById('j-desc').value.trim();
+    const tradeEl = document.querySelector('#postTrades .trade-chip.selected');
+    if (!title) { showToast('Add a job title ↑'); return; }
+    if (!tradeEl) { showToast('Select a trade ↑'); return; }
+    if (!area) { showToast('Select your area ↑'); return; }
+    if (!desc) { showToast('Add a description ↑'); return; }
+    const job = {
+      id: 'j_' + Date.now(), title, trade: tradeEl.dataset.trade, area,
+      budget: budget || 'Open to quotes', desc,
+      postedBy: session.name, postedById: session.id,
+      date: new Date().toISOString(), applicants:[], status:'open'
+    };
+    const jobs = getJobs();
+    jobs.unshift(job);
+    saveJobs(jobs);
+    // reset form
+    document.getElementById('j-title').value = '';
+    document.getElementById('j-area').value = '';
+    document.getElementById('j-budget').value = '';
+    document.getElementById('j-desc').value = '';
+    document.querySelectorAll('#postTrades .trade-chip').forEach(c => c.classList.remove('selected'));
+    showToast('Job posted! Workers will apply soon 🎯');
+    showPanel('myjobs', document.querySelectorAll('.nav-tab')[2]);
+    updateApplicantBadge();
+  }
+
+  function renderMyJobs() {
+    const jobs = getJobs().filter(j => j.postedById === session.id);
+    const list = document.getElementById('myjobsList');
+    if (!jobs.length) {
+      list.innerHTML = `<div class="empty-state"><div class="empty-icon">📋</div><div class="empty-title">No jobs posted yet</div><div class="empty-sub">Post your first job and get quotes from workers</div><button class="btn-primary" style="max-width:240px;margin:16px auto 0" onclick="showPanel('post', document.querySelectorAll('.nav-tab')[1])">POST A JOB →</button></div>`;
+      return;
+    }
+    list.innerHTML = jobs.map(job => {
+      const applicants = job.applicants || [];
+      const statusClass = { open:'status-open', hired:'status-hired', closed:'status-closed' }[job.status] || 'status-open';
+      return `
+        <div class="myjob-card">
+          <div class="myjob-hdr">
+            <div class="myjob-title">${job.title}</div>
+            <div style="display:flex;gap:6px;flex-shrink:0">
+              <span class="trade-badge badge-${job.trade}">${job.trade}</span>
+              <span class="status-badge ${statusClass}">${job.status.toUpperCase()}</span>
+            </div>
+          </div>
+          <div style="display:flex;gap:14px;flex-wrap:wrap;margin-bottom:8px">
+            <span style="font-size:0.75rem;font-weight:700;color:#333">📍 ${job.area}</span>
+            <span style="font-size:0.75rem;font-weight:700;color:#333">💰 ${job.budget}</span>
+            <span style="font-size:0.7rem;font-weight:700;color:#222">${timeAgo(job.date)}</span>
+          </div>
+          <div class="applicants-section">
+            <div class="applicants-label">Applicants (${applicants.length})</div>
+            ${applicants.length ? applicants.map(a => `
+              <div class="applicant-row">
+                <span class="applicant-name">🔧 ${a.workerName}</span>
+                <div style="display:flex;gap:6px">
+                  ${job.status === 'open' ? `<button class="btn-hire" onclick="hireWorker('${job.id}','${a.workerName}')">HIRE</button>` : ''}
+                  ${job.status === 'hired' ? `<button class="btn-review" onclick="leaveReview('${a.workerName}')">REVIEW</button>` : ''}
+                </div>
+              </div>`).join('') : `<div class="no-applicants">No applicants yet — workers will apply soon</div>`}
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  function hireWorker(jobId, workerName) {
+    const jobs = getJobs();
+    const ji = jobs.findIndex(j => j.id === jobId);
+    jobs[ji].status = 'hired';
+    saveJobs(jobs);
+    showToast(`${workerName} hired! 🎉`);
+    renderMyJobs();
+    updateApplicantBadge();
+  }
+
+  function leaveReview(workerName) {
+    showToast(`Review for ${workerName} coming soon 📝`);
+  }
+
+  function updateApplicantBadge() {
+    const jobs = getJobs().filter(j => j.postedById === session.id);
+    const total = jobs.reduce((s, j) => s + (j.applicants||[]).length, 0);
+    const badge = document.getElementById('applicantBadge');
+    if (total > 0) { badge.textContent = total; badge.style.display = 'inline'; }
+    else { badge.style.display = 'none'; }
+  }
+
+  function openRequest(workerId, workerName) {
+    requestTargetId = workerId;
+    document.getElementById('requestTo').textContent = `To: ${workerName}`;
+    document.getElementById('requestModal').classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeRequest() {
+    document.getElementById('requestModal').classList.remove('open');
+    document.body.style.overflow = '';
+    requestTargetId = null;
+  }
+
+  document.getElementById('requestModal').addEventListener('click', e => {
+    if (e.target === document.getElementById('requestModal')) closeRequest();
+  });
+
+  function sendRequest() {
+    const trade = document.getElementById('req-trade').value;
+    const msg = document.getElementById('req-msg').value.trim();
+    if (!trade) { showToast('Select a trade ↑'); return; }
+    if (!msg) { showToast('Add a message ↑'); return; }
+    const request = {
+      fromName: session.name, fromId: session.id,
+      trade, area: session.area || 'Madrid',
+      message: msg, date: new Date().toISOString(),
+      status: 'pending', read: false
+    };
+    const key = 'fixr_requests_' + requestTargetId;
+    const existing = JSON.parse(localStorage.getItem(key) || '[]');
+    existing.push(request);
+    localStorage.setItem(key, JSON.stringify(existing));
+    document.getElementById('req-trade').value = '';
+    document.getElementById('req-msg').value = '';
+    closeRequest();
+    showToast('Request sent! ✅');
+  }
+
+  function timeAgo(iso) {
+    const d = new Date(iso), now = new Date();
+    const diff = Math.floor((now - d) / 86400000);
+    if (diff === 0) return 'Today'; if (diff === 1) return 'Yesterday';
+    return diff + 'd ago';
+  }
+
+  function logout() { localStorage.removeItem('fixr_session'); }
+
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg; t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2800);
+  }
+
+  // Init
+  renderWorkers();
+  updateApplicantBadge();
+
+  // Mobile bottom nav
+  if (window.innerWidth <= 600) {
+    const mn = document.createElement('div');
+    mn.style.cssText = 'position:fixed;bottom:0;left:0;right:0;background:rgba(10,10,10,0.95);border-top:1px solid rgba(255,0,128,0.15);display:flex;z-index:400;';
+    mn.innerHTML = `
+      <div onclick="showPanel('find',null);this.parentElement.querySelectorAll('div').forEach(d=>d.style.color='#444');this.style.color='var(--pink)'" style="flex:1;text-align:center;padding:12px 0;font-size:0.6rem;font-weight:700;letter-spacing:1px;cursor:pointer;color:var(--pink)">🔍 FIND</div>
+      <div onclick="showPanel('post',null);this.parentElement.querySelectorAll('div').forEach(d=>d.style.color='#444');this.style.color='var(--pink)'" style="flex:1;text-align:center;padding:12px 0;font-size:0.6rem;font-weight:700;letter-spacing:1px;cursor:pointer;color:#444">📋 POST</div>
+      <div onclick="showPanel('myjobs',null);this.parentElement.querySelectorAll('div').forEach(d=>d.style.color='#444');this.style.color='var(--pink)'" style="flex:1;text-align:center;padding:12px 0;font-size:0.6rem;font-weight:700;letter-spacing:1px;cursor:pointer;color:#444">📁 MY JOBS</div>`;
+    document.body.appendChild(mn);
+    document.querySelector('.app').style.paddingBottom = '60px';
+  }
+</script>
+</body>
+</html>
