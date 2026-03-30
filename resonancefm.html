@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>Resonance.FM | Pumpo Tools</title>
+  <link rel="icon" type="image/png" href="https://radiopumpo.github.io/radiopumpologo.png">
+  <link href="https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Space+Mono:wght@400;700&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:#08060f; --bg2:#0f0b1a; --bg3:#16112a;
+      --pink:#ff0080; --cyan:#40e0d0; --amber:#ffaa00;
+      --violet:#9b59ff; --text:#f0ede6; --muted:#666; --dim:#222;
+      --border:rgba(255,255,255,0.07); --border2:rgba(255,255,255,0.13);
+      --mono:'Space Mono',monospace; --sans:'Rajdhani',sans-serif; --display:'Black Ops One',cursive;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    html{-webkit-text-size-adjust:100%;}
+    body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;-webkit-tap-highlight-color:transparent;}
+
+    /* NAV */
+    .top-nav{position:fixed;top:0;left:0;right:0;z-index:500;display:flex;justify-content:space-between;align-items:center;padding:11px 16px;background:rgba(8,6,15,0.94);backdrop-filter:blur(14px);border-bottom:1px solid rgba(155,89,255,0.2);}
+    .nav-brand{font-family:var(--display);font-size:.85rem;color:var(--violet);letter-spacing:2px;text-decoration:none;}
+    .nav-brand span{color:var(--pink);}
+    .nav-right{display:flex;gap:8px;}
+    .nav-link{color:var(--muted);text-decoration:none;font-weight:700;font-size:.62rem;border:1px solid var(--border2);padding:4px 10px;border-radius:20px;font-family:var(--mono);transition:.2s;}
+    .nav-link:hover{border-color:var(--cyan);color:var(--cyan);}
+
+    /* PAGE */
+    .page{max-width:980px;margin:0 auto;padding:70px 1rem 4rem;}
+
+    /* HEADER */
+    .page-eyebrow{font-family:var(--mono);font-size:9px;letter-spacing:.22em;text-transform:uppercase;color:var(--muted);margin-bottom:.5rem;}
+    .page-title{font-family:var(--display);font-size:clamp(26px,5vw,42px);line-height:1;margin-bottom:.4rem;}
+    .page-title .t1{color:var(--violet);}
+    .page-title .t2{color:var(--pink);}
+    .page-sub{font-size:13px;color:var(--muted);font-weight:600;line-height:1.6;max-width:520px;margin-bottom:1.5rem;}
+
+    /* SETUP GRID */
+    .setup-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:1.25rem;}
+    @media(max-width:580px){.setup-grid{grid-template-columns:1fr;}}
+
+    .setup-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:1rem;}
+    .setup-card.active-source{border-color:rgba(155,89,255,0.4);}
+    .setup-card-label{font-family:var(--mono);font-size:8px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin-bottom:.65rem;display:flex;align-items:center;justify-content:space-between;}
+    .source-tag{font-size:7px;letter-spacing:.1em;padding:2px 7px;border-radius:20px;border:1px solid;}
+    .source-tag.live{border-color:rgba(0,196,106,0.5);color:#00c46a;}
+    .source-tag.manual-t{border-color:rgba(155,89,255,0.4);color:var(--violet);}
+
+    .field-row{display:flex;gap:7px;margin-bottom:7px;}
+    .field-input{flex:1;min-width:0;background:rgba(255,255,255,0.04);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:11px;padding:.45rem .75rem;border-radius:7px;outline:none;transition:border-color .15s;}
+    .field-input:focus{border-color:var(--violet);}
+    .field-input::placeholder{color:var(--dim);}
+    .field-btn{background:var(--violet);color:#fff;border:none;padding:.45rem 1rem;font-family:var(--display);font-size:10px;border-radius:7px;cursor:pointer;white-space:nowrap;transition:.2s;letter-spacing:.5px;}
+    .field-btn:hover{background:#7c3fe0;}
+    .field-btn:disabled{opacity:.35;cursor:not-allowed;}
+    .field-hint{font-size:10px;color:var(--muted);font-weight:600;}
+    .field-hint a{color:var(--violet);text-decoration:none;}
+
+    /* PERIOD ROW */
+    .period-row{display:flex;align-items:center;gap:8px;margin-bottom:1.25rem;flex-wrap:wrap;}
+    .period-label{font-family:var(--mono);font-size:8px;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);}
+    .period-btn{font-family:var(--mono);font-size:8px;letter-spacing:.1em;padding:4px 10px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;transition:.15s;}
+    .period-btn.active{border-color:var(--violet);color:var(--violet);background:rgba(155,89,255,0.1);}
+    .period-btn:hover:not(.active){border-color:rgba(155,89,255,0.4);color:var(--violet);}
+
+    /* VIBE SLIDER */
+    .vibe-row{display:flex;align-items:center;gap:14px;margin-bottom:1.25rem;flex-wrap:wrap;}
+    .vibe-label{font-family:var(--mono);font-size:8px;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);white-space:nowrap;}
+    .vibe-end{font-family:var(--mono);font-size:9px;color:var(--muted);}
+    .vibe-end.calm{color:#7ecfff;}
+    .vibe-end.chaotic{color:var(--pink);}
+    input[type=range]#vibeSlider{flex:1;min-width:80px;accent-color:var(--violet);cursor:pointer;}
+
+    /* CANVAS */
+    .nebula-wrap{position:relative;width:100%;border-radius:16px;overflow:hidden;margin-bottom:1.25rem;background:var(--bg);border:1px solid var(--border);}
+    #nebulaCanvas{display:block;width:100%;cursor:crosshair;}
+    .nebula-overlay{position:absolute;top:12px;left:12px;display:flex;flex-direction:column;gap:6px;pointer-events:none;}
+    .nebula-pill{font-family:var(--mono);font-size:8px;letter-spacing:.1em;padding:4px 10px;border-radius:20px;background:rgba(8,6,15,0.8);border:1px solid rgba(255,255,255,0.1);color:var(--muted);}
+    .nebula-pill span{color:var(--violet);}
+    .nebula-controls{position:absolute;top:12px;right:12px;display:flex;flex-direction:column;gap:6px;}
+    .nc-btn{font-family:var(--mono);font-size:8px;letter-spacing:.08em;padding:5px 10px;border-radius:20px;border:1px solid rgba(255,255,255,0.12);background:rgba(8,6,15,0.85);color:var(--muted);cursor:pointer;transition:.15s;backdrop-filter:blur(6px);pointer-events:all;}
+    .nc-btn:hover{border-color:var(--violet);color:var(--violet);}
+    .nc-btn.active{border-color:var(--pink);color:var(--pink);}
+
+    /* TOOLTIP */
+    .node-tooltip{position:absolute;pointer-events:none;background:rgba(8,6,15,0.96);border:1px solid rgba(155,89,255,0.3);border-radius:8px;padding:8px 12px;font-family:var(--mono);font-size:9px;opacity:0;transition:opacity .15s;z-index:100;max-width:180px;}
+    .tt-name{color:var(--text);font-size:10px;font-weight:700;margin-bottom:3px;}
+    .tt-plays{color:var(--muted);}
+    .tt-tags{display:flex;flex-wrap:wrap;gap:3px;margin-top:5px;}
+    .tt-tag{font-size:7px;padding:1px 5px;border-radius:10px;border:1px solid rgba(155,89,255,0.3);color:var(--violet);}
+
+    /* TIME-LAPSE */
+    .timelapse-section{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:1rem;margin-bottom:1.25rem;}
+    .section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem;flex-wrap:wrap;gap:8px;}
+    .section-title{font-family:var(--mono);font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--violet);}
+    .tl-controls{display:flex;gap:8px;align-items:center;}
+    .tl-btn{font-family:var(--mono);font-size:8px;letter-spacing:.08em;padding:5px 12px;border-radius:20px;border:1px solid var(--border2);background:transparent;color:var(--muted);cursor:pointer;transition:.15s;}
+    .tl-btn:hover{border-color:var(--violet);color:var(--violet);}
+    .tl-btn.playing{border-color:var(--pink);color:var(--pink);}
+    .tl-month{font-family:var(--mono);font-size:9px;color:var(--muted);min-width:80px;}
+    .tl-bar{height:3px;background:var(--dim);border-radius:2px;overflow:hidden;margin-top:.5rem;}
+    .tl-bar-fill{height:100%;background:linear-gradient(to right,var(--violet),var(--pink));border-radius:2px;transition:width .1s linear;}
+
+    /* INTEGRATIONS */
+    .integrations-section{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:1rem;margin-bottom:1.25rem;}
+    .int-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px;margin-top:.75rem;}
+    .int-card{background:var(--bg3);border:1px solid var(--dim);border-radius:10px;padding:.65rem .75rem;display:flex;flex-direction:column;gap:6px;opacity:.45;position:relative;}
+    .int-card.connected{opacity:1;border-color:rgba(0,196,106,0.3);}
+    .int-name{font-family:var(--mono);font-size:9px;letter-spacing:.1em;color:var(--text);}
+    .int-status{font-size:10px;color:var(--muted);font-weight:600;}
+    .int-btn{font-family:var(--mono);font-size:7px;letter-spacing:.1em;padding:3px 8px;border-radius:20px;border:1px solid var(--dim);background:transparent;color:var(--muted);cursor:not-allowed;text-transform:uppercase;}
+    .int-card.connected .int-btn{border-color:rgba(0,196,106,0.4);color:#00c46a;cursor:default;}
+    .int-soon{position:absolute;top:6px;right:7px;font-family:var(--mono);font-size:6px;letter-spacing:.1em;color:var(--dim);text-transform:uppercase;}
+
+    /* BRIDGE */
+    .bridge-section{background:var(--bg2);border:1px solid var(--dim);border-radius:12px;padding:1rem;margin-bottom:1.25rem;opacity:.4;position:relative;overflow:hidden;}
+    .bridge-section::after{content:'COMING SOON';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-family:var(--display);font-size:11px;letter-spacing:3px;color:var(--violet);opacity:.6;pointer-events:none;}
+    .bridge-preview{display:flex;align-items:center;gap:12px;margin-top:.75rem;pointer-events:none;}
+    .bridge-nebula{width:60px;height:60px;border-radius:50%;border:1px solid rgba(155,89,255,0.3);background:radial-gradient(circle,rgba(155,89,255,0.2),rgba(8,6,15,0.8));display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:7px;color:var(--violet);}
+    .bridge-line{flex:1;height:1px;background:linear-gradient(to right,rgba(155,89,255,0.3),rgba(255,0,128,0.3),rgba(155,89,255,0.3));position:relative;}
+    .bridge-line::after{content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:6px;height:6px;border-radius:50%;background:var(--pink);box-shadow:0 0 8px var(--pink);}
+    .bridge-btn{font-family:var(--mono);font-size:8px;letter-spacing:.1em;padding:5px 12px;border-radius:20px;border:1px solid var(--dim);background:transparent;color:var(--dim);cursor:not-allowed;margin-top:.75rem;}
+
+    /* STATUS */
+    .status-bar{font-family:var(--mono);font-size:9px;color:var(--muted);height:18px;margin-bottom:.5rem;}
+    .status-bar.loading{color:var(--violet);}
+    .status-bar.error{color:var(--pink);}
+    .status-bar.ok{color:#00c46a;}
+
+    /* LEGEND */
+    .legend{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:1rem;}
+    .legend-item{display:flex;align-items:center;gap:5px;font-family:var(--mono);font-size:8px;color:var(--muted);}
+    .legend-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
+
+    /* LOADING ANIM */
+    @keyframes pulse{0%,100%{opacity:.4}50%{opacity:1}}
+    .loading-pulse{animation:pulse 1.4s ease-in-out infinite;}
+  </style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <a href="index.html" class="nav-brand">RESONANCE<span>.FM</span></a>
+  <div class="nav-right">
+    <a href="index.html" class="nav-link">🔧 TOOLS</a>
+    <a href="https://radiopumpo.github.io" class="nav-link">📻 RADIO</a>
+  </div>
+</nav>
+
+<div class="page">
+
+  <div class="page-eyebrow">pumpo tools // music identity</div>
+  <div class="page-title"><span class="t1">RESONANCE</span><span class="t2">.FM</span></div>
+  <div class="page-sub">The living map of your musical soul. Connect your Last.fm to generate your personal nebula — every artist a node, every genre a gravitational force.</div>
+
+  <!-- SETUP -->
+  <div class="setup-grid">
+    <!-- LAST.FM -->
+    <div class="setup-card active-source" id="lfmCard">
+      <div class="setup-card-label">
+        Last.fm Connection
+        <span class="source-tag live">● Live</span>
+      </div>
+      <div class="field-row">
+        <input class="field-input" id="lfmUser" placeholder="Last.fm username" autocomplete="off" spellcheck="false">
+      </div>
+      <div class="field-row">
+        <input class="field-input" id="lfmKey" type="password" placeholder="API key" autocomplete="off">
+        <button class="field-btn" onclick="loadNebula()">GENERATE</button>
+      </div>
+      <div class="field-hint">Free API key at <a href="https://www.last.fm/api/account/create" target="_blank">last.fm/api ↗</a></div>
+    </div>
+
+    <!-- MANUAL -->
+    <div class="setup-card" id="manualCard">
+      <div class="setup-card-label">
+        Manual Entry
+        <span class="source-tag manual-t">No account needed</span>
+      </div>
+      <div class="field-row">
+        <input class="field-input" id="manualInput" placeholder="Artist, Artist, Artist..." autocomplete="off">
+        <button class="field-btn" onclick="loadManual()">DRAW</button>
+      </div>
+      <div class="field-hint">Comma-separated. e.g. Radiohead, Burial, Portishead</div>
+    </div>
+  </div>
+
+  <!-- PERIOD -->
+  <div class="period-row">
+    <div class="period-label">Period ·</div>
+    <button class="period-btn" data-p="7day" onclick="setPeriod(this)">7 days</button>
+    <button class="period-btn active" data-p="1month" onclick="setPeriod(this)">1 month</button>
+    <button class="period-btn" data-p="3month" onclick="setPeriod(this)">3 months</button>
+    <button class="period-btn" data-p="6month" onclick="setPeriod(this)">6 months</button>
+    <button class="period-btn" data-p="12month" onclick="setPeriod(this)">12 months</button>
+    <button class="period-btn" data-p="overall" onclick="setPeriod(this)">All time</button>
+  </div>
+
+  <!-- VIBE SLIDER -->
+  <div class="vibe-row">
+    <div class="vibe-label">Vibe ·</div>
+    <span class="vibe-end calm">Calm</span>
+    <input type="range" id="vibeSlider" min="0" max="100" value="50" oninput="onVibe(this.value)">
+    <span class="vibe-end chaotic">Chaotic</span>
+  </div>
+
+  <!-- STATUS -->
+  <div class="status-bar" id="statusBar">Enter your Last.fm credentials or type artists to begin.</div>
+
+  <!-- LEGEND -->
+  <div class="legend" id="legend" style="display:none">
+    <div class="legend-item"><div class="legend-dot" style="background:#9b59ff"></div>Electronic / Ambient</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#ff0080"></div>Pop / Hip-Hop</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#40e0d0"></div>Indie / Alternative</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#ffaa00"></div>Jazz / Soul / R&B</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#e24b4a"></div>Rock / Metal</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#00c46a"></div>Folk / Classical / World</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#aaa"></div>Other</div>
+  </div>
+
+  <!-- NEBULA CANVAS -->
+  <div class="nebula-wrap" id="nebulaWrap">
+    <canvas id="nebulaCanvas"></canvas>
+    <div class="nebula-overlay">
+      <div class="nebula-pill" id="nebulaStat">No data loaded</div>
+      <div class="nebula-pill" id="nebulaPeriodPill" style="display:none">Period: <span id="periodLabel">1 month</span></div>
+    </div>
+    <div class="nebula-controls">
+      <button class="nc-btn" onclick="resetView()">↺ Reset view</button>
+      <button class="nc-btn" id="timelapseTrigger" onclick="startTimelapse()" style="display:none">▶ Year in Resonance</button>
+    </div>
+    <div class="node-tooltip" id="nodeTooltip">
+      <div class="tt-name" id="ttName"></div>
+      <div class="tt-plays" id="ttPlays"></div>
+      <div class="tt-tags" id="ttTags"></div>
+    </div>
+  </div>
+
+  <!-- TIME-LAPSE SECTION -->
+  <div class="timelapse-section" id="tlSection" style="display:none">
+    <div class="section-header">
+      <div class="section-title">✦ Year in Resonance</div>
+      <div class="tl-controls">
+        <span class="tl-month" id="tlMonth">—</span>
+        <button class="tl-btn" id="tlPlayBtn" onclick="toggleTimelapse()">▶ Play</button>
+        <button class="tl-btn" onclick="resetTimelapse()">↺ Reset</button>
+      </div>
+    </div>
+    <div style="font-size:11px;color:var(--muted);font-weight:600;line-height:1.6;">Watch your musical identity evolve across the year. Nodes grow with listening intensity, shift colour as genres drift, and fade as phases pass.</div>
+    <div class="tl-bar"><div class="tl-bar-fill" id="tlBarFill" style="width:0%"></div></div>
+  </div>
+
+  <!-- BRIDGE (teaser) -->
+  <div class="bridge-section">
+    <div class="section-header">
+      <div class="section-title">⬡ Bridge — Sync Two Webs</div>
+    </div>
+    <div style="font-size:11px;color:var(--muted);font-weight:600;line-height:1.6;">Share your resonance URL with another person. The tool generates a Bridge Path — tracks that connect your two distinct musical universes, and a Dissonance Score showing how far apart your tastes really are.</div>
+    <div class="bridge-preview">
+      <div class="bridge-nebula">YOU</div>
+      <div class="bridge-line"></div>
+      <div class="bridge-nebula">THEM</div>
+    </div>
+    <button class="bridge-btn">Generate Bridge — requires backend</button>
+  </div>
+
+  <!-- INTEGRATIONS TEASER -->
+  <div class="integrations-section">
+    <div class="section-header">
+      <div class="section-title">⚡ Connected Platforms</div>
+      <span style="font-family:var(--mono);font-size:8px;color:var(--muted);">More coming when backend is ready</span>
+    </div>
+    <div class="int-grid">
+      <div class="int-card connected">
+        <div class="int-name">Last.fm</div>
+        <div class="int-status">Manual key</div>
+        <button class="int-btn">Connected</button>
+      </div>
+      <div class="int-card">
+        <div class="int-soon">soon</div>
+        <div class="int-name">Spotify</div>
+        <div class="int-status">OAuth required</div>
+        <button class="int-btn">Connect</button>
+      </div>
+      <div class="int-card">
+        <div class="int-soon">soon</div>
+        <div class="int-name">Apple Music</div>
+        <div class="int-status">MusicKit needed</div>
+        <button class="int-btn">Connect</button>
+      </div>
+      <div class="int-card">
+        <div class="int-soon">soon</div>
+        <div class="int-name">Tidal</div>
+        <div class="int-status">OAuth required</div>
+        <button class="int-btn">Connect</button>
+      </div>
+      <div class="int-card">
+        <div class="int-soon">soon</div>
+        <div class="int-name">SoundCloud</div>
+        <div class="int-status">OAuth required</div>
+        <button class="int-btn">Connect</button>
+      </div>
+      <div class="int-card">
+        <div class="int-soon">soon</div>
+        <div class="int-name">YouTube Music</div>
+        <div class="int-status">API required</div>
+        <button class="int-btn">Connect</button>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /page -->
+
+<script>
+// ═══════════════════════════════════════════════════
+// GENRE → COLOR MAPPING
+// ═══════════════════════════════════════════════════
+const GENRE_COLORS = {
+  electronic:'#9b59ff', ambient:'#7ecfff', techno:'#9b59ff', house:'#b06eff',
+  'drum and bass':'#9b59ff', idm:'#7ecfff', experimental:'#c084ff',
+  pop:'#ff0080', 'hip-hop':'#ff3399', 'hip hop':'#ff3399', rap:'#ff3399',
+  rnb:'#ffaa00', 'r&b':'#ffaa00', soul:'#ffaa00', funk:'#ff8c00',
+  indie:'#40e0d0', alternative:'#40e0d0', 'indie rock':'#40e0d0', 'indie pop':'#5ef0e0',
+  jazz:'#ffaa00', blues:'#ffaa00', bossa:'#ffcc44',
+  rock:'#e24b4a', 'classic rock':'#e24b4a', metal:'#cc3333', punk:'#ff4444', grunge:'#e24b4a',
+  folk:'#00c46a', acoustic:'#00c46a', classical:'#44dd88', world:'#00dd77', country:'#aadd44',
+  reggae:'#00c46a', latin:'#ff8c00', afrobeat:'#ffaa00',
+};
+
+function genreColor(tags){
+  if(!tags||!tags.length) return '#888';
+  for(const t of tags){
+    const c = GENRE_COLORS[t.toLowerCase()];
+    if(c) return c;
+  }
+  for(const t of tags){
+    const tl = t.toLowerCase();
+    for(const [key,col] of Object.entries(GENRE_COLORS)){
+      if(tl.includes(key)||key.includes(tl)) return col;
+    }
+  }
+  return '#888';
+}
+
+// ═══════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════
+let nodes = [], edges = [], recentTracks = [];
+let vibe = 50, period = '1month';
+let animId = null, tlAnimId = null;
+let tlPlaying = false, tlFrame = 0, tlNodes = [];
+let hoverNode = null;
+let zoom = 1, panX = 0, panY = 0;
+let dragging = false, dragStart = {x:0,y:0}, panStart = {x:0,y:0};
+let canvas, ctx;
+let breatheT = 0;
+
+// Persist credentials
+const LS = {
+  getUser:()=>localStorage.getItem('rfm_user')||'',
+  getKey:()=>localStorage.getItem('rfm_key')||'',
+  save:(u,k)=>{ localStorage.setItem('rfm_user',u); localStorage.setItem('rfm_key',k); }
+};
+
+// ═══════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════
+window.onload = function(){
+  canvas = document.getElementById('nebulaCanvas');
+  ctx = canvas.getContext('2d');
+  sizeCanvas();
+  window.addEventListener('resize', sizeCanvas);
+  setupCanvasInput();
+  drawIdle();
+
+  // Restore saved credentials
+  const u = LS.getUser(), k = LS.getKey();
+  if(u) document.getElementById('lfmUser').value = u;
+  if(k) document.getElementById('lfmKey').value = k;
+
+  // Enter key on inputs
+  ['lfmUser','lfmKey'].forEach(id=>{
+    document.getElementById(id).addEventListener('keydown',e=>{ if(e.key==='Enter') loadNebula(); });
+  });
+  document.getElementById('manualInput').addEventListener('keydown',e=>{ if(e.key==='Enter') loadManual(); });
+};
+
+function sizeCanvas(){
+  const wrap = document.getElementById('nebulaWrap');
+  const w = wrap.offsetWidth;
+  const h = Math.round(Math.min(Math.max(w * 0.56, 260), 520));
+  canvas.width = w;
+  canvas.height = h;
+  canvas.style.height = h + 'px';
+  if(nodes.length) layoutNodes();
+}
+
+// ═══════════════════════════════════════════════════
+// PERIOD
+// ═══════════════════════════════════════════════════
+const PERIOD_LABELS = {'7day':'7 days','1month':'1 month','3month':'3 months','6month':'6 months','12month':'12 months','overall':'All time'};
+
+function setPeriod(btn){
+  document.querySelectorAll('.period-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  period = btn.dataset.p;
+  document.getElementById('periodLabel').textContent = PERIOD_LABELS[period];
+}
+
+// ═══════════════════════════════════════════════════
+// LAST.FM DATA FETCH
+// ═══════════════════════════════════════════════════
+async function lfmFetch(method, extra={}){
+  const key = document.getElementById('lfmKey').value.trim();
+  const user = document.getElementById('lfmUser').value.trim();
+  const params = new URLSearchParams({method, api_key:key, user, format:'json', ...extra});
+  const res = await fetch('https://ws.audioscrobbler.com/2.0/?' + params);
+  if(!res.ok) throw new Error('Last.fm API error ' + res.status);
+  return res.json();
+}
+
+async function loadNebula(){
+  const user = document.getElementById('lfmUser').value.trim();
+  const key = document.getElementById('lfmKey').value.trim();
+  if(!user || !key){ setStatus('Enter both a Last.fm username and API key.','error'); return; }
+  LS.save(user, key);
+  setStatus('Fetching your musical universe…','loading');
+  try {
+    // Top artists
+    const taData = await lfmFetch('user.gettopartists',{period,limit:40});
+    const artists = taData.topartists?.artist||[];
+    if(!artists.length){ setStatus('No listening data found for this period.','error'); return; }
+
+    // Fetch tags for top 20 artists (rate limit friendly)
+    setStatus('Reading genre signatures…','loading');
+    const tagMap = {};
+    const tagBatch = artists.slice(0,20);
+    await Promise.allSettled(tagBatch.map(async a=>{
+      try{
+        const td = await lfmFetch('artist.gettoptags',{artist:a.name,autocorrect:1});
+        const tags = (td.toptags?.tag||[]).slice(0,4).map(t=>t.name);
+        tagMap[a.name] = tags;
+      }catch(e){ tagMap[a.name]=[]; }
+    }));
+
+    // Recent tracks (pulse layer)
+    setStatus('Mapping recent signals…','loading');
+    try{
+      const rtData = await lfmFetch('user.getrecenttracks',{limit:50});
+      recentTracks = (rtData.recenttracks?.track||[]).map(t=>t.artist?.['#text']||'');
+    }catch(e){ recentTracks=[]; }
+
+    buildNebula(artists, tagMap);
+    setStatus(`${nodes.length} artists mapped · ${recentTracks.length} recent signals`, 'ok');
+    document.getElementById('nebulaStat').innerHTML = `<span>${nodes.length}</span> nodes`;
+    document.getElementById('nebulaPeriodPill').style.display = '';
+    document.getElementById('periodLabel').textContent = PERIOD_LABELS[period];
+    document.getElementById('timelapseTrigger').style.display = '';
+    document.getElementById('legend').style.display = 'flex';
+    document.getElementById('tlSection').style.display = 'block';
+    buildTimelapse(artists, tagMap);
+  } catch(e){
+    setStatus('Error: ' + e.message, 'error');
+    console.error('[resonance]', e);
+  }
+}
+
+// ═══════════════════════════════════════════════════
+// MANUAL ENTRY
+// ═══════════════════════════════════════════════════
+function loadManual(){
+  const raw = document.getElementById('manualInput').value;
+  const names = raw.split(',').map(s=>s.trim()).filter(Boolean);
+  if(!names.length){ setStatus('Enter at least one artist name.','error'); return; }
+  const artists = names.map((name,i)=>({name, playcount: Math.round(100/(i+1)), mbid:''}));
+  const tagMap = {};
+  buildNebula(artists, tagMap);
+  setStatus(`${nodes.length} artists drawn · manual mode`, 'ok');
+  document.getElementById('nebulaStat').innerHTML = `<span>${nodes.length}</span> nodes`;
+  document.getElementById('legend').style.display = 'flex';
+}
+
+// ═══════════════════════════════════════════════════
+// BUILD NEBULA
+// ═══════════════════════════════════════════════════
+function buildNebula(artists, tagMap){
+  const W = canvas.width, H = canvas.height;
+  const cx = W/2, cy = H/2;
+  const maxPlay = Math.max(...artists.map(a=>+a.playcount));
+
+  // Assign nodes with physics positions
+  nodes = artists.map((a, i)=>{
+    const tags = tagMap[a.name] || [];
+    const color = genreColor(tags);
+    const playNorm = +a.playcount / maxPlay;
+    const r = 5 + playNorm * 18;
+    const isRecent = recentTracks.slice(0,10).includes(a.name);
+    // Initial position: spiral outward
+    const angle = (i / artists.length) * Math.PI * 2 * 2.5 + Math.random() * 0.5;
+    const dist = 60 + playNorm * 120 + Math.random() * 40;
+    return {
+      id: i, name: a.name, plays: +a.playcount, tags, color,
+      r, playNorm, isRecent,
+      x: cx + Math.cos(angle)*dist, y: cy + Math.sin(angle)*dist,
+      vx: 0, vy: 0,
+      baseR: r, targetR: r,
+      alpha: 0, // fade in
+      phase: Math.random()*Math.PI*2
+    };
+  });
+
+  // Build edges — connect artists sharing genre tags
+  edges = [];
+  for(let i=0;i<nodes.length;i++){
+    for(let j=i+1;j<nodes.length;j++){
+      const shared = nodes[i].tags.filter(t=>nodes[j].tags.includes(t));
+      if(shared.length > 0){
+        edges.push({a:i, b:j, strength:shared.length, tags:shared});
+      }
+    }
+  }
+
+  layoutNodes();
+  startNebulaAnim();
+}
+
+function layoutNodes(){
+  const W = canvas.width, H = canvas.height;
+  const cx = W/2, cy = H/2;
+  // Vibe-aware: calm = tight cluster, chaotic = spread
+  const spread = 0.4 + (vibe/100)*1.6;
+  nodes.forEach((n,i)=>{
+    const angle = (i/nodes.length)*Math.PI*2*2.5 + n.phase*0.3;
+    const dist = (40 + n.playNorm*90 + 20) * spread;
+    n.x = cx + Math.cos(angle)*dist;
+    n.y = cy + Math.sin(angle)*dist;
+    n.targetR = n.baseR * (0.7 + (vibe/100)*0.6);
+  });
+}
+
+// ═══════════════════════════════════════════════════
+// ANIMATION
+// ═══════════════════════════════════════════════════
+function startNebulaAnim(){
+  cancelAnimationFrame(animId);
+  (function loop(){
+    animId = requestAnimationFrame(loop);
+    breatheT += 0.012;
+    updatePhysics();
+    drawNebula();
+  })();
+}
+
+function drawIdle(){
+  // Beautiful idle state — empty nebula with floating dust
+  cancelAnimationFrame(animId);
+  let t = 0;
+  const W = canvas.width, H = canvas.height;
+  const dust = Array.from({length:60},()=>({
+    x:Math.random()*W, y:Math.random()*H,
+    r:Math.random()*1.2+0.3,
+    alpha:Math.random()*0.3+0.05,
+    phase:Math.random()*Math.PI*2,
+    vx:(Math.random()-0.5)*0.15, vy:(Math.random()-0.5)*0.15
+  }));
+  (function loop(){
+    animId = requestAnimationFrame(loop);
+    t+=0.008;
+    ctx.fillStyle='rgba(8,6,15,0.25)';
+    ctx.fillRect(0,0,W,H);
+    // Draw gradient bg
+    const gr = ctx.createRadialGradient(W/2,H/2,0,W/2,H/2,W*0.6);
+    gr.addColorStop(0,'rgba(155,89,255,0.04)');
+    gr.addColorStop(0.5,'rgba(64,224,208,0.02)');
+    gr.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.fillStyle=gr; ctx.fillRect(0,0,W,H);
+    dust.forEach(d=>{
+      d.x+=d.vx; d.y+=d.vy; d.phase+=0.02;
+      if(d.x<0)d.x=W; if(d.x>W)d.x=0;
+      if(d.y<0)d.y=H; if(d.y>H)d.y=0;
+      const a = d.alpha*(0.5+0.5*Math.sin(d.phase+t));
+      ctx.beginPath(); ctx.arc(d.x,d.y,d.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(155,89,255,${a})`; ctx.fill();
+    });
+  })();
+}
+
+function updatePhysics(){
+  const W=canvas.width, H=canvas.height;
+  const cx=W/2, cy=H/2;
+  const vibeF = vibe/100;
+
+  nodes.forEach(n=>{
+    // Fade in
+    n.alpha = Math.min(1, n.alpha+0.025);
+    // Breathe
+    const breath = Math.sin(breatheT + n.phase) * 0.06;
+    n.r = n.targetR*(1+breath);
+    // Gentle drift
+    n.vx += (Math.random()-0.5)*0.04;
+    n.vy += (Math.random()-0.5)*0.04;
+    // Centre pull — stronger when calm
+    const dx=cx-n.x, dy=cy-n.y, d=Math.hypot(dx,dy)||1;
+    const pullStr = (0.0015 + (1-vibeF)*0.002) * (1 + n.playNorm*0.5);
+    n.vx += dx/d*pullStr;
+    n.vy += dy/d*pullStr;
+    // Repulsion from other nodes
+    nodes.forEach(m=>{
+      if(m===n) return;
+      const ex=n.x-m.x, ey=n.y-m.y, ed=Math.hypot(ex,ey)||0.1;
+      const minD = n.r+m.r+8+vibeF*12;
+      if(ed<minD){ const push=(minD-ed)/minD*0.4; n.vx+=ex/ed*push; n.vy+=ey/ed*push; }
+    });
+    n.vx*=0.88; n.vy*=0.88;
+    n.x+=n.vx; n.y+=n.vy;
+    // Soft boundary
+    const pad=n.r+10;
+    if(n.x<pad) n.vx+=0.3; if(n.x>W-pad) n.vx-=0.3;
+    if(n.y<pad) n.vy+=0.3; if(n.y>H-pad) n.vy-=0.3;
+  });
+}
+
+function drawNebula(){
+  const W=canvas.width, H=canvas.height;
+  ctx.fillStyle='rgba(8,6,15,0.2)';
+  ctx.fillRect(0,0,W,H);
+
+  ctx.save();
+  ctx.translate(panX, panY);
+  ctx.scale(zoom, zoom);
+
+  // Background glow
+  const vibeF=vibe/100;
+  const gr=ctx.createRadialGradient(W/2,H/2,0,W/2,H/2,W*0.55);
+  gr.addColorStop(0,`rgba(155,89,255,${0.03+vibeF*0.04})`);
+  gr.addColorStop(0.6,`rgba(64,224,208,${0.02})`);
+  gr.addColorStop(1,'rgba(0,0,0,0)');
+  ctx.fillStyle=gr; ctx.fillRect(0,0,W,H);
+
+  // Edges
+  edges.forEach(e=>{
+    const a=nodes[e.a], b=nodes[e.b];
+    if(!a||!b) return;
+    const alpha=Math.min(a.alpha,b.alpha);
+    const strength=Math.min(e.strength/3,1);
+    ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y);
+    ctx.strokeStyle=`rgba(155,89,255,${strength*0.15*alpha})`;
+    ctx.lineWidth=strength*0.8;
+    ctx.stroke();
+  });
+
+  // Recent track pulse rings
+  recentTracks.slice(0,5).forEach(name=>{
+    const n=nodes.find(nd=>nd.name===name);
+    if(!n) return;
+    const pulse=0.2+0.3*Math.sin(breatheT*3+n.phase);
+    ctx.beginPath(); ctx.arc(n.x,n.y,n.r+6+pulse*6,0,Math.PI*2);
+    ctx.strokeStyle=`rgba(255,255,255,${0.12*n.alpha})`;
+    ctx.lineWidth=0.8; ctx.stroke();
+  });
+
+  // Nodes
+  nodes.forEach(n=>{
+    const gv=(Math.sin(breatheT*1.2+n.phase)+1)/2;
+    // Glow
+    const glow=ctx.createRadialGradient(n.x,n.y,0,n.x,n.y,n.r*3.5);
+    const rgb=hexToRgb(n.color);
+    glow.addColorStop(0,`rgba(${rgb},${(0.12+gv*0.06)*n.alpha})`);
+    glow.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.beginPath(); ctx.arc(n.x,n.y,n.r*3.5,0,Math.PI*2);
+    ctx.fillStyle=glow; ctx.fill();
+
+    // Main circle
+    ctx.beginPath(); ctx.arc(n.x,n.y,n.r,0,Math.PI*2);
+    ctx.fillStyle=n.color+(n===hoverNode?'':'cc');
+    ctx.globalAlpha=0.75*n.alpha+0.15;
+    ctx.fill();
+    ctx.globalAlpha=1;
+
+    // Hover ring
+    if(n===hoverNode){
+      ctx.beginPath(); ctx.arc(n.x,n.y,n.r+4,0,Math.PI*2);
+      ctx.strokeStyle='rgba(255,255,255,0.5)'; ctx.lineWidth=1; ctx.stroke();
+    }
+
+    // Label for larger nodes
+    if(n.r>9 || n===hoverNode){
+      const fs=Math.max(8,Math.min(11,n.r*0.85));
+      ctx.font=`600 ${fs}px "Rajdhani",sans-serif`;
+      ctx.fillStyle=`rgba(255,255,255,${0.7*n.alpha})`;
+      ctx.textAlign='center';
+      ctx.fillText(n.name.length>14?n.name.slice(0,13)+'…':n.name, n.x, n.y+n.r+fs+2);
+    }
+  });
+
+  ctx.restore();
+}
+
+// ═══════════════════════════════════════════════════
+// VIBE SLIDER
+// ═══════════════════════════════════════════════════
+function onVibe(v){
+  vibe=+v;
+  if(nodes.length) layoutNodes();
+}
+
+// ═══════════════════════════════════════════════════
+// CANVAS INPUT
+// ═══════════════════════════════════════════════════
+function setupCanvasInput(){
+  // Mouse hover
+  canvas.addEventListener('mousemove',e=>{
+    const {wx,wy}=screenToWorld(e.clientX,e.clientY);
+    const hit=nodeAtPoint(wx,wy);
+    if(hit!==hoverNode){ hoverNode=hit; showTooltip(hit,e); }
+    if(dragging){
+      panX=panStart.x+(e.clientX-dragStart.x);
+      panY=panStart.y+(e.clientY-dragStart.y);
+    }
+  });
+  canvas.addEventListener('mousedown',e=>{
+    dragging=true; dragStart={x:e.clientX,y:e.clientY}; panStart={x:panX,y:panY};
+  });
+  canvas.addEventListener('mouseup',()=>{ dragging=false; });
+  canvas.addEventListener('mouseleave',()=>{ hoverNode=null; hideTooltip(); dragging=false; });
+  canvas.addEventListener('wheel',e=>{
+    e.preventDefault();
+    const f=e.deltaY>0?0.9:1.1;
+    zoom=Math.max(0.3,Math.min(4,zoom*f));
+  },{passive:false});
+
+  // Touch
+  let lastTouchDist=0;
+  canvas.addEventListener('touchstart',e=>{
+    e.preventDefault();
+    if(e.touches.length===1){ dragStart={x:e.touches[0].clientX,y:e.touches[0].clientY}; panStart={x:panX,y:panY}; dragging=true; }
+    if(e.touches.length===2){ lastTouchDist=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY); dragging=false; }
+  },{passive:false});
+  canvas.addEventListener('touchmove',e=>{
+    e.preventDefault();
+    if(e.touches.length===1&&dragging){ panX=panStart.x+(e.touches[0].clientX-dragStart.x); panY=panStart.y+(e.touches[0].clientY-dragStart.y); }
+    if(e.touches.length===2){
+      const d=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);
+      zoom=Math.max(0.3,Math.min(4,zoom*(d/lastTouchDist)));
+      lastTouchDist=d;
+    }
+  },{passive:false});
+  canvas.addEventListener('touchend',e=>{ e.preventDefault(); if(e.touches.length===0) dragging=false; },{passive:false});
+}
+
+function screenToWorld(sx,sy){
+  const rect=canvas.getBoundingClientRect();
+  return{ wx:(sx-rect.left-panX)/zoom, wy:(sy-rect.top-panY)/zoom };
+}
+
+function nodeAtPoint(wx,wy){
+  for(const n of nodes){
+    if(Math.hypot(n.x-wx,n.y-wy)<n.r+8) return n;
+  }
+  return null;
+}
+
+function showTooltip(n,e){
+  const tt=document.getElementById('nodeTooltip');
+  if(!n){ tt.style.opacity='0'; return; }
+  document.getElementById('ttName').textContent=n.name;
+  document.getElementById('ttPlays').textContent=n.plays?`${n.plays.toLocaleString()} plays`:'';
+  document.getElementById('ttTags').innerHTML=n.tags.slice(0,4).map(t=>`<span class="tt-tag">${t}</span>`).join('');
+  const rect=canvas.getBoundingClientRect();
+  let tx=e.clientX-rect.left+14, ty=e.clientY-rect.top-20;
+  if(tx+190>canvas.width) tx-=200;
+  tt.style.left=tx+'px'; tt.style.top=ty+'px'; tt.style.opacity='1';
+}
+
+function hideTooltip(){ document.getElementById('nodeTooltip').style.opacity='0'; }
+
+function resetView(){ zoom=1; panX=0; panY=0; }
+
+// ═══════════════════════════════════════════════════
+// TIME-LAPSE
+// ═══════════════════════════════════════════════════
+const MONTHS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+function buildTimelapse(artists, tagMap){
+  // Generate 12 month snapshots — simulate listening evolution
+  tlNodes = MONTHS.map((month,mi)=>{
+    return artists.slice(0,30).map((a,i)=>{
+      // Simulate play count variation per month using seeded noise
+      const seed=(mi*37+i*13)%97;
+      const variation=0.3+0.7*((Math.sin(seed*0.7+mi*0.5)+1)/2);
+      const decay=mi<4?1:mi<8?0.85:0.7; // older = slightly decayed
+      const spike=seed>80?1.6:1; // occasional listening spikes
+      const playMod=Math.round(+a.playcount*variation*decay*spike/12);
+      const tags=tagMap[a.name]||[];
+      // Color shifts slightly by month — warmer in summer months
+      let color=genreColor(tags);
+      if(mi>=5&&mi<=8&&color==='#40e0d0') color='#5ef5e5'; // summer lift
+      return {...a, playcount:playMod, tags, color, r:3+Math.min(playMod/Math.max(...artists.map(x=>+x.playcount))*20,18)};
+    }).filter(n=>n.playcount>0);
+  });
+}
+
+function startTimelapse(){
+  if(tlNodes.length===0) return;
+  tlFrame=0; tlPlaying=true;
+  document.getElementById('tlSection').scrollIntoView({behavior:'smooth',block:'nearest'});
+  runTimelapse();
+}
+
+function toggleTimelapse(){
+  if(!tlPlaying){ tlPlaying=true; runTimelapse(); document.getElementById('tlPlayBtn').textContent='⏸ Pause'; document.getElementById('tlPlayBtn').classList.add('playing'); }
+  else { tlPlaying=false; cancelAnimationFrame(tlAnimId); document.getElementById('tlPlayBtn').textContent='▶ Play'; document.getElementById('tlPlayBtn').classList.remove('playing'); }
+}
+
+function resetTimelapse(){ tlPlaying=false; cancelAnimationFrame(tlAnimId); tlFrame=0; document.getElementById('tlMonth').textContent='—'; document.getElementById('tlBarFill').style.width='0%'; document.getElementById('tlPlayBtn').textContent='▶ Play'; document.getElementById('tlPlayBtn').classList.remove('playing'); }
+
+let tlFrameCounter=0;
+function runTimelapse(){
+  if(!tlPlaying) return;
+  tlAnimId=requestAnimationFrame(runTimelapse);
+  tlFrameCounter++;
+  if(tlFrameCounter%90===0){ // advance month every ~1.5s at 60fps
+    tlFrame=Math.min(tlFrame+1,11);
+    const mn=tlNodes[tlFrame];
+    if(mn){
+      // Temporarily override nodes for this frame
+      const W=canvas.width,H=canvas.height,cx=W/2,cy=H/2;
+      const maxP=Math.max(...mn.map(n=>+n.playcount));
+      nodes=mn.map((a,i)=>{
+        const pN=+a.playcount/(maxP||1);
+        const angle=(i/mn.length)*Math.PI*2*2.5+i*0.3;
+        const dist=40+pN*100;
+        return{...a,id:i,playNorm:pN,r:4+pN*16,baseR:4+pN*16,targetR:4+pN*16,x:cx+Math.cos(angle)*dist,y:cy+Math.sin(angle)*dist,vx:0,vy:0,alpha:1,phase:i*0.5,isRecent:false};
+      });
+      edges=[];
+      for(let i=0;i<nodes.length;i++) for(let j=i+1;j<nodes.length;j++){
+        const sh=nodes[i].tags?.filter(t=>nodes[j].tags?.includes(t))||[];
+        if(sh.length) edges.push({a:i,b:j,strength:sh.length});
+      }
+    }
+    document.getElementById('tlMonth').textContent=MONTHS[tlFrame];
+    document.getElementById('tlBarFill').style.width=((tlFrame+1)/12*100)+'%';
+    if(tlFrame===11){ tlPlaying=false; document.getElementById('tlPlayBtn').textContent='▶ Replay'; document.getElementById('tlPlayBtn').classList.remove('playing'); }
+  }
+}
+
+// ═══════════════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════════════
+function setStatus(msg,type=''){
+  const el=document.getElementById('statusBar');
+  el.textContent=msg; el.className='status-bar'+(type?' '+type:'');
+}
+
+function hexToRgb(hex){
+  const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);
+  return `${r},${g},${b}`;
+}
+</script>
+
+<!-- PUMPO BAR — paste shared snippet here -->
+</body>
+</html>
