@@ -135,6 +135,8 @@
     .legend-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
 
     /* LOADING ANIM */
+    .genre-hint-btn{font-family:var(--mono);font-size:8px;letter-spacing:.08em;padding:3px 9px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;transition:.15s;white-space:nowrap;}
+    .genre-hint-btn:hover,.genre-hint-btn.active{border-color:var(--violet);color:var(--violet);background:rgba(155,89,255,0.1);}
     @keyframes pulse{0%,100%{opacity:.4}50%{opacity:1}}
     .loading-pulse{animation:pulse 1.4s ease-in-out infinite;}
   </style>
@@ -144,7 +146,7 @@
 <nav class="top-nav">
   <a href="index.html" class="nav-brand">RESONANCE<span>.FM</span></a>
   <div class="nav-right">
-    <a href="index.html" class="nav-link">🔧 TOOLS</a>
+    <a href="index.html" class="nav-link">← TOOLS</a>
     <a href="https://radiopumpo.github.io" class="nav-link">📻 RADIO</a>
   </div>
 </nav>
@@ -182,6 +184,20 @@
       <div class="field-row">
         <input class="field-input" id="manualInput" placeholder="Artist, Artist, Artist..." autocomplete="off">
         <button class="field-btn" onclick="loadManual()">DRAW</button>
+      </div>
+      <div class="field-row" style="flex-wrap:wrap;gap:5px;" id="genrePickerRow" style="display:none">
+        <span style="font-family:var(--mono);font-size:8px;color:var(--muted);align-self:center;white-space:nowrap;">Genre hint:</span>
+        <button class="genre-hint-btn active" data-g="" onclick="setGenreHint(this,'')">Auto</button>
+        <button class="genre-hint-btn" data-g="electronic" onclick="setGenreHint(this,'electronic')">Electronic</button>
+        <button class="genre-hint-btn" data-g="rock" onclick="setGenreHint(this,'rock')">Rock</button>
+        <button class="genre-hint-btn" data-g="hip-hop" onclick="setGenreHint(this,'hip-hop')">Hip-Hop</button>
+        <button class="genre-hint-btn" data-g="pop" onclick="setGenreHint(this,'pop')">Pop</button>
+        <button class="genre-hint-btn" data-g="jazz" onclick="setGenreHint(this,'jazz')">Jazz</button>
+        <button class="genre-hint-btn" data-g="ambient" onclick="setGenreHint(this,'ambient')">Ambient</button>
+        <button class="genre-hint-btn" data-g="indie" onclick="setGenreHint(this,'indie')">Indie</button>
+        <button class="genre-hint-btn" data-g="folk" onclick="setGenreHint(this,'folk')">Folk</button>
+        <button class="genre-hint-btn" data-g="rnb" onclick="setGenreHint(this,'rnb')">R&B</button>
+        <button class="genre-hint-btn" data-g="classical" onclick="setGenreHint(this,'classical')">Classical</button>
       </div>
       <div class="field-hint">Comma-separated. e.g. Radiohead, Burial, Portishead</div>
     </div>
@@ -229,6 +245,7 @@
     </div>
     <div class="nebula-controls">
       <button class="nc-btn" onclick="resetView()">↺ Reset view</button>
+      <button class="nc-btn" id="trackToggle" onclick="toggleTracks()" style="display:none">♪ Show tracks</button>
       <button class="nc-btn" id="timelapseTrigger" onclick="startTimelapse()" style="display:none">▶ Year in Resonance</button>
     </div>
     <div class="node-tooltip" id="nodeTooltip">
@@ -333,7 +350,7 @@ const GENRE_COLORS = {
 };
 
 function genreColor(tags){
-  if(!tags||!tags.length) return '#888';
+  if(!tags||!tags.length) return '#888888';
   for(const t of tags){
     const c = GENRE_COLORS[t.toLowerCase()];
     if(c) return c;
@@ -344,17 +361,18 @@ function genreColor(tags){
       if(tl.includes(key)||key.includes(tl)) return col;
     }
   }
-  return '#888';
+  return '#888888';
 }
 
 // ═══════════════════════════════════════════════════
 // STATE
 // ═══════════════════════════════════════════════════
-let nodes = [], edges = [], recentTracks = [];
+let nodes = [], edges = [], recentTracks = [], trackNodes = [], fullRecentTracks = [];
+let showTracks = false;
 let vibe = 50, period = '1month';
 let animId = null, tlAnimId = null;
 let tlPlaying = false, tlFrame = 0, tlNodes = [];
-let hoverNode = null;
+let hoverNode = null, hoverTrackNode = null;
 let zoom = 1, panX = 0, panY = 0;
 let dragging = false, dragStart = {x:0,y:0}, panStart = {x:0,y:0};
 let canvas, ctx;
@@ -448,12 +466,18 @@ async function loadNebula(){
       }catch(e){ tagMap[a.name]=[]; }
     }));
 
-    // Recent tracks (pulse layer)
+    // Recent tracks (pulse layer + track nodes)
     setStatus('Mapping recent signals…','loading');
     try{
       const rtData = await lfmFetch('user.getrecenttracks',{limit:50});
-      recentTracks = (rtData.recenttracks?.track||[]).map(t=>t.artist?.['#text']||'');
-    }catch(e){ recentTracks=[]; }
+      const rawTracks = rtData.recenttracks?.track||[];
+      recentTracks = rawTracks.map(t=>t.artist?.['#text']||'');
+      fullRecentTracks = rawTracks.map(t=>({
+        name: t.name||'',
+        artist: t.artist?.['#text']||'',
+        nowPlaying: t['@attr']?.nowplaying==='true'
+      })).filter(t=>t.name&&t.artist);
+    }catch(e){ recentTracks=[]; fullRecentTracks=[]; }
 
     buildNebula(artists, tagMap);
     setStatus(`${nodes.length} artists mapped · ${recentTracks.length} recent signals`, 'ok');
@@ -461,7 +485,9 @@ async function loadNebula(){
     document.getElementById('nebulaPeriodPill').style.display = '';
     document.getElementById('periodLabel').textContent = PERIOD_LABELS[period];
     document.getElementById('timelapseTrigger').style.display = '';
+    document.getElementById('trackToggle').style.display = '';
     document.getElementById('legend').style.display = 'flex';
+    buildTrackNodes();
     document.getElementById('tlSection').style.display = 'block';
     buildTimelapse(artists, tagMap);
   } catch(e){
@@ -473,14 +499,257 @@ async function loadNebula(){
 // ═══════════════════════════════════════════════════
 // MANUAL ENTRY
 // ═══════════════════════════════════════════════════
+// Built-in artist→genre lookup (common well-known artists)
+const ARTIST_GENRES = {
+  // ── Electronic / Dance / House ──
+  'aphex twin':['electronic','ambient','idm'],'burial':['electronic','ambient','dubstep'],
+  'boards of canada':['electronic','ambient','idm'],'autechre':['electronic','idm'],
+  'daft punk':['electronic','house','french house'],'kraftwerk':['electronic','synth-pop'],
+  'massive attack':['electronic','trip-hop','ambient'],'portishead':['electronic','trip-hop'],
+  'the chemical brothers':['electronic','big beat'],'underworld':['electronic','techno'],
+  'bicep':['electronic','house'],'four tet':['electronic','ambient','folk'],
+  'jon hopkins':['electronic','ambient'],'tycho':['electronic','ambient'],
+  'bonobo':['electronic','downtempo','jazz'],'flume':['electronic','pop'],
+  'disclosure':['electronic','house','dance pop'],'caribou':['electronic','psychedelic','indie'],
+  'justice':['electronic','house','french house'],'moderat':['electronic','ambient','techno'],
+  'arca':['electronic','experimental'],'oneohtrix point never':['electronic','ambient','experimental'],
+  'flying lotus':['electronic','hip-hop','jazz'],'thundercat':['jazz','funk','electronic'],
+  'diplo':['electronic','dance pop','trap'],'skrillex':['electronic','dubstep'],
+  'deadmau5':['electronic','house','techno'],'tiesto':['electronic','trance','house'],
+  'calvin harris':['electronic','dance pop','house'],'avicii':['electronic','edm','pop'],
+  'martin garrix':['electronic','edm','house'],'swedish house mafia':['electronic','house'],
+  'aphex twin':['electronic','ambient','idm'],'squarepusher':['electronic','idm','jazz'],
+  'orbital':['electronic','techno','ambient'],'prodigy':['electronic','big beat','rave'],
+  'the prodigy':['electronic','big beat','rave'],'fatboy slim':['electronic','big beat','house'],
+  'moby':['electronic','ambient','dance'],'air':['electronic','ambient','french pop'],
+  'dj shadow':['electronic','hip-hop','trip-hop'],'madlib':['hip-hop','jazz rap','electronic'],
+  'james blake':['electronic','soul','indie'],'alt-j':['indie','electronic','art rock'],
+  'phoebe bridgers':['indie folk','folk','alternative'],'big thief':['indie folk','folk'],
+  'japanese breakfast':['indie pop','alternative'],'snail mail':['indie','alternative'],
+  // ── Rock / Metal / Punk ──
+  'radiohead':['alternative','indie','rock'],'the beatles':['rock','classic rock','pop'],
+  'david bowie':['rock','art rock','glam rock'],'led zeppelin':['rock','classic rock','blues rock'],
+  'pink floyd':['progressive rock','rock','psychedelic'],'the cure':['post-punk','indie','goth'],
+  'depeche mode':['synth-pop','electronic','new wave'],'joy division':['post-punk','rock'],
+  'new order':['synth-pop','post-punk','electronic'],'the smiths':['indie','alternative','post-punk'],
+  'arctic monkeys':['indie rock','rock','indie'],'the strokes':['indie rock','rock'],
+  'nirvana':['grunge','rock','alternative'],'pearl jam':['grunge','rock','alternative'],
+  'foo fighters':['rock','alternative'],'queens of the stone age':['rock','stoner rock'],
+  'tame impala':['psychedelic pop','indie','alternative'],'mgmt':['indie pop','psychedelic'],
+  'ac/dc':['rock','hard rock','classic rock'],'acdc':['rock','hard rock','classic rock'],
+  'metallica':['metal','heavy metal','thrash metal'],'iron maiden':['metal','heavy metal'],
+  'black sabbath':['metal','heavy metal','doom metal'],'ozzy osbourne':['metal','rock','heavy metal'],
+  'guns n roses':['rock','hard rock','glam metal'],"guns n' roses":['rock','hard rock'],
+  'the rolling stones':['rock','classic rock','blues rock'],
+  'the who':['rock','classic rock','mod'],'the kinks':['rock','classic rock','brit pop'],
+  'the doors':['rock','psychedelic','classic rock'],'the velvet underground':['rock','art rock','experimental'],
+  'talking heads':['post-punk','new wave','art rock'],'blondie':['new wave','pop','punk'],
+  'the clash':['punk','rock','reggae'],'sex pistols':['punk','rock'],
+  'misfits':['punk','horror punk','rock'],'ramones':['punk','rock'],
+  'green day':['punk','pop punk','rock'],'blink-182':['pop punk','punk','rock'],
+  'sum 41':['pop punk','punk','rock'],'weezer':['alternative','rock','indie pop'],
+  'red hot chili peppers':['rock','funk rock','alternative'],'rage against the machine':['rock','rap rock','metal'],
+  'system of a down':['metal','alternative metal','rock'],'tool':['progressive metal','metal','rock'],
+  'slipknot':['metal','nu-metal','heavy metal'],'nine inch nails':['industrial','electronic','metal'],
+  'marilyn manson':['industrial rock','metal','goth'],'rob zombie':['metal','industrial','rock'],
+  'pantera':['metal','thrash metal','groove metal'],'slayer':['metal','thrash metal'],
+  'megadeth':['metal','thrash metal'],'anthrax':['metal','thrash metal'],
+  'motorhead':['metal','rock','punk'],'judas priest':['metal','heavy metal'],
+  'deep purple':['rock','hard rock','classic rock'],'uriah heep':['rock','classic rock'],
+  'rush':['progressive rock','rock','hard rock'],'yes':['progressive rock','rock'],
+  'genesis':['progressive rock','pop rock','art rock'],'kate bush':['art pop','rock','experimental'],
+  'the xx':['indie','electronic','indie pop'],'xx':['indie','electronic','indie pop'],
+  'vampire weekend':['indie','indie pop','indie rock'],'beach house':['dream pop','indie','shoegaze'],
+  'neutral milk hotel':['indie folk','indie','alternative'],'pavement':['indie rock','alternative'],
+  'sonic youth':['alternative','noise rock','experimental'],'pixies':['alternative','indie rock','grunge'],
+  'the national':['indie','indie rock','alternative'],'bon iver':['indie folk','folk','indie'],
+  'sufjan stevens':['indie folk','folk','chamber pop'],'fleet foxes':['indie folk','folk'],
+  'iron and wine':['indie folk','folk'],'bright eyes':['indie folk','folk','alternative'],
+  'death cab for cutie':['indie rock','indie pop'],'modest mouse':['indie rock','alternative'],
+  'the shins':['indie pop','indie rock'],'belle and sebastian':['indie pop','indie'],
+  'built to spill':['indie rock','alternative'],'dinosaur jr':['alternative','grunge','indie'],
+  // ── Hip-Hop / Rap ──
+  'kendrick lamar':['hip-hop','rap','conscious hip hop'],
+  'frank ocean':['rnb','hip-hop','soul'],'tyler the creator':['hip-hop','rap'],
+  'kanye west':['hip-hop','rap','soul'],'jay-z':['hip-hop','rap'],
+  'drake':['hip-hop','rap','rnb'],'j. cole':['hip-hop','rap','conscious hip hop'],
+  'nas':['hip-hop','rap'],'wu-tang clan':['hip-hop','rap','east coast hip hop'],
+  'a tribe called quest':['hip-hop','jazz rap'],'de la soul':['hip-hop','jazz rap'],
+  'eminem':['hip-hop','rap','pop rap'],'50 cent':['hip-hop','rap','gangsta rap'],
+  'snoop dogg':['hip-hop','rap','gangsta rap'],'dr. dre':['hip-hop','rap','gangsta rap'],
+  'dr dre':['hip-hop','rap','gangsta rap'],'ice cube':['hip-hop','rap','gangsta rap'],
+  'tupac':['hip-hop','rap','gangsta rap'],'2pac':['hip-hop','rap','gangsta rap'],
+  'notorious big':['hip-hop','rap','east coast hip hop'],
+  'the notorious b.i.g':['hip-hop','rap','east coast hip hop'],
+  'biggie':['hip-hop','rap','east coast hip hop'],
+  'lil wayne':['hip-hop','rap','trap'],'nicki minaj':['hip-hop','rap','pop rap'],
+  'cardi b':['hip-hop','rap','trap'],'megan thee stallion':['hip-hop','rap','trap'],
+  'travis scott':['hip-hop','trap','rap'],'future':['hip-hop','trap','rap'],
+  'young thug':['hip-hop','trap','rap'],'lil baby':['hip-hop','trap','rap'],
+  'roddy ricch':['hip-hop','trap','rnb'],'dababy':['hip-hop','trap','rap'],
+  'post malone':['hip-hop','pop','trap'],'juice wrld':['hip-hop','emo rap','trap'],
+  'xxxtentacion':['hip-hop','emo rap','trap'],'lil uzi vert':['hip-hop','trap','emo rap'],
+  'chance the rapper':['hip-hop','gospel rap','indie rap'],'childish gambino':['hip-hop','funk','rnb'],
+  'donald glover':['hip-hop','funk','rnb'],'mac miller':['hip-hop','rap','jazz rap'],
+  'earl sweatshirt':['hip-hop','rap','alternative hip hop'],
+  'denzel curry':['hip-hop','rap','alternative hip hop'],
+  'jpegmafia':['hip-hop','experimental hip hop','electronic'],
+  'brockhampton':['hip-hop','rap','indie pop'],
+  'run the jewels':['hip-hop','rap','alternative hip hop'],
+  'death grips':['hip-hop','experimental','noise rock'],
+  'aesop rock':['hip-hop','underground hip hop','indie rap'],
+  'mf doom':['hip-hop','underground hip hop','jazz rap'],
+  'mfdoom':['hip-hop','underground hip hop','jazz rap'],
+  'action bronson':['hip-hop','rap'],'joey badass':['hip-hop','boom bap','rap'],
+  'flatbush zombies':['hip-hop','trap','alternative hip hop'],
+  // ── Latin / Reggaeton / Global ──
+  'bad bunny':['reggaeton','latin trap','latin pop'],
+  'j balvin':['reggaeton','latin pop','trap'],'maluma':['reggaeton','latin pop'],
+  'ozuna':['reggaeton','latin trap'],'daddy yankee':['reggaeton','latin pop'],
+  'don omar':['reggaeton','latin pop'],'wisin y yandel':['reggaeton'],
+  'shakira':['latin pop','pop','dance pop'],'ricky martin':['latin pop','pop'],
+  'marc anthony':['salsa','latin pop'],'celia cruz':['salsa','latin'],
+  'carlos vives':['vallenato','latin pop','cumbia'],
+  'enrique iglesias':['latin pop','pop','dance pop'],
+  'luis fonsi':['latin pop','pop'],'becky g':['latin pop','reggaeton','pop'],
+  'karol g':['reggaeton','latin pop'],'nicky jam':['reggaeton','latin pop'],
+  'anuel aa':['reggaeton','trap latino'],'myke towers':['reggaeton','trap'],
+  'rauw alejandro':['reggaeton','latin pop','rnb'],
+  'peso pluma':['corridos tumbados','regional mexican','trap'],
+  'eslabon armado':['corridos tumbados','regional mexican'],
+  'banda ms':['banda','regional mexican'],'los angeles azules':['cumbia','latin'],
+  'cafe tacvba':['rock en espanol','alternative','indie'],
+  'molotov':['rock en espanol','rap rock','alternative'],
+  'divididos':['rock','rock en espanol'],'los fabulosos cadillacs':['ska','rock en espanol'],
+  'soda stereo':['rock en espanol','alternative','new wave'],
+  'heroes del silencio':['rock en espanol','goth rock'],'bunbury':['rock en espanol','alternative'],
+  'fito y los fitipaldis':['rock en espanol','blues rock'],
+  'joaquin sabina':['cantautor','rock en espanol'],'alejandro sanz':['pop','latin pop','cantautor'],
+  'pablo alborán':['pop','cantautor','latin pop'],'pablo alboran':['pop','cantautor','latin pop'],
+  'rosalia':['flamenco','pop','latin pop'],'rosalía':['flamenco','pop','latin pop'],
+  'camilo':['pop','latin pop'],'juan luis guerra':['merengue','salsa','bachata'],
+  'romeo santos':['bachata','latin pop'],'aventura':['bachata','latin pop'],
+  'prince royce':['bachata','latin pop'],'anitta':['funk carioca','latin pop','pop'],
+  // ── Pop / Mainstream ──
+  'michael jackson':['pop','soul','funk'],'prince':['pop','funk','rnb'],
+  'madonna':['pop','dance pop'],'beyonce':['pop','rnb','soul'],
+  'beyoncé':['pop','rnb','soul'],'taylor swift':['pop','country pop','indie pop'],
+  'the weeknd':['rnb','pop','alternative rnb'],'billie eilish':['indie pop','pop','alternative'],
+  'lorde':['indie pop','synth-pop'],'lana del rey':['indie pop','dream pop','baroque pop'],
+  'ariana grande':['pop','rnb','dance pop'],'dua lipa':['pop','dance pop','disco'],
+  'harry styles':['pop','rock','indie pop'],'ed sheeran':['pop','folk pop','singer-songwriter'],
+  'adele':['pop','soul','blue-eyed soul'],'sam smith':['pop','soul','dance pop'],
+  'olivia rodrigo':['pop','pop rock','indie pop'],'doja cat':['pop','hip-hop','rnb'],
+  'lizzo':['pop','funk','rnb'],'halsey':['indie pop','electropop','pop'],
+  'sia':['pop','dance pop','electropop'],'rihanna':['pop','rnb','dance pop'],
+  'katy perry':['pop','dance pop'],'lady gaga':['pop','dance pop','electropop'],
+  'britney spears':['pop','dance pop'],'christina aguilera':['pop','rnb','soul'],
+  'justin timberlake':['pop','rnb','funk'],'justin bieber':['pop','rnb','dance pop'],
+  'selena gomez':['pop','dance pop'],'miley cyrus':['pop','rock','country pop'],
+  'p!nk':['pop','rock','dance pop'],'pink':['pop','rock','dance pop'],
+  'coldplay':['pop','alternative','indie rock'],'u2':['rock','pop','alternative'],
+  'the killers':['indie rock','pop rock','alternative'],'muse':['rock','progressive rock','alternative'],
+  'imagine dragons':['pop rock','alternative','indie rock'],'twenty one pilots':['indie pop','alternative','hip-hop'],
+  'panic at the disco':['pop punk','emo','alternative'],'fall out boy':['pop punk','emo','rock'],
+  'my chemical romance':['emo','pop punk','alternative'],'paramore':['pop punk','emo','alternative'],
+  'linkin park':['nu-metal','rock','alternative metal'],'three days grace':['rock','alternative metal'],
+  'breaking benjamin':['rock','alternative metal'],'evanescence':['goth metal','alternative metal','rock'],
+  // ── Jazz / Soul / Blues ──
+  'miles davis':['jazz','cool jazz','bebop'],'john coltrane':['jazz','bebop','free jazz'],
+  'chet baker':['jazz','cool jazz'],'bill evans':['jazz','cool jazz'],
+  'herbie hancock':['jazz','jazz fusion','funk'],'nina simone':['jazz','soul','blues'],
+  'ray charles':['soul','rnb','country'],'aretha franklin':['soul','gospel','rnb'],
+  'marvin gaye':['soul','rnb','funk'],'stevie wonder':['soul','funk','pop'],
+  'bb king':['blues','rhythm and blues'],'b.b. king':['blues','rhythm and blues'],
+  'muddy waters':['blues','electric blues'],'robert johnson':['blues','delta blues'],
+  'john lee hooker':['blues','electric blues'],'howlin wolf':['blues','electric blues'],
+  'buddy guy':['blues','electric blues'],'eric clapton':['blues rock','rock','blues'],
+  'jimi hendrix':['rock','psychedelic','blues rock'],'janis joplin':['rock','blues rock','psychedelic'],
+  'sade':['soul','rnb','smooth soul'],'dangelo':['soul','rnb','neo soul'],
+  'erykah badu':['soul','neo soul','rnb'],'lauryn hill':['soul','hip-hop','rnb'],
+  'maxwell':['soul','neo soul','rnb'],'amy winehouse':['soul','jazz','rnb'],
+  'alicia keys':['rnb','soul','pop'],'john legend':['soul','rnb','pop'],
+  'usher':['rnb','pop','dance pop'],'chris brown':['rnb','pop','hip-hop'],
+  'trey songz':['rnb','soul'],'miguel':['rnb','alternative rnb','soul'],
+  'anderson paak':['rnb','hip-hop','funk'],'silk sonic':['rnb','funk','soul'],
+  'khruangbin':['funk','psychedelic','soul'],'leon bridges':['soul','rnb','country'],
+  'james brown':['funk','soul','rnb'],'sly and the family stone':['funk','soul','psychedelic'],
+  'parliament':['funk','soul'],'george clinton':['funk','soul'],'earth wind and fire':['soul','funk','pop'],
+  'tower of power':['funk','soul','rnb'],'the isley brothers':['soul','funk','rnb'],
+  'the temptations':['soul','motown','rnb'],'the four tops':['soul','motown'],
+  'diana ross':['soul','motown','pop'],'smokey robinson':['soul','motown'],
+  'al green':['soul','gospel','rnb'],'otis redding':['soul','rnb'],
+  'sam cooke':['soul','gospel','pop'],'jackie wilson':['soul','rnb'],
+  // ── Folk / Country / Singer-Songwriter ──
+  'bob dylan':['folk','rock','country'],'nick cave':['post-punk','alternative','gothic rock'],
+  'leonard cohen':['folk','singer-songwriter'],'tom waits':['jazz','blues','alternative'],
+  'iron and wine':['indie folk','folk'],'fleet foxes':['indie folk','folk'],
+  'bon iver':['indie folk','folk','indie'],'sufjan stevens':['indie folk','folk','chamber pop'],
+  'nick drake':['folk','singer-songwriter'],'elliot smith':['indie folk','alternative','singer-songwriter'],
+  'elliott smith':['indie folk','alternative','singer-songwriter'],
+  'simon and garfunkel':['folk','folk rock','pop'],'paul simon':['folk','folk rock','pop'],
+  'art garfunkel':['folk','pop'],'james taylor':['folk','singer-songwriter','soft rock'],
+  'carole king':['folk','pop','singer-songwriter'],'joni mitchell':['folk','folk rock','jazz'],
+  'joan baez':['folk','folk rock'],'pete seeger':['folk'],'woody guthrie':['folk','country'],
+  'emmylou harris':['country','folk','americana'],'patsy cline':['country','pop'],
+  'hank williams':['country','classic country'],'johnny cash':['country','folk','rock'],
+  'willie nelson':['country','folk','outlaw country'],'waylon jennings':['country','outlaw country'],
+  'dolly parton':['country','pop'],'merle haggard':['country','outlaw country'],
+  'glen campbell':['country','pop'],'kenny rogers':['country','pop'],
+  'garth brooks':['country','pop country'],'shania twain':['country','pop country'],
+  // ── Classical / Instrumental ──
+  'bach':['classical','baroque'],'mozart':['classical'],'beethoven':['classical','romantic'],
+  'chopin':['classical','romantic'],'debussy':['classical','impressionist'],
+  'schubert':['classical','romantic'],'brahms':['classical','romantic'],
+  'tchaikovsky':['classical','romantic'],'stravinsky':['classical','modern classical'],
+  'philip glass':['modern classical','minimalist','ambient'],
+  'max richter':['modern classical','ambient','neo-classical'],
+  'nils frahm':['modern classical','ambient','neo-classical'],
+  'ludovico einaudi':['modern classical','neo-classical','ambient'],
+  'ólafur arnalds':['modern classical','ambient','electronic'],
+  'olafur arnalds':['modern classical','ambient','electronic'],
+  'yann tiersen':['modern classical','neo-classical','french'],'ennio morricone':['soundtrack','classical'],
+  'hans zimmer':['soundtrack','orchestral'],'john williams':['soundtrack','orchestral','classical'],
+};
+
+let manualGenreHint = '';
+
+function setGenreHint(btn, genre){
+  manualGenreHint = genre;
+  document.querySelectorAll('.genre-hint-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+function lookupArtistGenre(name){
+  const key = name.toLowerCase().trim();
+  if(ARTIST_GENRES[key]) return ARTIST_GENRES[key];
+  // Partial match
+  for(const [k,v] of Object.entries(ARTIST_GENRES)){
+    if(key.includes(k)||k.includes(key)) return v;
+  }
+  return null;
+}
+
 function loadManual(){
   const raw = document.getElementById('manualInput').value;
   const names = raw.split(',').map(s=>s.trim()).filter(Boolean);
   if(!names.length){ setStatus('Enter at least one artist name.','error'); return; }
-  const artists = names.map((name,i)=>({name, playcount: Math.round(100/(i+1)), mbid:''}));
+  // Show genre picker
+  document.getElementById('genrePickerRow').style.display='flex';
+  const artists = names.map((name)=>({name, playcount: 100, mbid:''}));
   const tagMap = {};
+  names.forEach(name=>{
+    const found = lookupArtistGenre(name);
+    if(found){
+      tagMap[name] = found;
+    } else if(manualGenreHint){
+      tagMap[name] = [manualGenreHint];
+    }
+    // else remains empty → will get #888888 (grey) until user selects a genre hint
+  });
   buildNebula(artists, tagMap);
-  setStatus(`${nodes.length} artists drawn · manual mode`, 'ok');
+  const matched = names.filter(n=>tagMap[n]&&tagMap[n].length).length;
+  setStatus(`${nodes.length} nodes drawn · ${matched}/${names.length} genres auto-detected`, 'ok');
   document.getElementById('nebulaStat').innerHTML = `<span>${nodes.length}</span> nodes`;
   document.getElementById('legend').style.display = 'flex';
 }
@@ -571,7 +840,9 @@ function drawIdle(){
   (function loop(){
     animId = requestAnimationFrame(loop);
     t+=0.008;
-    ctx.fillStyle='rgba(8,6,15,0.25)';
+    ctx.fillStyle='#08060f';
+    ctx.fillRect(0,0,W,H);
+    ctx.fillStyle='rgba(8,6,15,0.22)';
     ctx.fillRect(0,0,W,H);
     // Draw gradient bg
     const gr = ctx.createRadialGradient(W/2,H/2,0,W/2,H/2,W*0.6);
@@ -627,20 +898,24 @@ function updatePhysics(){
 
 function drawNebula(){
   const W=canvas.width, H=canvas.height;
-  ctx.fillStyle='rgba(8,6,15,0.2)';
+  // Solid fill first — prevents hard edge artifact when zoomed out
+  ctx.fillStyle='#08060f';
+  ctx.fillRect(0,0,W,H);
+  // Trail fade
+  ctx.fillStyle='rgba(8,6,15,0.18)';
   ctx.fillRect(0,0,W,H);
 
   ctx.save();
   ctx.translate(panX, panY);
   ctx.scale(zoom, zoom);
 
-  // Background glow
+  // Background glow — oversized rect to cover zoom-out gaps
   const vibeF=vibe/100;
-  const gr=ctx.createRadialGradient(W/2,H/2,0,W/2,H/2,W*0.55);
+  const gr=ctx.createRadialGradient(W/2,H/2,0,W/2,H/2,W*0.7);
   gr.addColorStop(0,`rgba(155,89,255,${0.03+vibeF*0.04})`);
   gr.addColorStop(0.6,`rgba(64,224,208,${0.02})`);
   gr.addColorStop(1,'rgba(0,0,0,0)');
-  ctx.fillStyle=gr; ctx.fillRect(0,0,W,H);
+  ctx.fillStyle=gr; ctx.fillRect(-W,-H,W*3,H*3);
 
   // Edges
   edges.forEach(e=>{
@@ -698,6 +973,47 @@ function drawNebula(){
     }
   });
 
+  // Track satellite nodes
+  if(showTracks && trackNodes.length){
+    trackNodes.forEach(tn=>{
+      tn.alpha = Math.min(1, tn.alpha+0.03);
+      // Orbit parent
+      const parent = nodes[tn.parentId];
+      if(parent){
+        tn.angle += 0.002 + (tn.nowPlaying?0.006:0);
+        tn.x = parent.x + Math.cos(tn.angle)*tn.orbitR;
+        tn.y = parent.y + Math.sin(tn.angle)*tn.orbitR;
+      }
+      const rgb = hexToRgb(tn.color);
+      // Glow for now-playing
+      if(tn.nowPlaying){
+        const tg=ctx.createRadialGradient(tn.x,tn.y,0,tn.x,tn.y,tn.r*4);
+        tg.addColorStop(0,`rgba(${rgb},${0.3*tn.alpha})`);
+        tg.addColorStop(1,'rgba(0,0,0,0)');
+        ctx.beginPath(); ctx.arc(tn.x,tn.y,tn.r*4,0,Math.PI*2);
+        ctx.fillStyle=tg; ctx.fill();
+      }
+      // Dot
+      ctx.beginPath(); ctx.arc(tn.x,tn.y,tn.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(${rgb},${0.6*tn.alpha})`;
+      ctx.fill();
+      // Now playing ring
+      if(tn.nowPlaying){
+        ctx.beginPath(); ctx.arc(tn.x,tn.y,tn.r+3+Math.sin(breatheT*4)*2,0,Math.PI*2);
+        ctx.strokeStyle=`rgba(255,255,255,${0.5*tn.alpha})`; ctx.lineWidth=0.8; ctx.stroke();
+      }
+      // Label on hover proximity — handled via tooltip check below
+      if(hoverTrackNode===tn||tn.nowPlaying){
+        const fs=7;
+        ctx.font=`600 ${fs}px "Rajdhani",sans-serif`;
+        ctx.fillStyle=`rgba(255,255,255,${0.55*tn.alpha})`;
+        ctx.textAlign='center';
+        const label=tn.nowPlaying?'▶ '+tn.name:tn.name;
+        ctx.fillText(label.length>16?label.slice(0,15)+'…':label, tn.x, tn.y+tn.r+fs+1);
+      }
+    });
+  }
+
   ctx.restore();
 }
 
@@ -717,7 +1033,11 @@ function setupCanvasInput(){
   canvas.addEventListener('mousemove',e=>{
     const {wx,wy}=screenToWorld(e.clientX,e.clientY);
     const hit=nodeAtPoint(wx,wy);
-    if(hit!==hoverNode){ hoverNode=hit; showTooltip(hit,e); }
+    // Check track nodes too
+    let hitTrack=null;
+    if(showTracks) for(const tn of trackNodes){ if(Math.hypot(tn.x-wx,tn.y-wy)<tn.r+6){hitTrack=tn;break;} }
+    hoverTrackNode=hitTrack;
+    if(hit!==hoverNode){ hoverNode=hit; showTooltip(hit,e,hitTrack); }
     if(dragging){
       panX=panStart.x+(e.clientX-dragStart.x);
       panY=panStart.y+(e.clientY-dragStart.y);
@@ -731,7 +1051,7 @@ function setupCanvasInput(){
   canvas.addEventListener('wheel',e=>{
     e.preventDefault();
     const f=e.deltaY>0?0.9:1.1;
-    zoom=Math.max(0.3,Math.min(4,zoom*f));
+    zoom=Math.max(0.85,Math.min(4,zoom*f));
   },{passive:false});
 
   // Touch
@@ -746,7 +1066,7 @@ function setupCanvasInput(){
     if(e.touches.length===1&&dragging){ panX=panStart.x+(e.touches[0].clientX-dragStart.x); panY=panStart.y+(e.touches[0].clientY-dragStart.y); }
     if(e.touches.length===2){
       const d=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);
-      zoom=Math.max(0.3,Math.min(4,zoom*(d/lastTouchDist)));
+      zoom=Math.max(0.85,Math.min(4,zoom*(d/lastTouchDist)));
       lastTouchDist=d;
     }
   },{passive:false});
@@ -765,12 +1085,19 @@ function nodeAtPoint(wx,wy){
   return null;
 }
 
-function showTooltip(n,e){
+function showTooltip(n,e,trackN){
   const tt=document.getElementById('nodeTooltip');
-  if(!n){ tt.style.opacity='0'; return; }
-  document.getElementById('ttName').textContent=n.name;
-  document.getElementById('ttPlays').textContent=n.plays?`${n.plays.toLocaleString()} plays`:'';
-  document.getElementById('ttTags').innerHTML=n.tags.slice(0,4).map(t=>`<span class="tt-tag">${t}</span>`).join('');
+  const subject = trackN || n;
+  if(!subject){ tt.style.opacity='0'; return; }
+  if(trackN){
+    document.getElementById('ttName').textContent=(trackN.nowPlaying?'▶ now playing: ':'')+trackN.name;
+    document.getElementById('ttPlays').textContent='by '+trackN.artist;
+    document.getElementById('ttTags').innerHTML='';
+  } else {
+    document.getElementById('ttName').textContent=n.name;
+    document.getElementById('ttPlays').textContent=n.plays?`${n.plays.toLocaleString()} plays`:'';
+    document.getElementById('ttTags').innerHTML=n.tags.slice(0,4).map(t=>`<span class="tt-tag">${t}</span>`).join('');
+  }
   const rect=canvas.getBoundingClientRect();
   let tx=e.clientX-rect.left+14, ty=e.clientY-rect.top-20;
   if(tx+190>canvas.width) tx-=200;
@@ -785,6 +1112,45 @@ function resetView(){ zoom=1; panX=0; panY=0; }
 // TIME-LAPSE
 // ═══════════════════════════════════════════════════
 const MONTHS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+function buildTrackNodes(){
+  trackNodes = [];
+  // Create satellite nodes for recent unique tracks (up to 30)
+  const seen = new Set();
+  let idx = 0;
+  for(const t of fullRecentTracks){
+    if(seen.has(t.name)) continue;
+    seen.add(t.name);
+    const parentNode = nodes.find(n=>n.name===t.artist);
+    if(!parentNode) continue;
+    // Orbit angle around parent
+    const angle = (idx/20)*Math.PI*2 + parentNode.phase;
+    const orbitR = parentNode.r + 14 + (idx%4)*4;
+    trackNodes.push({
+      name: t.name,
+      artist: t.artist,
+      nowPlaying: t.nowPlaying,
+      color: parentNode.color,
+      x: parentNode.x + Math.cos(angle)*orbitR,
+      y: parentNode.y + Math.sin(angle)*orbitR,
+      r: t.nowPlaying ? 4.5 : 2.8,
+      angle, orbitR,
+      parentId: parentNode.id,
+      alpha: 0,
+      phase: Math.random()*Math.PI*2
+    });
+    idx++;
+    if(idx>=25) break;
+  }
+}
+
+function toggleTracks(){
+  showTracks = !showTracks;
+  const btn = document.getElementById('trackToggle');
+  btn.textContent = showTracks ? '♪ Hide tracks' : '♪ Show tracks';
+  btn.classList.toggle('active', showTracks);
+  if(showTracks && trackNodes.length===0) buildTrackNodes();
+}
 
 function buildTimelapse(artists, tagMap){
   // Generate 12 month snapshots — simulate listening evolution
@@ -858,7 +1224,12 @@ function setStatus(msg,type=''){
 }
 
 function hexToRgb(hex){
+  if(!hex||!hex.startsWith('#')) return '128,128,128';
+  // Expand 3-char shorthand (#888 -> #888888)
+  if(hex.length===4) hex='#'+hex[1]+hex[1]+hex[2]+hex[2]+hex[3]+hex[3];
+  if(hex.length!==7) return '128,128,128';
   const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);
+  if(isNaN(r)||isNaN(g)||isNaN(b)) return '128,128,128';
   return `${r},${g},${b}`;
 }
 </script>
