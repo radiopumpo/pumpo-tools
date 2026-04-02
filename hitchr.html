@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>Hitchr | Pumpo Tools</title>
+  <link rel="icon" type="image/png" href="https://radiopumpo.github.io/radiopumpologo.png">
+  <link href="https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Space+Mono:wght@400;700&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:#0e0a08; --bg2:#171210; --bg3:#211a16;
+      --amber:#e8a050; --amber2:#c47830;
+      --cream:#f0e8d8; --muted:#7a6a5a; --dim:#2e2420;
+      --border:rgba(232,160,80,0.12); --border2:rgba(232,160,80,0.22);
+      --red:#e05040; --green:#60b878;
+      --mono:'Space Mono',monospace; --sans:'Rajdhani',sans-serif; --display:'Black Ops One',cursive;
+      --user-bubble:#1e1612; --ai-bubble:#1a1410;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    html,body{height:100%;-webkit-text-size-adjust:100%;}
+    body{font-family:var(--sans);background:var(--bg);color:var(--cream);overflow:hidden;-webkit-tap-highlight-color:transparent;}
+    body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.018) 2px,rgba(0,0,0,0.018) 4px);pointer-events:none;z-index:9999;}
+
+    /* ── NAV ── */
+    .top-nav{position:fixed;top:0;left:0;right:0;z-index:500;display:flex;justify-content:space-between;align-items:center;padding:10px 16px;padding-top:max(10px,env(safe-area-inset-top));background:rgba(14,10,8,0.96);backdrop-filter:blur(14px);border-bottom:1px solid var(--border);}
+    .nav-brand{font-family:var(--display);font-size:.9rem;color:var(--amber);letter-spacing:2px;text-decoration:none;}
+    .nav-right{display:flex;gap:8px;align-items:center;}
+    .nav-link{color:var(--muted);text-decoration:none;font-weight:700;font-size:.62rem;border:1px solid rgba(232,160,80,0.2);padding:4px 10px;border-radius:20px;font-family:var(--mono);transition:.2s;}
+    .nav-link:hover{border-color:var(--amber);color:var(--amber);}
+    .model-toggle{display:flex;background:var(--bg3);border-radius:20px;overflow:hidden;border:1px solid var(--border);}
+    .model-btn{font-family:var(--mono);font-size:7px;letter-spacing:.08em;padding:4px 9px;cursor:pointer;border:none;background:transparent;color:var(--muted);transition:.2s;text-transform:uppercase;white-space:nowrap;}
+    .model-btn.active{background:var(--amber2);color:#fff;}
+
+    /* ── LAYOUT ── */
+    .app{position:fixed;inset:0;display:flex;flex-direction:column;}
+    .nav-spacer{flex-shrink:0;height:52px;}
+
+    /* ── INTRO PANEL ── */
+    .intro-panel{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2rem 1.5rem;text-align:center;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+    .intro-icon{font-size:48px;margin-bottom:1rem;line-height:1;}
+    .intro-title{font-family:var(--display);font-size:clamp(28px,6vw,46px);color:var(--amber);letter-spacing:2px;margin-bottom:.5rem;}
+    .intro-sub{font-family:var(--mono);font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);margin-bottom:1.5rem;}
+    .intro-body{font-size:14px;color:var(--cream);font-weight:600;line-height:1.75;max-width:480px;margin-bottom:2rem;}
+    .intro-body strong{color:var(--amber);}
+    .intro-disclaimer{font-size:11px;color:var(--muted);font-weight:600;line-height:1.6;max-width:420px;margin-bottom:2rem;border:1px solid var(--border);border-radius:10px;padding:.75rem 1rem;}
+
+    /* ── KEY SETUP ── */
+    .key-setup{width:100%;max-width:440px;background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:1rem;margin-bottom:1.5rem;}
+    .key-label{font-family:var(--mono);font-size:8px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin-bottom:.6rem;display:flex;justify-content:space-between;align-items:center;}
+    .key-label a{color:var(--amber);text-decoration:none;font-size:8px;}
+    .key-row{display:flex;gap:8px;}
+    .key-input{flex:1;min-width:0;background:var(--bg2);border:1px solid var(--border);color:var(--cream);font-family:var(--mono);font-size:11px;padding:.45rem .8rem;border-radius:7px;outline:none;transition:border-color .15s;}
+    .key-input:focus{border-color:var(--amber);}
+    .key-input::placeholder{color:var(--dim);}
+    .key-status{font-family:var(--mono);font-size:9px;margin-top:.4rem;display:none;}
+    .key-status.ok{color:var(--green);display:block;}
+
+    .start-btn{background:var(--amber);color:#0e0a08;border:none;padding:.9rem 2.5rem;font-family:var(--display);font-size:15px;letter-spacing:1px;border-radius:10px;cursor:pointer;transition:all .2s;box-shadow:0 4px 20px rgba(232,160,80,0.25);}
+    .start-btn:hover{background:var(--amber2);color:#fff;transform:translateY(-2px);}
+    .start-btn:disabled{opacity:.3;cursor:not-allowed;transform:none;}
+
+    /* ── CHAT ── */
+    .chat-wrap{flex:1;display:none;flex-direction:column;min-height:0;}
+    .chat-wrap.visible{display:flex;}
+
+    .messages{flex:1;overflow-y:auto;padding:1rem;display:flex;flex-direction:column;gap:14px;-webkit-overflow-scrolling:touch;}
+    .messages::-webkit-scrollbar{width:3px;}
+    .messages::-webkit-scrollbar-track{background:transparent;}
+    .messages::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
+
+    /* Message bubbles */
+    .msg{display:flex;gap:10px;max-width:82%;}
+    .msg.user{align-self:flex-end;flex-direction:row-reverse;}
+    .msg.ai{align-self:flex-start;}
+    .msg.system{align-self:center;max-width:90%;}
+
+    .avatar{width:30px;height:30px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:14px;margin-top:2px;}
+    .avatar.ai-av{background:var(--amber2);color:#fff;font-family:var(--display);font-size:10px;letter-spacing:.5px;}
+    .avatar.user-av{background:var(--bg3);border:1px solid var(--border2);font-size:13px;}
+
+    .bubble{padding:.7rem .95rem;border-radius:14px;font-size:14px;line-height:1.7;font-weight:600;}
+    .msg.user .bubble{background:var(--user-bubble);border:1px solid var(--border);color:var(--cream);border-bottom-right-radius:4px;}
+    .msg.ai .bubble{background:var(--ai-bubble);border:1px solid var(--border2);color:var(--cream);border-bottom-left-radius:4px;}
+    .msg.system .bubble{background:transparent;border:1px solid var(--border);color:var(--muted);font-size:11px;font-family:var(--mono);letter-spacing:.05em;text-align:center;border-radius:10px;padding:.5rem .9rem;}
+
+    /* Typing indicator */
+    .typing-dots{display:flex;gap:4px;align-items:center;padding:.5rem 0;}
+    .typing-dots span{width:6px;height:6px;border-radius:50%;background:var(--amber);opacity:.4;animation:typingBounce .9s ease-in-out infinite;}
+    .typing-dots span:nth-child(2){animation-delay:.15s;}
+    .typing-dots span:nth-child(3){animation-delay:.3s;}
+    @keyframes typingBounce{0%,60%,100%{transform:translateY(0);opacity:.4}30%{transform:translateY(-5px);opacity:.9}}
+
+    /* ── INPUT BAR ── */
+    .input-bar{flex-shrink:0;padding:.75rem 1rem;padding-bottom:max(.75rem,env(safe-area-inset-bottom));background:rgba(14,10,8,0.96);backdrop-filter:blur(14px);border-top:1px solid var(--border);}
+    .input-row{display:flex;gap:8px;max-width:760px;margin:0 auto;}
+    .msg-input{flex:1;min-width:0;background:var(--bg3);border:1px solid var(--border2);color:var(--cream);font-family:var(--sans);font-weight:600;font-size:14px;padding:.65rem 1rem;border-radius:10px;outline:none;transition:border-color .15s;resize:none;max-height:120px;min-height:42px;line-height:1.5;}
+    .msg-input:focus{border-color:var(--amber);}
+    .msg-input::placeholder{color:var(--muted);}
+    .send-btn{background:var(--amber);color:#0e0a08;border:none;width:42px;height:42px;border-radius:10px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0;align-self:flex-end;}
+    .send-btn:hover:not(:disabled){background:var(--amber2);color:#fff;}
+    .send-btn:disabled{opacity:.3;cursor:not-allowed;}
+    .clear-btn{background:transparent;border:1px solid var(--border);color:var(--muted);font-family:var(--mono);font-size:8px;letter-spacing:.1em;padding:5px 10px;border-radius:20px;cursor:pointer;transition:.2s;white-space:nowrap;align-self:flex-end;height:42px;}
+    .clear-btn:hover{border-color:var(--red);color:var(--red);}
+
+    /* ── MOOD STARTERS ── */
+    .starters{display:flex;flex-wrap:wrap;gap:6px;max-width:760px;margin:0 auto .5rem;padding:0 .1rem;}
+    .starter-btn{font-family:var(--mono);font-size:8px;letter-spacing:.08em;padding:4px 10px;border-radius:20px;border:1px solid var(--border2);background:transparent;color:var(--muted);cursor:pointer;transition:.15s;white-space:nowrap;-webkit-tap-highlight-color:transparent;}
+    .starter-btn:hover{border-color:var(--amber);color:var(--amber);}
+
+    /* ── CHAR COUNT ── */
+    .char-hint{font-family:var(--mono);font-size:8px;color:var(--muted);text-align:right;max-width:760px;margin:0 auto;padding:.2rem .1rem 0;}
+
+    /* ── SCROLLBAR HIDDEN ── */
+    .intro-panel::-webkit-scrollbar{display:none;}
+  </style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <a href="index.html" class="nav-brand">HITCHR</a>
+  <div class="nav-right">
+    <div class="model-toggle" id="modelToggle">
+      <button class="model-btn active" data-m="gemini" onclick="setModel(this,'gemini')">Gemini</button>
+      <button class="model-btn" data-m="claude" onclick="setModel(this,'claude')">Claude</button>
+    </div>
+    <a href="index.html" class="nav-link">← Tools</a>
+  </div>
+</nav>
+
+<div class="app">
+  <div class="nav-spacer"></div>
+
+  <!-- ── INTRO ── -->
+  <div class="intro-panel" id="introPanel">
+    <div class="intro-icon">🎩</div>
+    <div class="intro-title">HITCHR</div>
+    <div class="intro-sub">Relationship advice. No judgement. No BS.</div>
+    <div class="intro-body">
+      Sometimes you just need to talk to someone <strong>outside the situation</strong>. No agenda, no side-taking, no awkward conversation next week. Just honest, grounded feedback from someone who's heard it all and will tell you what you actually need to hear.
+    </div>
+    <div class="intro-disclaimer">
+      Hitchr is not a therapist, counsellor, or crisis service. It's a space for relationship conversations — dating, communication, connection, and the stuff in between. For anything involving safety, mental health, or crisis — please reach out to a professional.
+    </div>
+
+    <div class="key-setup" id="keySetup">
+      <div class="key-label">
+        <span id="keyLabel">Gemini API Key</span>
+        <a href="https://aistudio.google.com/app/apikey" target="_blank" id="keyLink">Get free key ↗</a>
+      </div>
+      <div class="key-row">
+        <input type="password" class="key-input" id="apiKeyInput" placeholder="Paste your API key..." autocomplete="off">
+        <button class="start-btn" style="padding:.45rem 1rem;font-size:11px;border-radius:7px;" onclick="saveKey()">SAVE</button>
+      </div>
+      <div class="key-status" id="keyStatus"></div>
+    </div>
+
+    <button class="start-btn" id="startBtn" onclick="startChat()" disabled>LET'S TALK →</button>
+  </div>
+
+  <!-- ── CHAT ── -->
+  <div class="chat-wrap" id="chatWrap">
+    <div class="messages" id="messages"></div>
+    <div class="starters" id="starters"></div>
+    <div class="char-hint" id="charHint"></div>
+    <div class="input-bar">
+      <div class="input-row">
+        <textarea class="msg-input" id="msgInput" placeholder="Tell me what's going on..." rows="1" onkeydown="onKey(event)" oninput="onInput(this)"></textarea>
+        <button class="send-btn" id="sendBtn" onclick="sendMessage()">↑</button>
+        <button class="clear-btn" onclick="clearChat()">↺ new</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════
+// SYSTEM PROMPT — The Hitchr Character
+// ══════════════════════════════════════════
+const SYSTEM_PROMPT = `You are Hitchr — a relationship advisor in the spirit of the legendary Hitch. You are direct, warm, occasionally funny, and always honest. You are not a therapist. You do not pretend to be one. You are the friend people wish they had — the one who tells them what they need to hear, not what they want to hear, but with genuine care underneath every word.
+
+YOUR CHARACTER:
+- Direct without being brutal. Honest without being preachy. Warm without being soft.
+- You have seen every relationship scenario. Nothing shocks you or embarrasses you.
+- You never take sides automatically — you see the full picture and say so.
+- You use plain language. No jargon. No buzzwords. No "I hear you" or "that's valid."
+- You are occasionally dry and funny, but only when it lands. Never at the person's expense.
+- You never lecture. You make your point once and trust the person to hear it.
+- You ask the one right follow-up question, not five mediocre ones.
+- You adapt to the person's energy. If they want to vent, you let them. If they want a direct answer, you give one.
+
+WHAT YOU DO:
+- Dating advice: reading signals, timing, communication, first moves, when to push, when to step back.
+- Relationship advice: communication issues, trust, patterns, what's worth fixing, what isn't.
+- Breakup and aftermath: how to process it, when to reach out, when not to.
+- Situationships, mixed signals, grey areas — your speciality.
+- The honest read on a situation when someone already knows the answer but needs to hear it said.
+
+WHAT YOU DO NOT DO:
+- You do not handle anything involving abuse, violence, or safety concerns. If those come up, you say clearly: "That's outside what I can help with — please talk to someone who can really support you," and you mean it.
+- You do not handle mental health crises, grief, addiction, or clinical issues. Same response — honest, warm, no guilt.
+- You do not give medical or legal advice.
+- You do not tell people what to do with their lives beyond relationships.
+- You do not moralize or judge lifestyle choices. That is not your business.
+
+TONE RULES:
+- Never say "I understand how you feel" — show it instead.
+- Never say "Great question" or "Certainly."
+- Never give a bulleted list of advice unless explicitly asked. Talk like a person.
+- Keep responses conversational and appropriately sized. A short question gets a short answer. A complex situation gets the space it needs.
+- End with a question only when it genuinely moves things forward. Not every response needs one.
+- If someone is clearly already out of the situation and just needs to process — let them process. Don't rush to solutions.
+
+THE FUNDAMENTAL RULE: You are not here to validate everything. You are here to help people see clearly. Sometimes that means agreeing with them. Sometimes it means gently pointing out the thing they are avoiding. Always do it with respect.`;
+
+// ══════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════
+let model = 'gemini';
+let apiKey = '';
+let history = []; // {role, content}
+let isGenerating = false;
+
+const STARTERS = [
+  "I need an outside perspective on something.",
+  "There's someone I can't stop thinking about.",
+  "I think I messed something up.",
+  "I don't know if I'm overreacting.",
+  "We had a fight and I don't know what to do.",
+  "I've been talking to someone and I can't read them.",
+  "I think it might be over but I'm not sure.",
+  "I just need to say this out loud to someone.",
+];
+
+// ══════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════
+window.onload = function(){
+  // Restore keys
+  const gk = localStorage.getItem('hitchr_gemini_key')||'';
+  const ck = localStorage.getItem('hitchr_claude_key')||'';
+  if(gk){ apiKey=gk; document.getElementById('apiKeyInput').value=gk; showKeyStatus('Key loaded.',true); enableStart(); }
+  document.getElementById('apiKeyInput').addEventListener('keydown',e=>{ if(e.key==='Enter') saveKey(); });
+
+  // Build starters
+  const starterEl = document.getElementById('starters');
+  STARTERS.forEach(s=>{
+    const btn = document.createElement('button');
+    btn.className='starter-btn';
+    btn.textContent=s;
+    btn.onclick=()=>quickStart(s);
+    starterEl.appendChild(btn);
+  });
+
+  // Auto-resize textarea
+  const ta = document.getElementById('msgInput');
+  ta.addEventListener('input',()=>autoResize(ta));
+};
+
+function autoResize(ta){
+  ta.style.height='auto';
+  ta.style.height=Math.min(ta.scrollHeight,120)+'px';
+}
+
+// ══════════════════════════════════════════
+// MODEL SWITCHING
+// ══════════════════════════════════════════
+function setModel(btn, m){
+  model = m;
+  document.querySelectorAll('.model-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  // Update key UI
+  const isGemini = m==='gemini';
+  document.getElementById('keyLabel').textContent = isGemini?'Gemini API Key':'Anthropic API Key';
+  document.getElementById('keyLink').href = isGemini
+    ?'https://aistudio.google.com/app/apikey'
+    :'https://console.anthropic.com/settings/keys';
+  document.getElementById('keyLink').textContent = 'Get key ↗';
+  const saved = isGemini
+    ? localStorage.getItem('hitchr_gemini_key')||''
+    : localStorage.getItem('hitchr_claude_key')||'';
+  document.getElementById('apiKeyInput').value = saved;
+  apiKey = saved;
+  if(saved) showKeyStatus('Key loaded.',true); else { document.getElementById('keyStatus').style.display='none'; }
+  isGemini ? enableStart() : (saved?enableStart():disableStart());
+}
+
+// ══════════════════════════════════════════
+// KEY MANAGEMENT
+// ══════════════════════════════════════════
+function saveKey(){
+  const val = document.getElementById('apiKeyInput').value.trim();
+  if(!val) return;
+  apiKey = val;
+  const storeKey = model==='gemini'?'hitchr_gemini_key':'hitchr_claude_key';
+  localStorage.setItem(storeKey, val);
+  showKeyStatus('Key saved.',true);
+  enableStart();
+}
+
+function showKeyStatus(msg,ok){
+  const el=document.getElementById('keyStatus');
+  el.textContent=msg; el.className='key-status'+(ok?' ok':''); el.style.display='block';
+}
+
+function enableStart(){ document.getElementById('startBtn').disabled=false; }
+function disableStart(){ document.getElementById('startBtn').disabled=true; }
+
+// ══════════════════════════════════════════
+// START CHAT
+// ══════════════════════════════════════════
+function startChat(){
+  if(!apiKey){ saveKey(); if(!apiKey) return; }
+  document.getElementById('introPanel').style.display='none';
+  document.getElementById('chatWrap').classList.add('visible');
+  history = [];
+  addSystemMessage("Hitchr is listening. No judgement, no audience. Just tell me what's going on.");
+  document.getElementById('msgInput').focus();
+}
+
+function quickStart(text){
+  if(!document.getElementById('chatWrap').classList.contains('visible')) startChat();
+  document.getElementById('msgInput').value=text;
+  autoResize(document.getElementById('msgInput'));
+  sendMessage();
+}
+
+// ══════════════════════════════════════════
+// MESSAGING
+// ══════════════════════════════════════════
+function onKey(e){
+  if(e.key==='Enter'&&!e.shiftKey){ e.preventDefault(); sendMessage(); }
+}
+
+function onInput(ta){
+  autoResize(ta);
+  const len=ta.value.length;
+  const hint=document.getElementById('charHint');
+  hint.textContent = len > 200 ? `${len} chars` : '';
+}
+
+async function sendMessage(){
+  const ta = document.getElementById('msgInput');
+  const text = ta.value.trim();
+  if(!text||isGenerating) return;
+  ta.value=''; autoResize(ta);
+  document.getElementById('charHint').textContent='';
+
+  // Hide starters after first message
+  document.getElementById('starters').style.display='none';
+
+  addMessage('user', text);
+  history.push({role:'user', content:text});
+
+  isGenerating=true;
+  document.getElementById('sendBtn').disabled=true;
+
+  const typingId = addTyping();
+
+  try {
+    const reply = model==='gemini'
+      ? await callGemini(history)
+      : await callClaude(history);
+
+    removeTyping(typingId);
+    addMessage('ai', reply);
+    history.push({role:'assistant', content:reply});
+  } catch(e) {
+    removeTyping(typingId);
+    addSystemMessage('Something went wrong: '+e.message+'. Check your API key and try again.');
+    console.error('[hitchr]',e);
+  }
+
+  isGenerating=false;
+  document.getElementById('sendBtn').disabled=false;
+  document.getElementById('msgInput').focus();
+}
+
+// ══════════════════════════════════════════
+// API CALLS
+// ══════════════════════════════════════════
+async function callGemini(hist){
+  // Convert history to Gemini format
+  const contents = hist.map(m=>({
+    role: m.role==='user'?'user':'model',
+    parts:[{text:m.content}]
+  }));
+
+  const body = {
+    system_instruction:{parts:[{text:SYSTEM_PROMPT}]},
+    contents,
+    generationConfig:{
+      temperature:0.85,
+      maxOutputTokens:800,
+    }
+  };
+
+  const res = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
+    {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)}
+  );
+  if(!res.ok){ const e=await res.json().catch(()=>({})); throw new Error(e?.error?.message||`HTTP ${res.status}`); }
+  const data = await res.json();
+  const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+  if(!text) throw new Error('Empty response from Gemini.');
+  return text.trim();
+}
+
+async function callClaude(hist){
+  const messages = hist.map(m=>({
+    role: m.role==='user'?'user':'assistant',
+    content: m.content
+  }));
+
+  const res = await fetch('https://api.anthropic.com/v1/messages',{
+    method:'POST',
+    headers:{
+      'Content-Type':'application/json',
+      'x-api-key':apiKey,
+      'anthropic-version':'2023-06-01'
+    },
+    body:JSON.stringify({
+      model:'claude-sonnet-4-6',
+      max_tokens:800,
+      system:SYSTEM_PROMPT,
+      messages
+    })
+  });
+  if(!res.ok){ const e=await res.json().catch(()=>({})); throw new Error(e?.error?.message||`HTTP ${res.status}`); }
+  const data = await res.json();
+  const text = data.content?.[0]?.text;
+  if(!text) throw new Error('Empty response from Claude.');
+  return text.trim();
+}
+
+// ══════════════════════════════════════════
+// DOM HELPERS
+// ══════════════════════════════════════════
+function addMessage(role, text){
+  const msgs = document.getElementById('messages');
+  const div = document.createElement('div');
+  div.className = 'msg '+role;
+
+  const avatar = document.createElement('div');
+  avatar.className = 'avatar '+(role==='ai'?'ai-av':'user-av');
+  avatar.textContent = role==='ai'?'H':'👤';
+
+  const bubble = document.createElement('div');
+  bubble.className = 'bubble';
+  // Render line breaks
+  bubble.innerHTML = escapeHtml(text).replace(/\n\n/g,'</p><p>').replace(/\n/g,'<br>');
+  if(!bubble.innerHTML.startsWith('<p>')) bubble.innerHTML='<p>'+bubble.innerHTML+'</p>';
+
+  div.appendChild(avatar);
+  div.appendChild(bubble);
+  msgs.appendChild(div);
+  scrollToBottom();
+  return div;
+}
+
+function addSystemMessage(text){
+  const msgs=document.getElementById('messages');
+  const div=document.createElement('div');
+  div.className='msg system';
+  const bubble=document.createElement('div');
+  bubble.className='bubble';
+  bubble.textContent=text;
+  div.appendChild(bubble);
+  msgs.appendChild(div);
+  scrollToBottom();
+}
+
+let typingCounter=0;
+function addTyping(){
+  const msgs=document.getElementById('messages');
+  const id='typing-'+(++typingCounter);
+  const div=document.createElement('div');
+  div.className='msg ai'; div.id=id;
+  const avatar=document.createElement('div');
+  avatar.className='avatar ai-av'; avatar.textContent='H';
+  const bubble=document.createElement('div');
+  bubble.className='bubble';
+  bubble.innerHTML='<div class="typing-dots"><span></span><span></span><span></span></div>';
+  div.appendChild(avatar); div.appendChild(bubble);
+  msgs.appendChild(div);
+  scrollToBottom();
+  return id;
+}
+
+function removeTyping(id){
+  document.getElementById(id)?.remove();
+}
+
+function scrollToBottom(){
+  const msgs=document.getElementById('messages');
+  msgs.scrollTop=msgs.scrollHeight;
+}
+
+function clearChat(){
+  history=[];
+  document.getElementById('messages').innerHTML='';
+  document.getElementById('starters').style.display='flex';
+  addSystemMessage("Fresh start. What's on your mind?");
+}
+
+function escapeHtml(s){
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+</script>
+
+<!-- PUMPO BAR — paste shared snippet here -->
+</body>
+</html>
