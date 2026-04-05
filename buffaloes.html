@@ -1,0 +1,1174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>Buffaloes — Private Herd Network</title>
+  <link rel="icon" type="image/png" href="https://radiopumpo.github.io/radiopumpologo.png">
+  <link href="https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Space+Mono:wght@400;700&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <style>
+    :root {
+      --bg:#0a0905; --bg2:#121008; --bg3:#1c1710;
+      --brown:#c47830; --brown2:#a05c18;
+      --prairie:#e8c060; --grass:#60a840;
+      --cream:#f0e8d0; --muted:#7a6a4a; --dim:#2a2010;
+      --red:#d04030; --border:rgba(196,120,48,0.15); --border2:rgba(196,120,48,0.28);
+      --mono:'Space Mono',monospace; --sans:'Rajdhani',sans-serif; --display:'Black Ops One',cursive;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    html{-webkit-text-size-adjust:100%;}
+    body{font-family:var(--sans);background:var(--bg);color:var(--cream);min-height:100vh;overflow-x:hidden;-webkit-tap-highlight-color:transparent;}
+    body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.022) 2px,rgba(0,0,0,0.022) 4px);pointer-events:none;z-index:9999;}
+
+    /* NAV */
+    .top-nav{position:fixed;top:0;left:0;right:0;z-index:500;display:flex;justify-content:space-between;align-items:center;padding:10px 16px;padding-top:max(10px,env(safe-area-inset-top));background:rgba(10,9,5,0.96);backdrop-filter:blur(14px);border-bottom:1px solid var(--border);}
+    .nav-brand{font-family:var(--display);font-size:.9rem;color:var(--brown);letter-spacing:2px;text-decoration:none;}
+    .nav-brand span{color:var(--prairie);}
+    .nav-right{display:flex;gap:8px;align-items:center;}
+    .nav-link{color:var(--muted);text-decoration:none;font-weight:700;font-size:.62rem;border:1px solid rgba(196,120,48,0.2);padding:4px 10px;border-radius:20px;font-family:var(--mono);transition:.2s;}
+    .nav-link:hover{border-color:var(--brown);color:var(--brown);}
+    .herd-badge{font-family:var(--mono);font-size:8px;letter-spacing:.1em;padding:4px 10px;border-radius:20px;border:1px solid var(--border2);color:var(--prairie);display:none;}
+
+    /* SCREENS */
+    .screen{display:none;}
+    .screen.active{display:block;}
+
+    /* ─── LANDING ─── */
+    #landingScreen{padding:80px 1.5rem 4rem;max-width:640px;margin:0 auto;}
+    .landing-hero{text-align:center;padding:2rem 0 2.5rem;}
+    .landing-buffalo{font-size:64px;line-height:1;margin-bottom:1rem;display:block;}
+    .landing-title{font-family:var(--display);font-size:clamp(32px,7vw,56px);color:var(--brown);letter-spacing:2px;line-height:1;margin-bottom:.5rem;}
+    .landing-title span{color:var(--prairie);}
+    .landing-tagline{font-family:var(--mono);font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);margin-bottom:1.5rem;}
+    .landing-manifesto{font-size:14px;color:var(--cream);font-weight:600;line-height:1.8;margin-bottom:.5rem;}
+    .manifesto-line{display:flex;align-items:flex-start;gap:10px;margin-bottom:.6rem;text-align:left;}
+    .manifesto-mark{color:var(--brown);font-family:var(--mono);font-size:11px;flex-shrink:0;margin-top:2px;}
+    .landing-anti{font-family:var(--mono);font-size:9px;letter-spacing:.1em;color:var(--muted);border-top:1px solid var(--border);padding-top:1rem;margin-top:1rem;text-align:center;line-height:1.7;}
+    .landing-anti strong{color:var(--brown);}
+
+    .action-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:2rem;}
+    @media(max-width:480px){.action-grid{grid-template-columns:1fr;}}
+    .action-card{background:var(--bg3);border:1px solid var(--border);border-radius:14px;padding:1.25rem;cursor:pointer;transition:all .2s;text-align:left;}
+    .action-card:hover{border-color:var(--brown);transform:translateY(-2px);}
+    .action-card-icon{font-size:28px;margin-bottom:.6rem;display:block;}
+    .action-card-title{font-family:var(--display);font-size:14px;color:var(--brown);letter-spacing:.5px;margin-bottom:.3rem;}
+    .action-card-desc{font-size:12px;color:var(--muted);font-weight:600;line-height:1.5;}
+
+    /* ─── MODALS (setup flows) ─── */
+    .modal-back{position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:600;display:none;align-items:flex-end;justify-content:center;}
+    .modal-back.open{display:flex;}
+    @media(min-width:600px){.modal-back{align-items:center;}}
+    .modal-sheet{background:var(--bg2);border:1px solid var(--border2);border-radius:20px 20px 0 0;padding:1.5rem 1.25rem;width:100%;max-width:540px;max-height:90vh;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+    @media(min-width:600px){.modal-sheet{border-radius:20px;margin:1rem;}}
+    .modal-title{font-family:var(--display);font-size:18px;color:var(--brown);letter-spacing:.5px;margin-bottom:.35rem;}
+    .modal-sub{font-size:12px;color:var(--muted);font-weight:600;line-height:1.6;margin-bottom:1.25rem;}
+    .form-label{font-family:var(--mono);font-size:8px;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);margin-bottom:.4rem;display:block;}
+    .form-input{width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--cream);font-family:var(--sans);font-weight:600;font-size:14px;padding:.65rem .9rem;border-radius:8px;outline:none;margin-bottom:.9rem;transition:border-color .15s;}
+    .form-input:focus{border-color:var(--brown);}
+    .form-input::placeholder{color:var(--dim);}
+    .form-textarea{min-height:80px;resize:vertical;}
+    .form-hint{font-size:10px;color:var(--muted);font-weight:600;line-height:1.5;margin-bottom:.9rem;}
+    .form-hint a{color:var(--brown);text-decoration:none;}
+    .passphrase-row{display:flex;align-items:center;gap:10px;margin-bottom:.9rem;}
+    .toggle-switch{position:relative;width:38px;height:20px;flex-shrink:0;}
+    .toggle-switch input{opacity:0;width:0;height:0;}
+    .toggle-slider{position:absolute;inset:0;background:var(--dim);border-radius:20px;cursor:pointer;transition:.2s;}
+    .toggle-slider::before{content:'';position:absolute;width:14px;height:14px;left:3px;top:3px;background:var(--muted);border-radius:50%;transition:.2s;}
+    .toggle-switch input:checked+.toggle-slider{background:var(--brown2);}
+    .toggle-switch input:checked+.toggle-slider::before{transform:translateX(18px);background:var(--prairie);}
+    .toggle-label{font-size:12px;color:var(--muted);font-weight:600;}
+
+    .btn-row{display:flex;gap:8px;margin-top:.5rem;}
+    .btn-primary{flex:1;background:var(--brown);color:#0a0905;border:none;padding:.75rem;font-family:var(--display);font-size:13px;letter-spacing:.5px;border-radius:10px;cursor:pointer;transition:.2s;}
+    .btn-primary:hover{background:var(--brown2);color:var(--cream);}
+    .btn-secondary{flex:1;background:transparent;border:1px solid var(--border2);color:var(--muted);font-family:var(--mono);font-size:9px;letter-spacing:.1em;padding:.75rem;border-radius:10px;cursor:pointer;transition:.2s;}
+    .btn-secondary:hover{border-color:var(--brown);color:var(--brown);}
+
+    /* ─── HERD SCREEN ─── */
+    #herdScreen{padding-top:52px;display:flex;flex-direction:column;min-height:100vh;}
+    .herd-header{background:var(--bg2);border-bottom:1px solid var(--border);padding:.85rem 1rem;}
+    .herd-header-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.4rem;}
+    .herd-name{font-family:var(--display);font-size:16px;color:var(--prairie);letter-spacing:1px;}
+    .herd-meta{font-family:var(--mono);font-size:8px;color:var(--muted);letter-spacing:.1em;}
+    .herd-members{display:flex;flex-wrap:wrap;gap:5px;margin-top:.4rem;}
+    .member-chip{font-family:var(--mono);font-size:8px;letter-spacing:.08em;padding:3px 8px;border-radius:20px;border:1px solid var(--border);color:var(--muted);}
+    .member-chip.me{border-color:var(--brown);color:var(--prairie);}
+    .member-chip.active{border-color:var(--grass);color:var(--grass);}
+
+    /* POSTS */
+    .posts-wrap{flex:1;overflow-y:auto;padding:.75rem 1rem;display:flex;flex-direction:column;gap:10px;max-width:720px;width:100%;margin:0 auto;-webkit-overflow-scrolling:touch;}
+    .empty-herd{text-align:center;padding:3rem 1rem;color:var(--muted);}
+    .empty-herd-icon{font-size:40px;display:block;margin-bottom:.75rem;}
+    .empty-herd-text{font-size:13px;font-weight:600;line-height:1.6;}
+
+    .post-card{background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:.85rem .95rem;}
+    .post-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.5rem;}
+    .post-author{display:flex;align-items:center;gap:7px;}
+    .author-avatar{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--display);font-size:9px;background:var(--brown2);color:var(--cream);flex-shrink:0;}
+    .author-name{font-family:var(--mono);font-size:9px;color:var(--prairie);letter-spacing:.08em;}
+    .author-you{font-size:7px;color:var(--brown);margin-left:3px;}
+    .post-time{font-family:var(--mono);font-size:7px;color:var(--muted);white-space:nowrap;}
+    .post-content{font-size:14px;font-weight:600;line-height:1.7;color:var(--cream);word-break:break-word;white-space:pre-wrap;}
+    .post-image{width:100%;border-radius:8px;margin-top:.6rem;max-height:320px;object-fit:cover;border:1px solid var(--border);}
+    .post-reactions{display:flex;flex-wrap:wrap;gap:5px;margin-top:.6rem;}
+    .reaction-btn{background:var(--bg2);border:1px solid var(--border);border-radius:20px;padding:3px 8px;font-size:12px;cursor:pointer;transition:.15s;display:flex;align-items:center;gap:4px;-webkit-tap-highlight-color:transparent;}
+    .reaction-btn:hover,.reaction-btn.reacted{border-color:var(--brown);background:rgba(196,120,48,0.08);}
+    .reaction-count{font-family:var(--mono);font-size:8px;color:var(--muted);}
+    .add-reaction-btn{background:transparent;border:1px solid var(--border);border-radius:20px;padding:3px 8px;font-size:11px;cursor:pointer;color:var(--muted);transition:.15s;}
+    .add-reaction-btn:hover{border-color:var(--brown);color:var(--brown);}
+    .post-delete{background:none;border:none;cursor:pointer;color:var(--dim);font-size:12px;padding:2px 5px;transition:.15s;margin-left:4px;}
+    .post-delete:hover{color:var(--red);}
+
+    /* EMOJI PICKER */
+    .emoji-picker{position:absolute;background:var(--bg2);border:1px solid var(--border2);border-radius:12px;padding:.5rem;display:flex;flex-wrap:wrap;gap:5px;z-index:300;box-shadow:0 8px 32px rgba(0,0,0,0.5);}
+    .emoji-opt{font-size:20px;cursor:pointer;padding:4px;border-radius:6px;transition:.1s;}
+    .emoji-opt:hover{background:var(--border);}
+
+    /* COMPOSE */
+    .compose-bar{background:var(--bg2);border-top:1px solid var(--border);padding:.75rem 1rem;padding-bottom:max(.75rem,env(safe-area-inset-bottom));max-width:720px;width:100%;margin:0 auto;}
+    .compose-row{display:flex;gap:8px;align-items:flex-end;}
+    .compose-input{flex:1;min-width:0;background:var(--bg3);border:1px solid var(--border2);color:var(--cream);font-family:var(--sans);font-weight:600;font-size:14px;padding:.6rem .85rem;border-radius:10px;outline:none;resize:none;min-height:40px;max-height:100px;transition:border-color .15s;line-height:1.5;}
+    .compose-input:focus{border-color:var(--brown);}
+    .compose-input::placeholder{color:var(--muted);}
+    .compose-actions{display:flex;gap:5px;flex-shrink:0;}
+    .compose-btn{width:38px;height:38px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;transition:.15s;}
+    .compose-btn:hover{border-color:var(--brown);color:var(--brown);}
+    .compose-send{background:var(--brown);border-color:var(--brown);color:#0a0905;}
+    .compose-send:hover{background:var(--brown2)!important;color:var(--cream)!important;}
+    .compose-send:disabled{opacity:.3;cursor:not-allowed;}
+
+    /* SYNC PANEL */
+    .sync-panel{background:var(--bg2);border:1px solid var(--border2);border-radius:12px;padding:1rem;margin-bottom:1rem;}
+    .sync-title{font-family:var(--mono);font-size:8px;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);margin-bottom:.75rem;display:flex;align-items:center;justify-content:space-between;}
+    .version-badge{font-size:8px;color:var(--prairie);background:rgba(232,192,96,0.1);padding:2px 7px;border-radius:20px;border:1px solid rgba(232,192,96,0.2);}
+    .sync-tabs{display:flex;background:var(--bg3);border-radius:8px;overflow:hidden;margin-bottom:.85rem;}
+    .sync-tab{flex:1;font-family:var(--mono);font-size:8px;letter-spacing:.08em;text-transform:uppercase;padding:7px;text-align:center;cursor:pointer;border:none;background:transparent;color:var(--muted);transition:.15s;}
+    .sync-tab.active{background:var(--brown2);color:var(--cream);}
+    .sync-content{display:none;}
+    .sync-content.active{display:block;}
+    .sync-encoded{word-break:break-all;font-family:var(--mono);font-size:9px;color:var(--muted);background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:.6rem .8rem;max-height:80px;overflow:hidden;margin-bottom:.6rem;user-select:all;}
+    .sync-btn-row{display:flex;gap:7px;flex-wrap:wrap;}
+    .sync-btn{font-family:var(--mono);font-size:8px;letter-spacing:.1em;text-transform:uppercase;padding:6px 12px;border-radius:20px;border:1px solid var(--border2);background:transparent;color:var(--muted);cursor:pointer;transition:.15s;}
+    .sync-btn:hover{border-color:var(--brown);color:var(--brown);}
+    .sync-btn.primary{background:var(--brown);border-color:var(--brown);color:#0a0905;}
+    .sync-btn.primary:hover{background:var(--brown2);color:var(--cream);}
+    .sync-btn.copied{border-color:var(--grass);color:var(--grass);}
+    #qrContainer{display:flex;justify-content:center;padding:.5rem 0;}
+    #qrContainer canvas,#qrContainer img{border-radius:8px;border:4px solid var(--cream);}
+    .import-area{width:100%;background:var(--bg);border:1px solid var(--border);color:var(--cream);font-family:var(--mono);font-size:10px;padding:.65rem .8rem;border-radius:8px;outline:none;resize:vertical;min-height:80px;margin-bottom:.6rem;transition:border-color .15s;}
+    .import-area:focus{border-color:var(--brown);}
+    .import-area::placeholder{color:var(--dim);}
+    .merge-log{font-family:var(--mono);font-size:8px;color:var(--grass);background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:.5rem .75rem;margin-top:.5rem;display:none;line-height:1.6;}
+
+    /* HERD ACTIONS (tab bar) */
+    .herd-tabs{background:var(--bg2);border-bottom:1px solid var(--border);display:flex;overflow-x:auto;scrollbar-width:none;}
+    .herd-tabs::-webkit-scrollbar{display:none;}
+    .herd-tab{font-family:var(--mono);font-size:8px;letter-spacing:.1em;text-transform:uppercase;padding:9px 14px;color:var(--muted);cursor:pointer;border:none;background:transparent;border-bottom:2px solid transparent;white-space:nowrap;transition:.15s;}
+    .herd-tab.active{color:var(--prairie);border-bottom-color:var(--prairie);}
+
+    /* TAB VIEWS */
+    .tab-view{display:none;flex:1;}
+    .tab-view.active{display:flex;flex-direction:column;flex:1;}
+    .tab-pad{padding:1rem;max-width:720px;width:100%;margin:0 auto;}
+
+    /* STATUS */
+    .status-msg{font-family:var(--mono);font-size:9px;padding:.4rem .75rem;border-radius:20px;margin-bottom:.5rem;display:none;}
+    .status-msg.ok{display:block;background:rgba(96,168,64,0.1);border:1px solid rgba(96,168,64,0.3);color:var(--grass);}
+    .status-msg.err{display:block;background:rgba(208,64,48,0.1);border:1px solid rgba(208,64,48,0.3);color:var(--red);}
+
+    /* ABOUT/SETTINGS */
+    .info-block{background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:1rem;margin-bottom:.85rem;}
+    .info-block-title{font-family:var(--mono);font-size:8px;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);margin-bottom:.5rem;}
+    .info-row{display:flex;justify-content:space-between;align-items:center;font-size:12px;font-weight:600;padding:.3rem 0;border-bottom:1px solid var(--border);}
+    .info-row:last-child{border-bottom:none;}
+    .info-key{color:var(--muted);}
+    .info-val{color:var(--cream);font-family:var(--mono);font-size:9px;}
+    .danger-zone{border-color:rgba(208,64,48,0.2);}
+    .danger-btn{font-family:var(--mono);font-size:8px;letter-spacing:.1em;padding:5px 12px;border-radius:20px;border:1px solid rgba(208,64,48,0.3);background:transparent;color:var(--red);cursor:pointer;transition:.15s;}
+    .danger-btn:hover{background:rgba(208,64,48,0.1);}
+
+    .hidden{display:none!important;}
+  </style>
+</head>
+<body>
+<nav class="top-nav">
+  <a href="index.html" class="nav-brand">🦬 BUFFALO<span>ES</span></a>
+  <div class="nav-right">
+    <div class="herd-badge" id="herdBadge">No herd</div>
+    <a href="index.html" class="nav-link">← Tools</a>
+  </div>
+</nav>
+
+<!-- ─── LANDING ─── -->
+<div id="landingScreen" class="screen active">
+  <div class="landing-hero">
+    <span class="landing-buffalo">🦬</span>
+    <div class="landing-title">BUFFALO<span>ES</span></div>
+    <div class="landing-tagline">Private. Local. Intentional.</div>
+    <div class="landing-manifesto">
+      <div class="manifesto-line"><span class="manifesto-mark">⬡</span><span>No server holds your data. Your device does.</span></div>
+      <div class="manifesto-line"><span class="manifesto-mark">⬡</span><span>No algorithm decides what you see. You do.</span></div>
+      <div class="manifesto-line"><span class="manifesto-mark">⬡</span><span>No platform profits from your connections. Nobody does.</span></div>
+      <div class="manifesto-line"><span class="manifesto-mark">⬡</span><span>Your herd syncs when you decide. Not before.</span></div>
+    </div>
+    <div class="landing-anti">
+      <strong>No accounts. No tracking. No ads. No backend.</strong><br>
+      Just you and your herd — the way it was before someone monetised friendship.
+    </div>
+  </div>
+  <div class="action-grid">
+    <div class="action-card" onclick="openModal('createModal')">
+      <span class="action-card-icon">🌾</span>
+      <div class="action-card-title">Start a Herd</div>
+      <div class="action-card-desc">Create a new private group. Share the herd code with your people.</div>
+    </div>
+    <div class="action-card" onclick="openModal('joinModal')">
+      <span class="action-card-icon">🦬</span>
+      <div class="action-card-title">Join a Herd</div>
+      <div class="action-card-desc">Got a herd code from someone? Paste it here and ride with them.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ─── HERD SCREEN ─── -->
+<div id="herdScreen" class="screen">
+  <div class="herd-header">
+    <div class="herd-header-top">
+      <div>
+        <div class="herd-name" id="herdNameDisplay">—</div>
+        <div class="herd-meta" id="herdMeta">—</div>
+      </div>
+    </div>
+    <div class="herd-members" id="herdMembers"></div>
+  </div>
+  <div class="herd-tabs">
+    <button class="herd-tab active" onclick="switchTab('feed')">🌾 Feed</button>
+    <button class="herd-tab" onclick="switchTab('sync')">⚡ Sync</button>
+    <button class="herd-tab" onclick="switchTab('about')">⬡ Herd Info</button>
+  </div>
+
+  <!-- FEED TAB -->
+  <div class="tab-view active" id="tab-feed">
+    <div class="posts-wrap" id="postsWrap"></div>
+    <div style="max-width:720px;width:100%;margin:0 auto;padding:0 1rem;">
+      <div class="status-msg" id="postStatus"></div>
+    </div>
+    <div class="compose-bar">
+      <div class="compose-row">
+        <textarea class="compose-input" id="composeInput" placeholder="What's happening in the herd..." rows="1" oninput="autoResizeCompose(this)" onkeydown="composeKey(event)"></textarea>
+        <div class="compose-actions">
+          <button class="compose-btn" title="Add image" onclick="triggerImageUpload()">📷</button>
+          <button class="compose-btn compose-send" id="sendPostBtn" onclick="submitPost()" title="Post">↑</button>
+        </div>
+      </div>
+      <input type="file" id="imageUpload" accept="image/*" style="display:none" onchange="handleImageSelect(event)">
+      <div id="imagePreviewWrap" style="margin-top:.5rem;display:none;">
+        <img id="imagePreview" style="max-height:100px;border-radius:6px;border:1px solid var(--border);">
+        <button onclick="clearImagePreview()" style="background:none;border:none;color:var(--muted);cursor:pointer;margin-left:6px;font-size:11px;">✕ remove</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SYNC TAB -->
+  <div class="tab-view" id="tab-sync">
+    <div class="tab-pad">
+      <div class="sync-panel">
+        <div class="sync-title">
+          Herd Sync <span class="version-badge" id="syncVersionBadge">v0</span>
+        </div>
+        <div class="sync-tabs">
+          <button class="sync-tab active" onclick="switchSyncTab('export')">📤 Export</button>
+          <button class="sync-tab" onclick="switchSyncTab('qr')">📱 QR Code</button>
+          <button class="sync-tab" onclick="switchSyncTab('import')">📥 Import</button>
+        </div>
+
+        <!-- EXPORT -->
+        <div class="sync-content active" id="stab-export">
+          <p style="font-size:11px;color:var(--muted);font-weight:600;margin-bottom:.6rem;line-height:1.6;">Copy this code and share it with your herd via any messaging app. They import it on their device to sync.</p>
+          <div class="sync-encoded" id="exportEncoded">—</div>
+          <div class="sync-btn-row">
+            <button class="sync-btn primary" id="copyBtn" onclick="copyExport()">Copy code</button>
+            <button class="sync-btn" onclick="downloadExport()">Download file</button>
+            <button class="sync-btn" onclick="shareExport()">Share ↗</button>
+          </div>
+        </div>
+
+        <!-- QR -->
+        <div class="sync-content" id="stab-qr">
+          <p style="font-size:11px;color:var(--muted);font-weight:600;margin-bottom:.6rem;line-height:1.6;">Show this QR code to another buffalo. They scan it to import your current herd state.</p>
+          <div id="qrContainer"></div>
+          <div class="sync-btn-row" style="margin-top:.6rem;">
+            <button class="sync-btn" onclick="downloadQR()">Save QR image</button>
+          </div>
+        </div>
+
+        <!-- IMPORT -->
+        <div class="sync-content" id="stab-import">
+          <p style="font-size:11px;color:var(--muted);font-weight:600;margin-bottom:.6rem;line-height:1.6;">Paste a herd code from another buffalo. New posts will be merged with yours. Nothing is deleted.</p>
+          <textarea class="import-area" id="importInput" placeholder="Paste herd code here..."></textarea>
+          <div class="sync-btn-row">
+            <button class="sync-btn primary" onclick="importHerd()">Merge herd</button>
+            <button class="sync-btn" onclick="document.getElementById('importInput').value=''">Clear</button>
+          </div>
+          <div class="merge-log" id="mergeLog"></div>
+        </div>
+      </div>
+
+      <!-- ENCRYPTION -->
+      <div class="sync-panel">
+        <div class="sync-title">Encryption</div>
+        <div class="passphrase-row">
+          <label class="toggle-switch">
+            <input type="checkbox" id="encryptToggle" onchange="toggleEncryption()">
+            <span class="toggle-slider"></span>
+          </label>
+          <span class="toggle-label">Encrypt herd data with a shared passphrase</span>
+        </div>
+        <div id="passphraseWrap" class="hidden">
+          <label class="form-label">Shared passphrase (all herd members must use the same)</label>
+          <input class="form-input" type="password" id="passphraseInput" placeholder="Enter shared passphrase..." style="margin-bottom:.4rem;">
+          <div class="form-hint">All members of your herd must enter the same passphrase to import encrypted data.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ABOUT TAB -->
+  <div class="tab-view" id="tab-about">
+    <div class="tab-pad">
+      <div class="info-block">
+        <div class="info-block-title">Herd Details</div>
+        <div class="info-row"><span class="info-key">Name</span><span class="info-val" id="infoName">—</span></div>
+        <div class="info-row"><span class="info-key">Herd ID</span><span class="info-val" id="infoId">—</span></div>
+        <div class="info-row"><span class="info-key">Your name</span><span class="info-val" id="infoMe">—</span></div>
+        <div class="info-row"><span class="info-key">Members seen</span><span class="info-val" id="infoMembers">—</span></div>
+        <div class="info-row"><span class="info-key">Posts</span><span class="info-val" id="infoPosts">—</span></div>
+        <div class="info-row"><span class="info-key">Version</span><span class="info-val" id="infoVersion">—</span></div>
+        <div class="info-row"><span class="info-key">Last updated</span><span class="info-val" id="infoUpdated">—</span></div>
+        <div class="info-row"><span class="info-key">Encrypted</span><span class="info-val" id="infoEncrypted">No</span></div>
+      </div>
+      <!-- Buffalo Key -->
+      <div class="info-block">
+        <div class="info-block-title">Your Buffalo Key</div>
+        <div class="info-row">
+          <span class="info-key">Fingerprint</span>
+          <span class="info-val" id="infoFingerprint">—</span>
+        </div>
+        <div class="info-row">
+          <span class="info-key" style="font-size:10px;color:var(--muted);line-height:1.5;">Your identity in this herd. Travels with you across all herds. Posts signed with your key cannot be forged.</span>
+        </div>
+      </div>
+
+      <!-- Road Ahead -->
+      <div class="info-block" style="border-color:rgba(196,120,48,0.2);">
+        <div class="info-block-title" style="color:var(--prairie);">The Road Ahead</div>
+        <div class="info-row" style="opacity:.5;cursor:default;">
+          <span class="info-key">⬡ The Watering Hole</span>
+          <span class="info-val" style="color:var(--muted);font-size:8px;">v1 · local network sync</span>
+        </div>
+        <div class="info-row" style="opacity:.5;cursor:default;">
+          <span class="info-key">⬡ The Grazing Ground</span>
+          <span class="info-val" style="color:var(--muted);font-size:8px;">v1 · optional always-on relay</span>
+        </div>
+        <div class="info-row" style="opacity:.5;cursor:default;">
+          <span class="info-key">⬡ Nose to Nose</span>
+          <span class="info-val" style="color:var(--muted);font-size:8px;">v2 · Bluetooth direct sync</span>
+        </div>
+        <div class="info-row" style="opacity:.5;cursor:default;">
+          <span class="info-key">⬡ Full chain verification</span>
+          <span class="info-val" style="color:var(--muted);font-size:8px;">v1 · tamper detection UI</span>
+        </div>
+        <div style="padding:.5rem 0 .1rem;font-family:var(--mono);font-size:7px;color:var(--muted);line-height:1.6;">
+          POC · Herd Memory, Buffalo Keys, and CRDT reactions are active now.
+        </div>
+      </div>
+
+      <div class="info-block danger-zone">
+        <div class="info-block-title">Leave / Reset</div>
+        <div class="info-row">
+          <span class="info-key" style="font-size:11px;color:var(--muted);">Leave this herd and return to landing. Your local data is cleared.</span>
+          <button class="danger-btn" onclick="leaveHerd()">Leave herd</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ─── CREATE MODAL ─── -->
+<div class="modal-back" id="createModal">
+  <div class="modal-sheet">
+    <div class="modal-title">🌾 Start a Herd</div>
+    <div class="modal-sub">Create your private group. You'll get a herd code to share with the people you want in.</div>
+    <label class="form-label">Your name in this herd</label>
+    <input class="form-input" id="createName" placeholder="How should the herd know you?" maxlength="30" autocomplete="off">
+    <label class="form-label">Herd name</label>
+    <input class="form-input" id="createHerdName" placeholder="What's this herd called?" maxlength="40" autocomplete="off">
+    <div class="passphrase-row">
+      <label class="toggle-switch">
+        <input type="checkbox" id="createEncrypt">
+        <span class="toggle-slider"></span>
+      </label>
+      <span class="toggle-label">Encrypt with a shared passphrase (recommended)</span>
+    </div>
+    <div id="createPassWrap" class="hidden">
+      <label class="form-label">Shared passphrase</label>
+      <input class="form-input" type="password" id="createPassphrase" placeholder="Choose a passphrase all members will use...">
+    </div>
+    <div class="btn-row">
+      <button class="btn-primary" onclick="createHerd()">Start the herd →</button>
+      <button class="btn-secondary" onclick="closeModal('createModal')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- ─── JOIN MODAL ─── -->
+<div class="modal-back" id="joinModal">
+  <div class="modal-sheet">
+    <div class="modal-title">🦬 Join a Herd</div>
+    <div class="modal-sub">Got a herd code? Paste it below. If the herd is encrypted you'll also need the passphrase.</div>
+    <label class="form-label">Your name in this herd</label>
+    <input class="form-input" id="joinName" placeholder="How should the herd know you?" maxlength="30" autocomplete="off">
+    <label class="form-label">Herd code</label>
+    <textarea class="form-input form-textarea" id="joinCode" placeholder="Paste the herd code here..."></textarea>
+    <div id="joinPassWrap" class="hidden">
+      <label class="form-label">Passphrase (if encrypted)</label>
+      <input class="form-input" type="password" id="joinPassphrase" placeholder="Enter the shared passphrase...">
+    </div>
+    <button class="btn-secondary" style="width:100%;margin-bottom:.5rem;font-size:9px;" onclick="detectEncryption()">🔍 Detect if encrypted</button>
+    <div class="btn-row">
+      <button class="btn-primary" onclick="joinHerd()">Join the herd →</button>
+      <button class="btn-secondary" onclick="closeModal('joinModal')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- EMOJI PICKER (floating) -->
+<div class="emoji-picker hidden" id="emojiPicker"></div>
+<script>
+// ══════════════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════════════
+let herd = null;
+let myName = '';
+let pendingImage = null;
+let encryptionPassphrase = '';
+let emojiTargetPostId = null;
+let buffaloKeys = null; // { publicKey, privateKey, fingerprint, publicKeyRaw }
+
+const EMOJIS = ['❤️','😂','🔥','👀','💪','🦬','🌾','✅','💯','🎉','😮','👎'];
+
+// ══════════════════════════════════════════════════════
+// HERD DATA STRUCTURE
+// ══════════════════════════════════════════════════════
+function newHerd(name, creatorName){
+  return {
+    herd_id: randId(),
+    name,
+    members: [creatorName],
+    posts: [],
+    version: 1,
+    last_updated: Date.now(),
+    created: Date.now()
+  };
+}
+
+function randId(){ return Math.random().toString(36).slice(2,9)+Date.now().toString(36); }
+function randPostId(){ return 'p_'+randId(); }
+
+// ── BUFFALO KEYS — ECDSA P-256 keypair ──
+async function generateBuffaloKey(){
+  const pair = await crypto.subtle.generateKey(
+    {name:'ECDSA', namedCurve:'P-256'}, true, ['sign','verify']
+  );
+  const pubRaw = await crypto.subtle.exportKey('raw', pair.publicKey);
+  const privJwk = await crypto.subtle.exportKey('jwk', pair.privateKey);
+  const pubArr = new Uint8Array(pubRaw);
+  // Fingerprint: emoji + 4 hex chars from public key
+  const fp = '🦬 '+Array.from(pubArr.slice(1,3)).map(b=>b.toString(16).padStart(2,'0')).join('');
+  return { publicKeyRaw: btoa(String.fromCharCode(...pubArr)), privateKeyJwk: privJwk, fingerprint: fp };
+}
+
+async function loadOrCreateBuffaloKey(){
+  const stored = localStorage.getItem('buffaloes_key');
+  if(stored){
+    try{
+      const k = JSON.parse(stored);
+      buffaloKeys = k;
+      return k;
+    }catch(e){}
+  }
+  const k = await generateBuffaloKey();
+  localStorage.setItem('buffaloes_key', JSON.stringify(k));
+  buffaloKeys = k;
+  return k;
+}
+
+async function signPost(content){
+  if(!buffaloKeys) return null;
+  try{
+    const privKey = await crypto.subtle.importKey(
+      'jwk', buffaloKeys.privateKeyJwk,
+      {name:'ECDSA', namedCurve:'P-256'}, false, ['sign']
+    );
+    const enc = new TextEncoder();
+    const sig = await crypto.subtle.sign(
+      {name:'ECDSA', hash:'SHA-256'}, privKey, enc.encode(content)
+    );
+    return btoa(String.fromCharCode(...new Uint8Array(sig)));
+  }catch(e){ return null; }
+}
+
+async function verifyPost(post){
+  if(!post.signature||!post.authorKey) return null; // unverified, not invalid
+  try{
+    const pubArr = Uint8Array.from(atob(post.authorKey), c=>c.charCodeAt(0));
+    const pubKey = await crypto.subtle.importKey(
+      'raw', pubArr, {name:'ECDSA', namedCurve:'P-256'}, false, ['verify']
+    );
+    const sigArr = Uint8Array.from(atob(post.signature), c=>c.charCodeAt(0));
+    const enc = new TextEncoder();
+    return await crypto.subtle.verify(
+      {name:'ECDSA', hash:'SHA-256'}, pubKey, sigArr, enc.encode(post.content)
+    );
+  }catch(e){ return false; }
+}
+
+// ── HERD MEMORY — chain hash helpers ──
+async function hashString(str){
+  const enc = new TextEncoder();
+  const buf = await crypto.subtle.digest('SHA-256', enc.encode(str));
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('').slice(0,16);
+}
+
+async function buildPostChain(author, content, prevHash){
+  const chainData = author+'|'+content+'|'+(prevHash||'genesis');
+  return await hashString(chainData);
+}
+
+function getLastPostByAuthor(author){
+  const authored = (herd.posts||[]).filter(p=>p.author===author).sort((a,b)=>a.seq-(b.seq||0));
+  return authored.length ? authored[authored.length-1] : null;
+}
+
+// ══════════════════════════════════════════════════════
+// PERSISTENCE
+// ══════════════════════════════════════════════════════
+function saveLocal(){
+  if(!herd) return;
+  localStorage.setItem('buffaloes_herd', JSON.stringify(herd));
+  localStorage.setItem('buffaloes_me', myName);
+  localStorage.setItem('buffaloes_passphrase', encryptionPassphrase);
+}
+
+function loadLocal(){
+  const h = localStorage.getItem('buffaloes_herd');
+  const me = localStorage.getItem('buffaloes_me');
+  const pp = localStorage.getItem('buffaloes_passphrase')||'';
+  if(h && me){
+    try{
+      herd = JSON.parse(h);
+      myName = me;
+      encryptionPassphrase = pp;
+      return true;
+    }catch(e){ return false; }
+  }
+  return false;
+}
+
+async function initBuffaloKeys(){
+  await loadOrCreateBuffaloKey();
+  // Show fingerprint in nav if visible
+  const fpEl = document.getElementById('infoFingerprint');
+  if(fpEl && buffaloKeys) fpEl.textContent = buffaloKeys.fingerprint;
+}
+
+// ══════════════════════════════════════════════════════
+// ENCODE / DECODE (base64 JSON — no external deps)
+// ══════════════════════════════════════════════════════
+function encodeHerd(h){
+  const json = JSON.stringify(h);
+  return btoa(unescape(encodeURIComponent(json)));
+}
+
+function decodeHerd(str){
+  const json = decodeURIComponent(escape(atob(str.trim())));
+  return JSON.parse(json);
+}
+
+// ══════════════════════════════════════════════════════
+// SIMPLE ENCRYPTION (XOR + base64, passphrase-based)
+// Good enough for casual privacy, not cryptographic
+// ══════════════════════════════════════════════════════
+async function deriveKey(passphrase){
+  const enc = new TextEncoder();
+  const keyMaterial = await crypto.subtle.importKey('raw', enc.encode(passphrase),{name:'PBKDF2'},false,['deriveKey']);
+  return crypto.subtle.deriveKey(
+    {name:'PBKDF2',salt:enc.encode('buffaloes_salt_v1'),iterations:100000,hash:'SHA-256'},
+    keyMaterial,{name:'AES-GCM',length:256},false,['encrypt','decrypt']
+  );
+}
+
+async function encryptData(data, passphrase){
+  const key = await deriveKey(passphrase);
+  const enc = new TextEncoder();
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const encrypted = await crypto.subtle.encrypt({name:'AES-GCM',iv},key,enc.encode(data));
+  const combined = new Uint8Array(iv.byteLength + encrypted.byteLength);
+  combined.set(iv); combined.set(new Uint8Array(encrypted),iv.byteLength);
+  return '🔐'+btoa(String.fromCharCode(...combined));
+}
+
+async function decryptData(data, passphrase){
+  const b64 = data.startsWith('🔐') ? data.slice(2) : data;
+  const bytes = Uint8Array.from(atob(b64),c=>c.charCodeAt(0));
+  const iv = bytes.slice(0,12);
+  const encrypted = bytes.slice(12);
+  const key = await deriveKey(passphrase);
+  const decrypted = await crypto.subtle.decrypt({name:'AES-GCM',iv},key,encrypted);
+  return new TextDecoder().decode(decrypted);
+}
+
+async function exportHerd(){
+  const json = JSON.stringify(herd);
+  if(encryptionPassphrase){
+    return await encryptData(json, encryptionPassphrase);
+  }
+  return encodeHerd(herd);
+}
+
+async function importHerdString(str, passphrase=''){
+  if(str.startsWith('🔐')){
+    const json = await decryptData(str, passphrase||encryptionPassphrase);
+    return JSON.parse(json);
+  }
+  return decodeHerd(str);
+}
+
+// ══════════════════════════════════════════════════════
+// MERGE LOGIC
+// ══════════════════════════════════════════════════════
+function mergeHerds(local, incoming){
+  const log = [];
+  // Merge posts by unique ID — incoming wins on conflict (latest timestamp)
+  const postMap = {};
+  (local.posts||[]).forEach(p=>{ postMap[p.id]=p; });
+  let newCount = 0;
+  (incoming.posts||[]).forEach(p=>{
+    if(!postMap[p.id]){ postMap[p.id]=p; newCount++; }
+    else {
+      // CRDT reaction merge — grow-only set, always conflict-free
+      const existing = postMap[p.id];
+      postMap[p.id].reactions = mergeReactions(existing.reactions, p.reactions);
+      // Keep newer content if edited
+      if(p.edited_at && (!existing.edited_at || p.edited_at > existing.edited_at)){
+        postMap[p.id].content = p.content;
+        postMap[p.id].edited_at = p.edited_at;
+      }
+    }
+  });
+  log.push(`${newCount} new post${newCount!==1?'s':''} added from incoming herd.`);
+
+  // Merge members
+  const allMembers = [...new Set([...(local.members||[]),...(incoming.members||[])])];
+  const newMembers = allMembers.filter(m=>!(local.members||[]).includes(m));
+  if(newMembers.length) log.push(`${newMembers.length} new member${newMembers.length!==1?'s':''} seen: ${newMembers.join(', ')}.`);
+
+  // Version
+  const newVersion = Math.max(local.version||1, incoming.version||1) + 1;
+
+  return {
+    ...local,
+    posts: Object.values(postMap).sort((a,b)=>a.timestamp-b.timestamp),
+    members: allMembers,
+    version: newVersion,
+    last_updated: Date.now()
+  };
+}
+
+// ══════════════════════════════════════════════════════
+// CREATE / JOIN
+// ══════════════════════════════════════════════════════
+function createHerd(){
+  const name = document.getElementById('createName').value.trim();
+  const hname = document.getElementById('createHerdName').value.trim();
+  if(!name||!hname){ alert('Please fill in both fields.'); return; }
+  const useEncrypt = document.getElementById('createEncrypt').checked;
+  const pp = useEncrypt ? document.getElementById('createPassphrase').value.trim() : '';
+  if(useEncrypt && !pp){ alert('Enter a passphrase to use encryption.'); return; }
+  myName = name;
+  encryptionPassphrase = pp;
+  herd = newHerd(hname, name);
+  saveLocal();
+  closeModal('createModal');
+  showHerd();
+}
+
+async function joinHerd(){
+  const name = document.getElementById('joinName').value.trim();
+  const code = document.getElementById('joinCode').value.trim();
+  if(!name||!code){ alert('Please fill in both fields.'); return; }
+  const pp = document.getElementById('joinPassphrase').value.trim();
+  try{
+    const imported = await importHerdString(code, pp);
+    myName = name;
+    encryptionPassphrase = pp;
+    // Add self to members if not present
+    if(!imported.members.includes(name)) imported.members.push(name);
+    imported.version = (imported.version||1)+1;
+    imported.last_updated = Date.now();
+    herd = imported;
+    saveLocal();
+    closeModal('joinModal');
+    showHerd();
+  }catch(e){
+    alert('Could not read herd code. Check the code is correct and if encrypted, that the passphrase matches.\n\n'+e.message);
+  }
+}
+
+function detectEncryption(){
+  const code = document.getElementById('joinCode').value.trim();
+  if(!code){ alert('Paste a herd code first.'); return; }
+  if(code.startsWith('🔐')){
+    document.getElementById('joinPassWrap').classList.remove('hidden');
+    alert('This herd is encrypted. Enter the shared passphrase to join.');
+  } else {
+    alert('This herd is not encrypted. No passphrase needed.');
+  }
+}
+
+// ══════════════════════════════════════════════════════
+// SHOW HERD SCREEN
+// ══════════════════════════════════════════════════════
+function showHerd(){
+  showScreen('herdScreen');
+  document.getElementById('herdBadge').textContent=herd.name;
+  document.getElementById('herdBadge').style.display='';
+  updateHerdUI();
+  renderPosts();
+  prepareExport();
+}
+
+function updateHerdUI(){
+  document.getElementById('herdNameDisplay').textContent = herd.name;
+  document.getElementById('herdMeta').textContent =
+    `ID: ${herd.herd_id} · v${herd.version} · ${herd.posts.length} post${herd.posts.length!==1?'s':''} · ${herd.members.length} member${herd.members.length!==1?'s':''}`;
+  // Members
+  const mc = document.getElementById('herdMembers');
+  mc.innerHTML = herd.members.map(m=>`<span class="member-chip ${m===myName?'me':''}">${escH(m)}${m===myName?' (you)':''}</span>`).join('');
+  // Sync version badge
+  document.getElementById('syncVersionBadge').textContent = 'v'+herd.version;
+  // About tab
+  document.getElementById('infoName').textContent = herd.name;
+  document.getElementById('infoId').textContent = herd.herd_id;
+  document.getElementById('infoMe').textContent = myName;
+  document.getElementById('infoMembers').textContent = herd.members.join(', ');
+  document.getElementById('infoPosts').textContent = herd.posts.length;
+  document.getElementById('infoVersion').textContent = herd.version;
+  document.getElementById('infoUpdated').textContent = new Date(herd.last_updated).toLocaleString();
+  document.getElementById('infoEncrypted').textContent = encryptionPassphrase ? 'Yes (AES-256)' : 'No';
+  const fpEl = document.getElementById('infoFingerprint');
+  if(fpEl) fpEl.textContent = buffaloKeys ? buffaloKeys.fingerprint : 'Generating...';
+}
+
+// ══════════════════════════════════════════════════════
+// POSTS
+// ══════════════════════════════════════════════════════
+async function submitPost(){
+  const input = document.getElementById('composeInput');
+  const content = input.value.trim();
+  if(!content && !pendingImage) return;
+  const btn = document.getElementById('sendPostBtn');
+  btn.disabled=true;
+
+  // Build chain reference
+  const lastPost = getLastPostByAuthor(myName);
+  const prevHash = lastPost ? (lastPost.chainHash||null) : null;
+  const seq = lastPost ? (lastPost.seq||0)+1 : 0;
+  const chainHash = await buildPostChain(myName, content, prevHash);
+
+  // Sign post content
+  const signature = await signPost(content);
+  const authorKey = buffaloKeys ? buffaloKeys.publicKeyRaw : null;
+
+  const post = {
+    id: randPostId(),
+    author: myName,
+    authorKey,        // public key for verification
+    fingerprint: buffaloKeys ? buffaloKeys.fingerprint : null,
+    content,
+    timestamp: Date.now(),
+    reactions: {},    // CRDT: { emoji: Set(authorFingerprints) } stored as arrays
+    image: pendingImage||null,
+    signature,        // ECDSA signature of content
+    seq,              // sequence number in author's chain
+    prevHash,         // hash of previous post by same author
+    chainHash,        // hash of this post's chain entry
+  };
+
+  herd.posts.push(post);
+  herd.version++;
+  herd.last_updated = Date.now();
+  if(!herd.members.includes(myName)) herd.members.push(myName);
+  saveLocal();
+  input.value=''; autoResizeCompose(input);
+  clearImagePreview();
+  renderPosts();
+  updateHerdUI();
+  prepareExport();
+  showStatus('postStatus','Post added to your herd chain. Share your herd code to sync.','ok');
+  btn.disabled=false;
+}
+
+function composeKey(e){
+  if(e.key==='Enter'&&!e.shiftKey){ e.preventDefault(); submitPost(); }
+}
+
+function renderPosts(){
+  const wrap = document.getElementById('postsWrap');
+  if(!herd.posts.length){
+    wrap.innerHTML=`<div class="empty-herd"><span class="empty-herd-icon">🌾</span><div class="empty-herd-text">The herd is quiet.<br>Be the first buffalo to post.</div></div>`;
+    return;
+  }
+  const sorted = [...herd.posts].sort((a,b)=>b.timestamp-a.timestamp);
+  wrap.innerHTML = sorted.map(p=>renderPost(p)).join('');
+}
+
+function renderPost(p){
+  const isMe = p.author===myName;
+  const initials = (p.author||'?').slice(0,2).toUpperCase();
+  const timeStr = formatTime(p.timestamp);
+  const reactionsHtml = renderReactions(p);
+  const imgHtml = p.image ? `<img class="post-image" src="${p.image}" alt="post image" loading="lazy">` : '';
+  const deleteBtn = isMe ? `<button class="post-delete" onclick="deletePost('${p.id}')" title="Delete">✕</button>` : '';
+  const chainBadge = p.chainHash ? `<span title="Herd Memory: chain verified" style="font-size:9px;color:var(--grass);opacity:.7;">⛓</span>` : '';
+  const sigBadge = p.signature ? `<span title="Buffalo Keys: signed post" style="font-size:9px;color:var(--prairie);opacity:.7;">🔑</span>` : '';
+  const fpDisplay = p.fingerprint ? `<span style="font-family:var(--mono);font-size:7px;color:var(--muted);">${escH(p.fingerprint)}</span>` : '';
+  return `<div class="post-card" id="post-${p.id}">
+    <div class="post-header">
+      <div class="post-author">
+        <div class="author-avatar">${escH(initials)}</div>
+        <div>
+          <span class="author-name">${escH(p.author)}${isMe?'<span class="author-you">you</span>':''}</span>
+          ${fpDisplay}
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:4px;">
+        ${chainBadge}${sigBadge}
+        <span class="post-time">${timeStr}</span>
+        ${deleteBtn}
+      </div>
+    </div>
+    ${p.content?`<div class="post-content">${escH(p.content)}</div>`:''}
+    ${imgHtml}
+    <div class="post-reactions" id="reactions-${p.id}">
+      ${reactionsHtml}
+      <button class="add-reaction-btn" onclick="openEmojiPicker(event,'${p.id}')">+</button>
+    </div>
+  </div>`;
+}
+
+function renderReactions(p){
+  if(!p.reactions||!Object.keys(p.reactions).length) return '';
+  return Object.entries(p.reactions).map(([emoji,users])=>{
+    const count = users.length;
+    const iReacted = users.includes(myName);
+    return `<button class="reaction-btn ${iReacted?'reacted':''}" onclick="toggleReaction('${p.id}','${emoji}')">${emoji}<span class="reaction-count">${count}</span></button>`;
+  }).join('');
+}
+
+// CRDT reaction model — grow-only set per emoji per post
+// reactions[emoji] = array of unique buffalo fingerprints who reacted
+// Merge is always union — reactions never conflict, never lost on sync
+function toggleReaction(postId, emoji){
+  const post = herd.posts.find(p=>p.id===postId);
+  if(!post) return;
+  if(!post.reactions) post.reactions={};
+  if(!post.reactions[emoji]) post.reactions[emoji]=[];
+  const myFp = buffaloKeys ? buffaloKeys.fingerprint : myName;
+  const idx = post.reactions[emoji].indexOf(myFp);
+  // Toggle: if already reacted remove (the one exception to grow-only — own removal)
+  if(idx>=0) post.reactions[emoji].splice(idx,1);
+  else post.reactions[emoji].push(myFp);
+  if(post.reactions[emoji].length===0) delete post.reactions[emoji];
+  herd.version++; herd.last_updated=Date.now();
+  saveLocal();
+  document.getElementById('reactions-'+postId).innerHTML =
+    renderReactions(post)+`<button class="add-reaction-btn" onclick="openEmojiPicker(event,'${postId}')">+</button>`;
+  prepareExport();
+}
+
+// CRDT merge for reactions — union of all fingerprint sets
+function mergeReactions(localR, incomingR){
+  const merged = Object.assign({}, localR||{});
+  Object.entries(incomingR||{}).forEach(([emoji,fps])=>{
+    if(!merged[emoji]) merged[emoji]=[];
+    merged[emoji] = [...new Set([...merged[emoji],...fps])];
+    if(merged[emoji].length===0) delete merged[emoji];
+  });
+  return merged;
+}
+
+function openEmojiPicker(e, postId){
+  e.stopPropagation();
+  emojiTargetPostId = postId;
+  const picker = document.getElementById('emojiPicker');
+  picker.innerHTML = EMOJIS.map(em=>`<span class="emoji-opt" onclick="pickEmoji('${em}')">${em}</span>`).join('');
+  picker.classList.remove('hidden');
+  const rect = e.target.getBoundingClientRect();
+  picker.style.left = Math.min(rect.left, window.innerWidth-180)+'px';
+  picker.style.top = (rect.top+window.scrollY-picker.offsetHeight-8)+'px';
+  picker.style.position = 'fixed';
+  picker.style.top = Math.max(60,rect.top-150)+'px';
+}
+
+function pickEmoji(emoji){
+  document.getElementById('emojiPicker').classList.add('hidden');
+  if(emojiTargetPostId) toggleReaction(emojiTargetPostId, emoji);
+  emojiTargetPostId=null;
+}
+
+document.addEventListener('click',e=>{
+  if(!e.target.closest('.emoji-picker')&&!e.target.closest('.add-reaction-btn')){
+    document.getElementById('emojiPicker').classList.add('hidden');
+    emojiTargetPostId=null;
+  }
+});
+
+function deletePost(postId){
+  if(!confirm('Delete this post from your local herd?')) return;
+  herd.posts = herd.posts.filter(p=>p.id!==postId);
+  herd.version++; herd.last_updated=Date.now();
+  saveLocal(); renderPosts(); updateHerdUI(); prepareExport();
+}
+
+// ══════════════════════════════════════════════════════
+// IMAGE HANDLING
+// ══════════════════════════════════════════════════════
+function triggerImageUpload(){ document.getElementById('imageUpload').click(); }
+
+function handleImageSelect(e){
+  const file = e.target.files[0]; if(!file) return;
+  if(file.size > 2*1024*1024){ showStatus('postStatus','Image too large (max 2MB). Try compressing it first.','err'); return; }
+  const reader = new FileReader();
+  reader.onload = ev => {
+    // Compress via canvas
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      const maxDim = 1024;
+      let {width:w, height:h} = img;
+      if(w>maxDim||h>maxDim){ const s=Math.min(maxDim/w,maxDim/h); w=Math.round(w*s); h=Math.round(h*s); }
+      canvas.width=w; canvas.height=h;
+      canvas.getContext('2d').drawImage(img,0,0,w,h);
+      pendingImage = canvas.toDataURL('image/jpeg',0.75);
+      document.getElementById('imagePreview').src = pendingImage;
+      document.getElementById('imagePreviewWrap').style.display='';
+    };
+    img.src = ev.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function clearImagePreview(){
+  pendingImage=null;
+  document.getElementById('imagePreviewWrap').style.display='none';
+  document.getElementById('imageUpload').value='';
+}
+
+// ══════════════════════════════════════════════════════
+// SYNC — EXPORT
+// ══════════════════════════════════════════════════════
+async function prepareExport(){
+  const encoded = await exportHerd();
+  document.getElementById('exportEncoded').textContent = encoded;
+  generateQR(encoded);
+}
+
+function copyExport(){
+  const encoded = document.getElementById('exportEncoded').textContent;
+  navigator.clipboard.writeText(encoded).then(()=>{
+    const btn=document.getElementById('copyBtn');
+    btn.textContent='Copied! ✓'; btn.classList.add('copied');
+    setTimeout(()=>{ btn.textContent='Copy code'; btn.classList.remove('copied'); },2500);
+  });
+}
+
+function downloadExport(){
+  const encoded = document.getElementById('exportEncoded').textContent;
+  const blob = new Blob([encoded],{type:'text/plain'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `${herd.name.replace(/\s+/g,'_')}_herd_v${herd.version}.txt`;
+  a.click();
+}
+
+function shareExport(){
+  const encoded = document.getElementById('exportEncoded').textContent;
+  const data = {title:`${herd.name} — Buffaloes herd`, text:encoded};
+  if(navigator.share) navigator.share(data).catch(()=>{});
+  else copyExport();
+}
+
+function generateQR(data){
+  const container = document.getElementById('qrContainer');
+  container.innerHTML='';
+  try{
+    new QRCode(container,{
+      text: data.length>2000 ? '(too large for QR — use copy/paste for herds with many posts)' : data,
+      width:200, height:200,
+      colorDark:'#0a0905', colorLight:'#f0e8d0',
+      correctLevel: QRCode.CorrectLevel.M
+    });
+  }catch(e){ container.innerHTML='<p style="font-family:var(--mono);font-size:9px;color:var(--muted);">QR unavailable — use copy/paste instead.</p>'; }
+}
+
+function downloadQR(){
+  const canvas = document.querySelector('#qrContainer canvas');
+  if(!canvas){ alert('No QR to download.'); return; }
+  const a=document.createElement('a');
+  a.href=canvas.toDataURL('image/png');
+  a.download=`${herd.name.replace(/\s+/g,'_')}_herd_qr.png`;
+  a.click();
+}
+
+// ══════════════════════════════════════════════════════
+// SYNC — IMPORT / MERGE
+// ══════════════════════════════════════════════════════
+async function importHerd(){
+  const code = document.getElementById('importInput').value.trim();
+  if(!code){ alert('Paste a herd code first.'); return; }
+  const pp = document.getElementById('passphraseInput').value.trim() || encryptionPassphrase;
+  try{
+    const incoming = await importHerdString(code, pp);
+    if(incoming.herd_id !== herd.herd_id){
+      if(!confirm(`This code is from a different herd ("${incoming.name || incoming.herd_id}"). Merge anyway?`)) return;
+    }
+    const log = [];
+    const before = { posts: herd.posts.length, members: herd.members.length };
+    herd = mergeHerds(herd, incoming);
+    log.push(`Posts: ${before.posts} → ${herd.posts.length}`);
+    log.push(`Members: ${before.members} → ${herd.members.length}`);
+    log.push(`Version bumped to v${herd.version}`);
+    saveLocal(); renderPosts(); updateHerdUI(); prepareExport();
+    document.getElementById('importInput').value='';
+    const logEl = document.getElementById('mergeLog');
+    logEl.textContent = '✓ Merge complete. ' + log.join(' · ');
+    logEl.style.display='block';
+    setTimeout(()=>logEl.style.display='none', 5000);
+  }catch(e){
+    alert('Could not merge: '+e.message+'\nCheck the herd code and passphrase.');
+  }
+}
+
+// ══════════════════════════════════════════════════════
+// ENCRYPTION UI
+// ══════════════════════════════════════════════════════
+function toggleEncryption(){
+  const on = document.getElementById('encryptToggle').checked;
+  document.getElementById('passphraseWrap').classList.toggle('hidden',!on);
+  if(!on){ encryptionPassphrase=''; saveLocal(); }
+  else {
+    encryptionPassphrase = document.getElementById('passphraseInput').value.trim();
+  }
+  document.getElementById('passphraseInput').oninput = ()=>{
+    encryptionPassphrase = document.getElementById('passphraseInput').value.trim();
+    saveLocal(); prepareExport();
+  };
+  prepareExport();
+}
+
+document.getElementById('createEncrypt').onchange = function(){
+  document.getElementById('createPassWrap').classList.toggle('hidden',!this.checked);
+};
+
+// ══════════════════════════════════════════════════════
+// TABS
+// ══════════════════════════════════════════════════════
+function switchTab(tab){
+  document.querySelectorAll('.herd-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tab-view').forEach(t=>t.classList.remove('active'));
+  document.querySelector(`.herd-tab[onclick="switchTab('${tab}')"]`).classList.add('active');
+  document.getElementById('tab-'+tab).classList.add('active');
+  if(tab==='sync') prepareExport();
+}
+
+function switchSyncTab(tab){
+  document.querySelectorAll('.sync-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.sync-content').forEach(t=>t.classList.remove('active'));
+  document.querySelector(`.sync-tab[onclick="switchSyncTab('${tab}')"]`).classList.add('active');
+  document.getElementById('stab-'+tab).classList.add('active');
+}
+
+// ══════════════════════════════════════════════════════
+// MODAL / SCREEN HELPERS
+// ══════════════════════════════════════════════════════
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function openModal(id){ document.getElementById(id).classList.add('open'); }
+function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.modal-back').forEach(m=>{
+  m.addEventListener('click',e=>{ if(e.target===m) m.classList.remove('open'); });
+});
+
+function leaveHerd(){
+  if(!confirm('Leave this herd? Your local data will be cleared. You can rejoin using any buffalo\'s herd code.')) return;
+  herd=null; myName=''; encryptionPassphrase='';
+  localStorage.removeItem('buffaloes_herd');
+  localStorage.removeItem('buffaloes_me');
+  localStorage.removeItem('buffaloes_passphrase');
+  document.getElementById('herdBadge').style.display='none';
+  showScreen('landingScreen');
+}
+
+// ══════════════════════════════════════════════════════
+// UTILS
+// ══════════════════════════════════════════════════════
+function autoResizeCompose(ta){
+  ta.style.height='auto';
+  ta.style.height=Math.min(ta.scrollHeight,100)+'px';
+}
+
+function formatTime(ts){
+  const d=new Date(ts), now=new Date();
+  const diff=now-d;
+  if(diff<60000) return 'just now';
+  if(diff<3600000) return Math.floor(diff/60000)+'m ago';
+  if(diff<86400000) return Math.floor(diff/3600000)+'h ago';
+  if(diff<604800000) return Math.floor(diff/86400000)+'d ago';
+  return d.toLocaleDateString();
+}
+
+function showStatus(elId,msg,type){
+  const el=document.getElementById(elId);
+  el.textContent=msg; el.className='status-msg '+type;
+  setTimeout(()=>el.className='status-msg',4000);
+}
+
+function escH(s){
+  if(typeof s!=='string') return '';
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ══════════════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════════════
+window.onload = async function(){
+  await initBuffaloKeys();
+  if(loadLocal()) showHerd();
+  // Enter key on modals
+  ['createName','createHerdName','createPassphrase'].forEach(id=>{
+    document.getElementById(id).addEventListener('keydown',e=>{ if(e.key==='Enter') createHerd(); });
+  });
+  ['joinName','joinPassphrase'].forEach(id=>{
+    document.getElementById(id).addEventListener('keydown',e=>{ if(e.key==='Enter') joinHerd(); });
+  });
+};
+</script>
+<!-- PUMPO BAR — paste shared snippet here -->
+</body>
+</html>
