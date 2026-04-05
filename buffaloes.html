@@ -190,13 +190,31 @@
     .danger-btn:hover{background:rgba(208,64,48,0.1);}
 
     .hidden{display:none!important;}
+    /* Herd switcher */
+    .herd-switcher{position:fixed;inset:0;z-index:550;background:rgba(0,0,0,0.75);display:none;align-items:flex-end;justify-content:center;}
+    .herd-switcher.open{display:flex;}
+    @media(min-width:600px){.herd-switcher{align-items:center;}}
+    .herd-switcher-sheet{background:var(--bg2);border:1px solid var(--border2);border-radius:20px 20px 0 0;padding:1.25rem;width:100%;max-width:480px;max-height:80vh;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+    @media(min-width:600px){.herd-switcher-sheet{border-radius:20px;margin:1rem;}}
+    .herd-switcher-title{font-family:var(--display);font-size:15px;color:var(--brown);letter-spacing:.5px;margin-bottom:1rem;display:flex;justify-content:space-between;align-items:center;}
+    .herd-switcher-close{background:none;border:none;color:var(--muted);font-size:16px;cursor:pointer;padding:0 4px;}
+    .herd-list-item{display:flex;align-items:center;gap:10px;padding:.65rem .75rem;border-radius:10px;cursor:pointer;border:1px solid transparent;transition:.15s;margin-bottom:5px;}
+    .herd-list-item:hover{background:var(--bg3);}
+    .herd-list-item.current{border-color:var(--border2);background:var(--bg3);}
+    .herd-list-icon{font-size:20px;flex-shrink:0;}
+    .herd-list-info{flex:1;min-width:0;}
+    .herd-list-name{font-family:var(--display);font-size:12px;color:var(--prairie);letter-spacing:.5px;}
+    .herd-list-meta{font-family:var(--mono);font-size:8px;color:var(--muted);margin-top:2px;}
+    .herd-list-del{background:none;border:none;color:var(--dim);font-size:11px;cursor:pointer;padding:3px 6px;transition:.15s;}
+    .herd-list-del:hover{color:var(--red);}
+    .herd-switcher-actions{display:flex;gap:8px;margin-top:1rem;padding-top:.75rem;border-top:1px solid var(--border);}
   </style>
 </head>
 <body>
 <nav class="top-nav">
   <a href="index.html" class="nav-brand">🦬 BUFFALO<span>ES</span></a>
   <div class="nav-right">
-    <div class="herd-badge" id="herdBadge">No herd</div>
+    <button class="herd-badge" id="herdBadge" onclick="openHerdSwitcher()" style="cursor:pointer;" title="Switch herd">No herd ▾</button>
     <a href="index.html" class="nav-link">← Tools</a>
   </div>
 </nav>
@@ -251,6 +269,16 @@
 
   <!-- FEED TAB -->
   <div class="tab-view active" id="tab-feed">
+    <!-- Share strip — always visible at top of feed -->
+    <div id="shareStrip" style="background:var(--bg2);border-bottom:1px solid var(--border);padding:.6rem 1rem;display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;max-width:720px;width:100%;margin:0 auto;">
+      <div style="font-family:var(--mono);font-size:8px;letter-spacing:.1em;color:var(--muted);">
+        HERD CODE · <span style="color:var(--prairie);" id="shareHerdName">—</span>
+      </div>
+      <div style="display:flex;gap:6px;">
+        <button onclick="quickShareHerd(this)" style="font-family:var(--mono);font-size:8px;letter-spacing:.1em;padding:5px 12px;border-radius:20px;border:1px solid var(--border2);background:transparent;color:var(--prairie);cursor:pointer;transition:.15s;">📋 Copy herd code</button>
+        <button onclick="switchTab('sync')" style="font-family:var(--mono);font-size:8px;letter-spacing:.1em;padding:5px 12px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;transition:.15s;">⚡ Sync options</button>
+      </div>
+    </div>
     <div class="posts-wrap" id="postsWrap"></div>
     <div style="max-width:720px;width:100%;margin:0 auto;padding:0 1rem;">
       <div class="status-msg" id="postStatus"></div>
@@ -392,6 +420,21 @@
           <button class="danger-btn" onclick="leaveHerd()">Leave herd</button>
         </div>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- ─── HERD SWITCHER ─── -->
+<div class="herd-switcher" id="herdSwitcher">
+  <div class="herd-switcher-sheet">
+    <div class="herd-switcher-title">
+      🦬 Your Herds
+      <button class="herd-switcher-close" onclick="closeHerdSwitcher()">✕</button>
+    </div>
+    <div id="herdSwitcherList"><!-- populated by JS --></div>
+    <div class="herd-switcher-actions">
+      <button class="btn-primary" style="font-size:11px;" onclick="closeHerdSwitcher();openModal('createModal')">+ New Herd</button>
+      <button class="btn-secondary" style="font-size:9px;" onclick="closeHerdSwitcher();openModal('joinModal')">Join Herd</button>
     </div>
   </div>
 </div>
@@ -555,31 +598,108 @@ function getLastPostByAuthor(author){
 // ══════════════════════════════════════════════════════
 // PERSISTENCE
 // ══════════════════════════════════════════════════════
+// ── MULTI-HERD STORAGE ──
+// allHerds: { [herd_id]: { herd, myName, passphrase } }
+// currentHerdId: which is active
+
 function saveLocal(){
   if(!herd) return;
-  localStorage.setItem('buffaloes_herd', JSON.stringify(herd));
-  localStorage.setItem('buffaloes_me', myName);
-  localStorage.setItem('buffaloes_passphrase', encryptionPassphrase);
+  const all = loadAllHerds();
+  all[herd.herd_id] = { herd: JSON.parse(JSON.stringify(herd)), myName, passphrase: encryptionPassphrase };
+  localStorage.setItem('buffaloes_all_herds', JSON.stringify(all));
+  localStorage.setItem('buffaloes_current_id', herd.herd_id);
+}
+
+function loadAllHerds(){
+  try{ return JSON.parse(localStorage.getItem('buffaloes_all_herds')||'{}'); }
+  catch(e){ return {}; }
 }
 
 function loadLocal(){
-  const h = localStorage.getItem('buffaloes_herd');
-  const me = localStorage.getItem('buffaloes_me');
-  const pp = localStorage.getItem('buffaloes_passphrase')||'';
-  if(h && me){
+  const all = loadAllHerds();
+  const currentId = localStorage.getItem('buffaloes_current_id');
+  // Migrate legacy single-herd storage
+  const legacyHerd = localStorage.getItem('buffaloes_herd');
+  const legacyMe = localStorage.getItem('buffaloes_me');
+  if(legacyHerd && legacyMe && !Object.keys(all).length){
     try{
-      herd = JSON.parse(h);
-      myName = me;
-      encryptionPassphrase = pp;
-      return true;
-    }catch(e){ return false; }
+      const lh = JSON.parse(legacyHerd);
+      all[lh.herd_id] = { herd:lh, myName:legacyMe, passphrase:localStorage.getItem('buffaloes_passphrase')||'' };
+      localStorage.setItem('buffaloes_all_herds', JSON.stringify(all));
+      localStorage.removeItem('buffaloes_herd');
+      localStorage.removeItem('buffaloes_me');
+    }catch(e){}
+  }
+  const id = currentId && all[currentId] ? currentId : Object.keys(all)[0];
+  if(id && all[id]){
+    herd = all[id].herd;
+    myName = all[id].myName;
+    encryptionPassphrase = all[id].passphrase||'';
+    return true;
   }
   return false;
 }
 
+function switchToHerd(herdId){
+  const all = loadAllHerds();
+  if(!all[herdId]) return;
+  herd = all[herdId].herd;
+  myName = all[herdId].myName;
+  encryptionPassphrase = all[herdId].passphrase||'';
+  localStorage.setItem('buffaloes_current_id', herdId);
+  closeHerdSwitcher();
+  showHerd();
+}
+
+function deleteHerdFromStorage(herdId, e){
+  e.stopPropagation();
+  if(!confirm('Remove this herd from your device?')) return;
+  const all = loadAllHerds();
+  delete all[herdId];
+  localStorage.setItem('buffaloes_all_herds', JSON.stringify(all));
+  if(herd && herd.herd_id===herdId){
+    const remaining = Object.keys(all);
+    if(remaining.length){
+      switchToHerd(remaining[0]);
+    } else {
+      herd=null; myName=''; encryptionPassphrase='';
+      localStorage.removeItem('buffaloes_current_id');
+      document.getElementById('herdBadge').style.display='none';
+      showScreen('landingScreen');
+    }
+  }
+  openHerdSwitcher();
+}
+
+function openHerdSwitcher(){
+  const all = loadAllHerds();
+  const list = document.getElementById('herdSwitcherList');
+  const ids = Object.keys(all);
+  if(!ids.length){ list.innerHTML='<div style="font-family:var(--mono);font-size:9px;color:var(--muted);padding:.5rem 0;">No herds yet.</div>'; }
+  else {
+    list.innerHTML = ids.map(id=>{
+      const entry = all[id];
+      const h = entry.herd;
+      const isCurrent = herd && herd.herd_id===id;
+      return `<div class="herd-list-item ${isCurrent?'current':''}" onclick="switchToHerd('${id}')">
+        <span class="herd-list-icon">🦬</span>
+        <div class="herd-list-info">
+          <div class="herd-list-name">${escH(h.name)}</div>
+          <div class="herd-list-meta">${h.members.length} member${h.members.length!==1?'s':''} · ${h.posts.length} post${h.posts.length!==1?'s':''} · as ${escH(entry.myName)}${isCurrent?' · active':''}</div>
+        </div>
+        <button class="herd-list-del" onclick="deleteHerdFromStorage('${id}',event)" title="Remove">✕</button>
+      </div>`;
+    }).join('');
+  }
+  document.getElementById('herdSwitcher').classList.add('open');
+}
+
+function closeHerdSwitcher(){
+  document.getElementById('herdSwitcher').classList.remove('open');
+}
+
 async function initBuffaloKeys(){
   await loadOrCreateBuffaloKey();
-  // Show fingerprint in nav if visible
   const fpEl = document.getElementById('infoFingerprint');
   if(fpEl && buffaloKeys) fpEl.textContent = buffaloKeys.fingerprint;
 }
@@ -743,8 +863,11 @@ function detectEncryption(){
 // ══════════════════════════════════════════════════════
 function showHerd(){
   showScreen('herdScreen');
-  document.getElementById('herdBadge').textContent=herd.name;
-  document.getElementById('herdBadge').style.display='';
+  const badge = document.getElementById('herdBadge');
+  badge.textContent = herd.name+' ▾';
+  badge.style.display='';
+  const shareNameEl = document.getElementById('shareHerdName');
+  if(shareNameEl) shareNameEl.textContent = herd.name;
   updateHerdUI();
   renderPosts();
   prepareExport();
@@ -1114,15 +1237,34 @@ function closeModal(id){ document.getElementById(id).classList.remove('open'); }
 document.querySelectorAll('.modal-back').forEach(m=>{
   m.addEventListener('click',e=>{ if(e.target===m) m.classList.remove('open'); });
 });
+document.getElementById('herdSwitcher').addEventListener('click',e=>{
+  if(e.target===document.getElementById('herdSwitcher')) closeHerdSwitcher();
+});
+
+async function quickShareHerd(btn){
+  const encoded = await exportHerd();
+  navigator.clipboard.writeText(encoded).then(()=>{
+    const orig = btn.textContent;
+    btn.textContent='✓ Copied!';
+    btn.style.borderColor='var(--grass)'; btn.style.color='var(--grass)';
+    setTimeout(()=>{ btn.textContent=orig; btn.style.borderColor=''; btn.style.color=''; },2500);
+  });
+}
 
 function leaveHerd(){
-  if(!confirm('Leave this herd? Your local data will be cleared. You can rejoin using any buffalo\'s herd code.')) return;
-  herd=null; myName=''; encryptionPassphrase='';
-  localStorage.removeItem('buffaloes_herd');
-  localStorage.removeItem('buffaloes_me');
-  localStorage.removeItem('buffaloes_passphrase');
-  document.getElementById('herdBadge').style.display='none';
-  showScreen('landingScreen');
+  if(!confirm('Leave this herd? It will be removed from your device.')) return;
+  const all = loadAllHerds();
+  if(herd) delete all[herd.herd_id];
+  localStorage.setItem('buffaloes_all_herds', JSON.stringify(all));
+  const remaining = Object.keys(all);
+  if(remaining.length){
+    switchToHerd(remaining[0]);
+  } else {
+    herd=null; myName=''; encryptionPassphrase='';
+    localStorage.removeItem('buffaloes_current_id');
+    document.getElementById('herdBadge').style.display='none';
+    showScreen('landingScreen');
+  }
 }
 
 // ══════════════════════════════════════════════════════
