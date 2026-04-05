@@ -29,7 +29,8 @@
     .nav-right{display:flex;gap:8px;align-items:center;}
     .nav-link{color:var(--muted);text-decoration:none;font-weight:700;font-size:.62rem;border:1px solid rgba(196,120,48,0.2);padding:4px 10px;border-radius:20px;font-family:var(--mono);transition:.2s;}
     .nav-link:hover{border-color:var(--brown);color:var(--brown);}
-    .herd-badge{font-family:var(--mono);font-size:8px;letter-spacing:.1em;padding:4px 10px;border-radius:20px;border:1px solid var(--border2);color:var(--prairie);display:none;}
+    .herd-badge{font-family:var(--mono);font-size:8px;letter-spacing:.1em;padding:4px 10px;border-radius:20px;border:1px solid var(--border2);color:var(--prairie);display:none;background:transparent;cursor:pointer;transition:.15s;}
+    .herd-badge:hover{border-color:var(--brown);color:var(--brown);}
 
     /* SCREENS */
     .screen{display:none;}
@@ -254,10 +255,13 @@
 <div id="herdScreen" class="screen">
   <div class="herd-header">
     <div class="herd-header-top">
-      <div>
+      <div style="flex:1;min-width:0;">
         <div class="herd-name" id="herdNameDisplay">—</div>
         <div class="herd-meta" id="herdMeta">—</div>
       </div>
+      <button onclick="openHerdSwitcher()" style="font-family:var(--mono);font-size:8px;letter-spacing:.08em;padding:6px 12px;border-radius:20px;border:1px solid var(--border2);background:var(--bg3);color:var(--prairie);cursor:pointer;white-space:nowrap;flex-shrink:0;transition:.15s;" title="Switch herd or create a new one">
+        🦬 My Herds ▾
+      </button>
     </div>
     <div class="herd-members" id="herdMembers"></div>
   </div>
@@ -431,10 +435,11 @@
       🦬 Your Herds
       <button class="herd-switcher-close" onclick="closeHerdSwitcher()">✕</button>
     </div>
+    <div style="font-family:var(--mono);font-size:8px;color:var(--muted);margin-bottom:.65rem;letter-spacing:.08em;">Tap a herd to switch. Create or join more below.</div>
     <div id="herdSwitcherList"><!-- populated by JS --></div>
     <div class="herd-switcher-actions">
-      <button class="btn-primary" style="font-size:11px;" onclick="closeHerdSwitcher();openModal('createModal')">+ New Herd</button>
-      <button class="btn-secondary" style="font-size:9px;" onclick="closeHerdSwitcher();openModal('joinModal')">Join Herd</button>
+      <button class="btn-primary" style="font-size:11px;" onclick="closeHerdSwitcher();openModal('createModal')">+ Start new herd</button>
+      <button class="btn-secondary" style="font-size:9px;" onclick="closeHerdSwitcher();openModal('joinModal')">Join existing herd</button>
     </div>
   </div>
 </div>
@@ -681,13 +686,13 @@ function openHerdSwitcher(){
       const entry = all[id];
       const h = entry.herd;
       const isCurrent = herd && herd.herd_id===id;
-      return `<div class="herd-list-item ${isCurrent?'current':''}" onclick="switchToHerd('${id}')">
-        <span class="herd-list-icon">🦬</span>
+      return `<div class="herd-list-item ${isCurrent?'current':''}" onclick="${isCurrent?'':'switchToHerd('+JSON.stringify(id)+')'}">
+        <span class="herd-list-icon">${isCurrent?'🟢':'🦬'}</span>
         <div class="herd-list-info">
-          <div class="herd-list-name">${escH(h.name)}</div>
-          <div class="herd-list-meta">${h.members.length} member${h.members.length!==1?'s':''} · ${h.posts.length} post${h.posts.length!==1?'s':''} · as ${escH(entry.myName)}${isCurrent?' · active':''}</div>
+          <div class="herd-list-name">${escH(h.name)}${isCurrent?' <span style=\"font-family:var(--mono);font-size:7px;color:var(--grass);\">● active</span>':''}</div>
+          <div class="herd-list-meta">${h.members.length} member${h.members.length!==1?'s':''} · ${h.posts.length} post${h.posts.length!==1?'s':''} · you are <strong>${escH(entry.myName)}</strong></div>
         </div>
-        <button class="herd-list-del" onclick="deleteHerdFromStorage('${id}',event)" title="Remove">✕</button>
+        <button class="herd-list-del" onclick="deleteHerdFromStorage('${id}',event)" title="Remove from device">✕</button>
       </div>`;
     }).join('');
   }
@@ -865,7 +870,8 @@ function showHerd(){
   showScreen('herdScreen');
   const badge = document.getElementById('herdBadge');
   badge.textContent = herd.name+' ▾';
-  badge.style.display='';
+  badge.style.display='inline-flex';
+  badge.style.alignItems='center';
   const shareNameEl = document.getElementById('shareHerdName');
   if(shareNameEl) shareNameEl.textContent = herd.name;
   updateHerdUI();
