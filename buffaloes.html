@@ -190,6 +190,41 @@
     .danger-btn{font-family:var(--mono);font-size:8px;letter-spacing:.1em;padding:5px 12px;border-radius:20px;border:1px solid rgba(208,64,48,0.3);background:transparent;color:var(--red);cursor:pointer;transition:.15s;}
     .danger-btn:hover{background:rgba(208,64,48,0.1);}
 
+    /* Dust Signal */
+    .dust-panel{background:var(--bg2);border:1px solid rgba(232,192,96,0.2);border-radius:12px;padding:1rem;margin-bottom:1rem;}
+    .dust-header{display:flex;align-items:center;justify-content:space-between;cursor:pointer;margin-bottom:0;}
+    .dust-header.open{margin-bottom:.85rem;}
+    .dust-title{font-family:var(--mono);font-size:8px;letter-spacing:.15em;text-transform:uppercase;color:var(--prairie);display:flex;align-items:center;gap:7px;}
+    .dust-title-icon{font-size:13px;}
+    .dust-toggle{font-size:9px;color:var(--muted);transition:transform .2s;}
+    .dust-toggle.open{transform:rotate(180deg);}
+    .dust-body{display:none;}
+    .dust-body.open{display:block;}
+    .dust-desc{font-size:11px;color:var(--muted);font-weight:600;line-height:1.65;margin-bottom:.85rem;padding:.55rem .75rem;background:rgba(232,192,96,0.05);border-radius:8px;border-left:2px solid rgba(232,192,96,0.3);}
+    .dust-mode-row{display:flex;gap:6px;margin-bottom:.85rem;}
+    .dust-mode-btn{flex:1;font-family:var(--mono);font-size:8px;letter-spacing:.08em;padding:5px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;transition:.15s;text-align:center;}
+    .dust-mode-btn.active{border-color:var(--prairie);color:var(--prairie);background:rgba(232,192,96,0.08);}
+    .dust-section{margin-bottom:.85rem;}
+    .dust-section-label{font-family:var(--mono);font-size:8px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:.4rem;display:flex;justify-content:space-between;align-items:center;}
+    .dust-section-label span{color:var(--prairie);}
+    .dust-textarea{width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--cream);font-family:var(--sans);font-weight:600;font-size:13px;padding:.55rem .75rem;border-radius:8px;outline:none;resize:vertical;min-height:60px;transition:border-color .15s;line-height:1.6;}
+    .dust-textarea:focus{border-color:var(--prairie);}
+    .dust-textarea::placeholder{color:var(--dim);}
+    .dust-output{width:100%;background:var(--bg);border:1px solid var(--border);color:var(--cream);font-family:var(--sans);font-weight:600;font-size:13px;padding:.55rem .75rem;border-radius:8px;outline:none;resize:vertical;min-height:50px;line-height:1.6;cursor:text;}
+    .dust-btn-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:.5rem;}
+    .dust-btn{font-family:var(--mono);font-size:8px;letter-spacing:.1em;text-transform:uppercase;padding:5px 11px;border-radius:20px;border:1px solid var(--border2);background:transparent;color:var(--muted);cursor:pointer;transition:.15s;}
+    .dust-btn:hover{border-color:var(--prairie);color:var(--prairie);}
+    .dust-btn.primary{background:var(--prairie);border-color:var(--prairie);color:#0a0905;}
+    .dust-btn.primary:hover{background:#c8a030;}
+    .dust-stat{font-family:var(--mono);font-size:8px;color:var(--muted);margin-top:.4rem;}
+    .dust-stat .ok{color:var(--grass);}
+    .dust-stat .warn{color:var(--amber);}
+    .dust-stat .bad{color:var(--red);}
+    .platform-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:5px;margin-top:.5rem;}
+    .platform-chip{font-family:var(--mono);font-size:7px;letter-spacing:.05em;padding:3px 7px;border-radius:6px;border:1px solid var(--border);display:flex;align-items:center;gap:4px;}
+    .platform-chip.safe{border-color:rgba(96,168,64,0.3);color:var(--grass);}
+    .platform-chip.warn{border-color:rgba(255,170,0,0.3);color:var(--amber);}
+    .platform-chip.bad{border-color:rgba(226,75,74,0.3);color:var(--red);}
     .hidden{display:none!important;}
     /* Herd switcher */
     .herd-switcher{position:fixed;inset:0;z-index:550;background:rgba(0,0,0,0.75);display:none;align-items:flex-end;justify-content:center;}
@@ -362,6 +397,85 @@
           <label class="form-label">Shared passphrase (all herd members must use the same)</label>
           <input class="form-input" type="password" id="passphraseInput" placeholder="Enter shared passphrase..." style="margin-bottom:.4rem;">
           <div class="form-hint">All members of your herd must enter the same passphrase to import encrypted data.</div>
+        </div>
+      </div>
+
+      <!-- THE DUST SIGNAL -->
+      <div class="dust-panel">
+        <div class="dust-header" id="dustHeader" onclick="toggleDustPanel()">
+          <div class="dust-title">
+            <span class="dust-title-icon">💨</span>
+            The Dust Signal
+          </div>
+          <span class="dust-toggle" id="dustToggle">▼</span>
+        </div>
+        <div class="dust-body" id="dustBody">
+          <div class="dust-desc">
+            Hide your herd sync inside an ordinary message. The recipient sees normal text — the herd data travels invisibly between the words as zero-width characters. Paste the received message into Buffaloes to extract and sync automatically.
+          </div>
+
+          <!-- MODE SELECTOR -->
+          <div class="dust-section-label">Sync mode</div>
+          <div class="dust-mode-row">
+            <button class="dust-mode-btn active" id="dustModeOnboard" onclick="setDustMode('onboard')">
+              🦬 Full sync<br><span style="font-size:7px;color:var(--muted);">for new members</span>
+            </button>
+            <button class="dust-mode-btn" id="dustModeDelta" onclick="setDustMode('delta')">
+              ⚡ Update only<br><span style="font-size:7px;color:var(--muted);">since last sync</span>
+            </button>
+          </div>
+
+          <!-- ENCODE -->
+          <div class="dust-section">
+            <div class="dust-section-label">
+              Carrier message <span id="dustPayloadStat"></span>
+            </div>
+            <textarea class="dust-textarea" id="dustCarrier" placeholder="Type a normal message here. The herd data will hide inside it invisibly. Longer is better." oninput="updateDustStats()"></textarea>
+            <div class="dust-stat" id="dustSizeStat"></div>
+            <div class="dust-btn-row">
+              <button class="dust-btn primary" onclick="encodeDust()">Encode → hide in message</button>
+              <button class="dust-btn" onclick="document.getElementById('dustCarrier').value='';updateDustStats()">Clear</button>
+            </div>
+          </div>
+
+          <!-- OUTPUT -->
+          <div class="dust-section" id="dustOutputSection" style="display:none">
+            <div class="dust-section-label">Encoded message — copy and send this</div>
+            <textarea class="dust-output" id="dustOutput" readonly rows="3"></textarea>
+            <div class="dust-btn-row">
+              <button class="dust-btn primary" id="dustCopyBtn" onclick="copyDustOutput()">📋 Copy message</button>
+              <button class="dust-btn" onclick="shareViaNavigator()">Share ↗</button>
+            </div>
+            <div class="dust-stat" id="dustOutputStat"></div>
+          </div>
+
+          <!-- DECODE -->
+          <div class="dust-section">
+            <div class="dust-section-label">Received a message? Decode it here</div>
+            <textarea class="dust-textarea" id="dustDecodeInput" placeholder="Paste any message here — Buffaloes will detect and extract hidden herd data automatically." rows="2"></textarea>
+            <div class="dust-btn-row">
+              <button class="dust-btn primary" onclick="decodeDust()">Extract & import herd</button>
+              <button class="dust-btn" onclick="document.getElementById('dustDecodeInput').value=''">Clear</button>
+            </div>
+            <div class="dust-stat" id="dustDecodeStat"></div>
+          </div>
+
+          <!-- PLATFORM GUIDE -->
+          <div class="dust-section">
+            <div class="dust-section-label">Platform compatibility</div>
+            <div class="platform-grid">
+              <div class="platform-chip safe">✓ WhatsApp</div>
+              <div class="platform-chip safe">✓ iMessage</div>
+              <div class="platform-chip safe">✓ Signal</div>
+              <div class="platform-chip safe">✓ Telegram*</div>
+              <div class="platform-chip safe">✓ Slack</div>
+              <div class="platform-chip safe">✓ Email</div>
+              <div class="platform-chip warn">~ Discord</div>
+              <div class="platform-chip bad">✗ Twitter/X</div>
+              <div class="platform-chip bad">✗ SMS</div>
+            </div>
+            <div class="dust-stat" style="margin-top:.5rem;line-height:1.55;">* Telegram: use Update mode for regular syncs. Full sync may exceed standard message limits for larger herds. Paste into Saved Messages and forward if needed.</div>
+          </div>
         </div>
       </div>
     </div>
@@ -1305,6 +1419,306 @@ function escH(s){
 // ══════════════════════════════════════════════════════
 // INIT
 // ══════════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════
+// THE DUST SIGNAL — Zero-width steganography
+// Zero-width alphabet: 4 chars → 2 bits each → encode bytes
+// U+200B=00, U+200C=01, U+200D=10, U+2060=11
+// ══════════════════════════════════════════════════════
+const ZW = ['​','‌','‍','⁠'];
+const ZW_SET = new Set(ZW);
+
+// Compress JSON string using native CompressionStream (GZIP)
+async function compressString(str){
+  const enc = new TextEncoder();
+  const stream = new CompressionStream('gzip');
+  const writer = stream.writable.getWriter();
+  writer.write(enc.encode(str));
+  writer.close();
+  const chunks = [];
+  const reader = stream.readable.getReader();
+  while(true){
+    const {done,value} = await reader.read();
+    if(done) break;
+    chunks.push(value);
+  }
+  const total = chunks.reduce((a,c)=>a+c.length,0);
+  const result = new Uint8Array(total);
+  let offset = 0;
+  chunks.forEach(c=>{result.set(c,offset);offset+=c.length;});
+  return result;
+}
+
+async function decompressBytes(bytes){
+  const stream = new DecompressionStream('gzip');
+  const writer = stream.writable.getWriter();
+  writer.write(bytes);
+  writer.close();
+  const chunks = [];
+  const reader = stream.readable.getReader();
+  while(true){
+    const {done,value} = await reader.read();
+    if(done) break;
+    chunks.push(value);
+  }
+  const total = chunks.reduce((a,c)=>a+c.length,0);
+  const result = new Uint8Array(total);
+  let offset = 0;
+  chunks.forEach(c=>{result.set(c,offset);offset+=c.length;});
+  return new TextDecoder().decode(result);
+}
+
+// Encode bytes to zero-width string
+function bytesToZW(bytes){
+  let zw = '⁠​‌​'; // magic header: ⁠​‌​ (recognisable pattern)
+  for(const byte of bytes){
+    zw += ZW[(byte>>6)&3];
+    zw += ZW[(byte>>4)&3];
+    zw += ZW[(byte>>2)&3];
+    zw += ZW[byte&3];
+  }
+  zw += '⁠​‌‌'; // magic footer
+  return zw;
+}
+
+// Decode zero-width string back to bytes
+function zwToBytes(zw){
+  // Find magic header
+  const header = '⁠​‌​';
+  const footer = '⁠​‌‌';
+  const start = zw.indexOf(header);
+  const end = zw.lastIndexOf(footer);
+  if(start===-1) return null;
+  const payload = zw.slice(start+header.length, end===-1?undefined:end);
+  // Extract only zero-width chars
+  const zwOnly = [...payload].filter(c=>ZW_SET.has(c));
+  if(zwOnly.length%4!==0) return null;
+  const bytes = new Uint8Array(zwOnly.length/4);
+  for(let i=0;i<zwOnly.length;i+=4){
+    const b = (ZW.indexOf(zwOnly[i])<<6)|(ZW.indexOf(zwOnly[i+1])<<4)|(ZW.indexOf(zwOnly[i+2])<<2)|ZW.indexOf(zwOnly[i+3]);
+    bytes[i/4] = b;
+  }
+  return bytes;
+}
+
+// Detect if a string contains a Dust Signal
+function hasDustSignal(str){
+  return str.includes('⁠​‌​');
+}
+
+// Strip all zero-width characters from a string
+function stripZW(str){
+  return [...str].filter(c=>!ZW_SET.has(c)).join('');
+}
+
+// Insert zero-width payload dispersed through carrier text
+function weaveIntoCarrier(carrier, zwPayload){
+  if(!carrier.trim()) return zwPayload; // no carrier — payload only
+  // Distribute zero-width chars evenly between visible chars
+  const visible = [...carrier];
+  const zwChars = [...zwPayload];
+  const ratio = Math.max(1, Math.floor(zwChars.length/Math.max(visible.length,1)));
+  let result = '';
+  let zwIdx = 0;
+  for(let i=0;i<visible.length;i++){
+    result += visible[i];
+    // After each visible char, insert a chunk of zw chars
+    const chunk = Math.min(ratio+2, zwChars.length-zwIdx);
+    for(let j=0;j<chunk;j++) result += zwChars[zwIdx++];
+  }
+  // Append any remaining zw chars
+  while(zwIdx<zwChars.length) result += zwChars[zwIdx++];
+  return result;
+}
+
+// Build delta export — only posts newer than last sync version
+function buildDelta(){
+  if(!herd) return null;
+  const lastSync = parseInt(localStorage.getItem('dust_last_sync_'+herd.herd_id)||'0');
+  const newPosts = herd.posts.filter(p=>p.timestamp>lastSync);
+  return {
+    herd_id: herd.herd_id,
+    name: herd.name,
+    members: herd.members,
+    posts: newPosts,
+    version: herd.version,
+    last_updated: herd.last_updated,
+    delta: true,
+    delta_since: lastSync
+  };
+}
+
+function recordDeltaSync(){
+  if(!herd) return;
+  localStorage.setItem('dust_last_sync_'+herd.herd_id, Date.now().toString());
+}
+
+// ── DUST SIGNAL STATE ──
+let dustMode = 'onboard'; // 'onboard' | 'delta'
+
+function setDustMode(mode){
+  dustMode = mode;
+  document.getElementById('dustModeOnboard').classList.toggle('active', mode==='onboard');
+  document.getElementById('dustModeDelta').classList.toggle('active', mode==='delta');
+  updateDustStats();
+}
+
+function toggleDustPanel(){
+  const body = document.getElementById('dustBody');
+  const toggle = document.getElementById('dustToggle');
+  const header = document.getElementById('dustHeader');
+  const isOpen = body.classList.contains('open');
+  body.classList.toggle('open',!isOpen);
+  toggle.classList.toggle('open',!isOpen);
+  header.classList.toggle('open',!isOpen);
+  if(!isOpen) updateDustStats();
+}
+
+async function getDustPayload(){
+  if(dustMode==='delta'){
+    const delta = buildDelta();
+    if(!delta||!delta.posts.length) return null;
+    const json = JSON.stringify(delta);
+    return await compressString(json);
+  } else {
+    // Full export — with encryption if enabled
+    let json;
+    if(encryptionPassphrase){
+      // Encrypt then compress
+      const encrypted = await encryptData(JSON.stringify(herd), encryptionPassphrase);
+      json = JSON.stringify({encrypted:true, data:encrypted});
+    } else {
+      json = JSON.stringify(herd);
+    }
+    return await compressString(json);
+  }
+}
+
+async function updateDustStats(){
+  const statEl = document.getElementById('dustSizeStat');
+  const payloadEl = document.getElementById('dustPayloadStat');
+  if(!herd){ statEl.textContent='No herd loaded.'; return; }
+  try{
+    const payload = await getDustPayload();
+    if(!payload){ statEl.innerHTML='<span class="warn">Delta: no new posts since last sync. Use Full sync to onboard a new member.</span>'; payloadEl.textContent=''; return; }
+    const zwLen = payload.length*4; // 4 zw chars per byte
+    const carrier = document.getElementById('dustCarrier').value;
+    const carrierLen = [...carrier].length;
+    const ratio = carrierLen>0 ? Math.round(zwLen/carrierLen) : 0;
+    // Platform assessments
+    const total = carrierLen + zwLen;
+    let platformNote = '';
+    if(total>65000) platformNote = '<span class="bad">⚠ Exceeds WhatsApp limit. Use delta mode or split sync.</span>';
+    else if(total>4000) platformNote = '<span class="warn">~ Telegram standard messages: use Saved Messages or Update mode.</span>';
+    else platformNote = '<span class="ok">✓ Safe for WhatsApp, iMessage, Signal, Telegram.</span>';
+    const carrierRec = Math.ceil(zwLen/20);
+    const carrierOk = carrierLen>=carrierRec;
+    statEl.innerHTML = `Payload: ${payload.length} bytes compressed → ${zwLen} zero-width chars · ${platformNote}${!carrierOk?' · <span class="warn">Carrier text short — aim for ${carrierRec}+ visible chars for better concealment.</span>':''}`;
+    payloadEl.textContent = dustMode==='delta'?'(update only)':'(full herd)';
+  }catch(e){ statEl.textContent='Error: '+e.message; }
+}
+
+async function encodeDust(){
+  if(!herd){ showStatus('postStatus','No herd loaded','err'); return; }
+  const carrier = document.getElementById('dustCarrier').value;
+  try{
+    const payload = await getDustPayload();
+    if(!payload){
+      document.getElementById('dustSizeStat').innerHTML='<span class="warn">No new posts to send in delta mode. Switch to Full sync to onboard a new member.</span>';
+      return;
+    }
+    const zwPayload = bytesToZW(payload);
+    const encoded = weaveIntoCarrier(carrier, zwPayload);
+    document.getElementById('dustOutput').value = encoded;
+    document.getElementById('dustOutputSection').style.display='block';
+    const visibleOnly = stripZW(encoded);
+    document.getElementById('dustOutputStat').innerHTML =
+      `Visible to others: "${escH(visibleOnly.slice(0,60))}${visibleOnly.length>60?'…':''}" · ${[...encoded].length} total chars (${[...zwPayload].length} invisible)`;
+    if(dustMode==='delta') recordDeltaSync();
+    updateDustStats();
+  }catch(e){
+    document.getElementById('dustSizeStat').innerHTML='<span class="bad">Encode error: '+escH(e.message)+'</span>';
+    console.error('[dust encode]',e);
+  }
+}
+
+async function decodeDust(){
+  const input = document.getElementById('dustDecodeInput').value;
+  const statEl = document.getElementById('dustDecodeStat');
+  if(!input.trim()){ statEl.innerHTML='<span class="warn">Paste a message first.</span>'; return; }
+  if(!hasDustSignal(input)){ statEl.innerHTML='<span class="warn">No Dust Signal detected in this message. Make sure you copied the full message without modification.</span>'; return; }
+  try{
+    const bytes = zwToBytes(input);
+    if(!bytes){ statEl.innerHTML='<span class="bad">Could not decode — signal may be corrupted or incomplete.</span>'; return; }
+    const json = await decompressBytes(bytes);
+    let parsed = JSON.parse(json);
+    // Handle encrypted payload
+    if(parsed.encrypted && parsed.data){
+      if(!encryptionPassphrase){ statEl.innerHTML='<span class="warn">This signal is encrypted. Enable encryption and enter your herd passphrase first.</span>'; return; }
+      const decrypted = await decryptData(parsed.data, encryptionPassphrase);
+      parsed = JSON.parse(decrypted);
+    }
+    // Merge into current herd or import as new
+    if(herd && parsed.herd_id===herd.herd_id){
+      const before = {posts:herd.posts.length, members:herd.members.length};
+      herd = mergeHerds(herd, parsed);
+      saveLocal(); renderPosts(); updateHerdUI(); prepareExport();
+      const newP = herd.posts.length-before.posts;
+      const newM = herd.members.length-before.members;
+      statEl.innerHTML=`<span class="ok">✓ Merged: ${newP} new post${newP!==1?'s':''}, ${newM} new member${newM!==1?'s':''}. Herd updated to v${herd.version}.</span>`;
+    } else if(!herd){
+      statEl.innerHTML='<span class="warn">No active herd. Join or create a herd first, then decode.</span>';
+    } else {
+      // Different herd ID — offer to import as new herd
+      if(confirm(`This signal is from a different herd: "${parsed.name||parsed.herd_id}". Import it as a new herd?`)){
+        const me = prompt('Your name in this herd:','');
+        if(!me) return;
+        if(!parsed.members.includes(me)) parsed.members.push(me);
+        const all = loadAllHerds();
+        all[parsed.herd_id] = {herd:parsed, myName:me, passphrase:encryptionPassphrase};
+        localStorage.setItem('buffaloes_all_herds',JSON.stringify(all));
+        switchToHerd(parsed.herd_id);
+        statEl.innerHTML=`<span class="ok">✓ Joined new herd "${escH(parsed.name)}" from Dust Signal.</span>`;
+      }
+    }
+  }catch(e){
+    statEl.innerHTML='<span class="bad">Decode error: '+escH(e.message)+'</span>';
+    console.error('[dust decode]',e);
+  }
+}
+
+function copyDustOutput(){
+  const val = document.getElementById('dustOutput').value;
+  navigator.clipboard.writeText(val).then(()=>{
+    const btn=document.getElementById('dustCopyBtn');
+    btn.textContent='✓ Copied!'; btn.style.borderColor='var(--grass)';
+    setTimeout(()=>{btn.textContent='📋 Copy message';btn.style.borderColor='';},2500);
+  });
+}
+
+function shareViaNavigator(){
+  const val = document.getElementById('dustOutput').value;
+  if(navigator.share) navigator.share({text:val}).catch(()=>{});
+  else copyDustOutput();
+}
+
+// Auto-detect Dust Signal on paste into import field
+document.addEventListener('DOMContentLoaded',()=>{
+  const importField = document.getElementById('importInput');
+  if(importField){
+    importField.addEventListener('input',()=>{
+      if(hasDustSignal(importField.value)){
+        // Silently route to dust decoder
+        document.getElementById('dustDecodeInput').value = importField.value;
+        importField.value='';
+        // Switch to sync tab and open dust panel
+        const body=document.getElementById('dustBody');
+        if(!body.classList.contains('open')) toggleDustPanel();
+        document.getElementById('dustDecodeStat').innerHTML='<span class="warn">Dust Signal detected in paste — click Extract & import above.</span>';
+      }
+    });
+  }
+});
+
 window.onload = async function(){
   await initBuffaloKeys();
   if(loadLocal()) showHerd();
