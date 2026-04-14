@@ -55,9 +55,9 @@
 
     /* BOTTOM NAV */
     .bottom-nav{position:fixed;bottom:0;left:0;right:0;z-index:400;background:rgba(8,12,16,0.97);backdrop-filter:blur(14px);border-top:1px solid var(--border);display:flex;padding-bottom:max(8px,env(safe-area-inset-bottom));}
-    .bnav-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:.55rem .25rem .3rem;background:none;border:none;cursor:pointer;transition:.15s;-webkit-tap-highlight-color:transparent;}
-    .bnav-icon{font-size:20px;line-height:1;}
-    .bnav-label{font-family:var(--mono);font-size:7px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);}
+    .bnav-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;padding:.6rem .25rem .35rem;background:none;border:none;cursor:pointer;transition:.15s;-webkit-tap-highlight-color:transparent;}
+    .bnav-icon{font-size:24px;line-height:1;}
+    .bnav-label{font-family:var(--mono);font-size:9px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);}
     .bnav-btn.active .bnav-label{color:var(--blue);}
     .bnav-btn.active .bnav-icon{filter:drop-shadow(0 0 4px rgba(58,143,212,0.6));}
 
@@ -74,30 +74,30 @@
     .path-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1.25rem;}
     .path-card{background:var(--bg3);border:2px solid var(--border);border-radius:14px;padding:1rem .85rem;cursor:pointer;transition:all .2s;text-align:center;-webkit-tap-highlight-color:transparent;}
     .path-card:hover,.path-card.active{border-color:var(--blue);background:rgba(58,143,212,0.06);}
-    .path-icon{font-size:28px;margin-bottom:.4rem;display:block;}
-    .path-label{font-family:var(--display);font-size:11px;color:var(--blue);letter-spacing:.5px;margin-bottom:.2rem;}
-    .path-desc{font-size:10px;color:var(--muted);font-weight:600;line-height:1.4;}
+    .path-icon{font-size:36px;margin-bottom:.5rem;display:block;}
+    .path-label{font-family:var(--display);font-size:14px;color:var(--blue);letter-spacing:.5px;margin-bottom:.3rem;}
+    .path-desc{font-size:12px;color:var(--muted);font-weight:600;line-height:1.45;}
 
     /* Body diagram */
     .body-diagram-wrap{display:none;margin-bottom:1rem;}
     .body-diagram-wrap.open{display:block;}
-    .diagram-label{font-family:var(--mono);font-size:8px;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);margin-bottom:.65rem;}
+    .diagram-label{font-family:var(--sans);font-size:13px;font-weight:700;color:var(--muted);margin-bottom:.75rem;}
     .body-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
-    .body-area-btn{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:.65rem .5rem;text-align:center;cursor:pointer;transition:.15s;-webkit-tap-highlight-color:transparent;}
+    .body-area-btn{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:.85rem .5rem;text-align:center;cursor:pointer;transition:.15s;-webkit-tap-highlight-color:transparent;min-height:78px;}
     .body-area-btn:hover,.body-area-btn.active{border-color:var(--blue);background:rgba(58,143,212,0.08);}
-    .body-area-icon{font-size:22px;display:block;margin-bottom:.2rem;}
-    .body-area-name{font-size:10px;font-weight:700;color:var(--text);}
+    .body-area-icon{font-size:28px;display:block;margin-bottom:.3rem;}
+    .body-area-name{font-size:12px;font-weight:700;color:var(--text);}
 
     /* General symptoms */
     .general-wrap{display:none;margin-bottom:1rem;}
     .general-wrap.open{display:block;}
     .general-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;}
-    .general-btn{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:.75rem .65rem;display:flex;align-items:center;gap:8px;cursor:pointer;transition:.15s;-webkit-tap-highlight-color:transparent;}
+    .general-btn{background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:.9rem .75rem;display:flex;align-items:center;gap:10px;cursor:pointer;transition:.15s;-webkit-tap-highlight-color:transparent;min-height:64px;}
     .general-btn:hover,.general-btn.active{border-color:var(--teal);background:rgba(64,196,192,0.06);}
-    .general-btn-icon{font-size:22px;flex-shrink:0;}
+    .general-btn-icon{font-size:28px;flex-shrink:0;}
     .general-btn-info{flex:1;min-width:0;}
-    .general-btn-name{font-size:12px;font-weight:700;color:var(--text);}
-    .general-btn-desc{font-size:10px;color:var(--muted);font-weight:600;}
+    .general-btn-name{font-size:15px;font-weight:700;color:var(--text);}
+    .general-btn-desc{font-size:12px;color:var(--muted);font-weight:600;}
 
     /* Symptom picker */
     .symptom-picker{display:none;margin-bottom:1rem;}
@@ -105,21 +105,21 @@
     .picker-title{font-family:var(--mono);font-size:8px;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);margin-bottom:.65rem;display:flex;justify-content:space-between;align-items:center;}
     .picker-back{background:none;border:none;color:var(--blue);font-family:var(--mono);font-size:8px;cursor:pointer;padding:0;}
     .symptom-grid{display:flex;flex-wrap:wrap;gap:7px;}
-    .symptom-chip{font-family:var(--sans);font-weight:700;font-size:13px;padding:.5rem 1rem;border-radius:30px;border:1px solid var(--border2);background:var(--bg3);color:var(--text);cursor:pointer;transition:.15s;-webkit-tap-highlight-color:transparent;}
+    .symptom-chip{font-family:var(--sans);font-weight:700;font-size:15px;padding:.65rem 1.1rem;border-radius:30px;border:1px solid var(--border2);background:var(--bg3);color:var(--text);cursor:pointer;transition:.15s;-webkit-tap-highlight-color:transparent;min-height:44px;display:inline-flex;align-items:center;}
     .symptom-chip:hover,.symptom-chip.active{border-color:var(--blue);background:rgba(58,143,212,0.1);color:var(--blue);}
 
     /* Intensity + details */
     .intensity-wrap{display:none;margin-bottom:1rem;}
     .intensity-wrap.open{display:block;}
-    .intensity-label{font-family:var(--mono);font-size:8px;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);margin-bottom:.65rem;}
+    .intensity-label{font-family:var(--sans);font-size:13px;font-weight:700;color:var(--muted);margin-bottom:.75rem;}
     .intensity-scale{display:flex;gap:6px;flex-wrap:wrap;}
-    .int-btn{width:48px;height:48px;border-radius:10px;border:2px solid var(--border);background:var(--bg3);font-family:var(--display);font-size:14px;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:1px;-webkit-tap-highlight-color:transparent;}
+    .int-btn{width:52px;height:56px;border-radius:10px;border:2px solid var(--border);background:var(--bg3);font-family:var(--display);font-size:14px;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:2px;-webkit-tap-highlight-color:transparent;}
     .int-btn:hover{border-color:var(--blue);}
     .int-btn.active{border-color:var(--blue);background:rgba(58,143,212,0.15);}
     .int-btn.level-low.active{border-color:var(--green);background:rgba(64,184,112,0.15);}
     .int-btn.level-mid.active{border-color:var(--amber);background:rgba(240,168,48,0.15);}
     .int-btn.level-high.active{border-color:var(--red);background:rgba(224,80,80,0.15);}
-    .int-num{font-size:13px;font-weight:700;}
+    .int-num{font-size:14px;font-weight:700;color:var(--text);}
     .int-emoji{font-size:11px;}
     .vitals-row{display:flex;gap:8px;margin-top:.85rem;flex-wrap:wrap;}
     .vitals-field{flex:1;min-width:120px;}
@@ -128,12 +128,12 @@
     .vitals-input:focus{border-color:var(--blue);}
     .vitals-input::placeholder{color:var(--dim);}
     .notes-field{margin-top:.85rem;}
-    .notes-input{width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);font-family:var(--sans);font-weight:600;font-size:13px;padding:.55rem .75rem;border-radius:8px;outline:none;resize:none;min-height:60px;transition:border-color .15s;line-height:1.55;}
+    .notes-input{width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);font-family:var(--sans);font-weight:600;font-size:15px;padding:.65rem .85rem;border-radius:8px;outline:none;resize:none;min-height:70px;transition:border-color .15s;line-height:1.6;}
     .notes-input:focus{border-color:var(--blue);}
     .notes-input::placeholder{color:var(--muted);}
     .datetime-row{display:flex;gap:8px;margin-top:.85rem;flex-wrap:wrap;}
     .datetime-row .vitals-input{font-size:12px;}
-    .save-btn{width:100%;background:var(--blue);color:#fff;border:none;padding:.85rem;font-family:var(--display);font-size:15px;letter-spacing:.5px;border-radius:12px;cursor:pointer;transition:.2s;margin-top:1rem;display:none;}
+    .save-btn{width:100%;background:var(--blue);color:#fff;border:none;padding:1rem;font-family:var(--display);font-size:17px;letter-spacing:.5px;border-radius:12px;cursor:pointer;transition:.2s;margin-top:1rem;display:none;}
     .save-btn.show{display:block;}
     .save-btn:hover{background:var(--blue2);}
 
@@ -149,16 +149,16 @@
     .entry-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:.75rem .9rem;margin-bottom:.5rem;display:flex;gap:10px;align-items:flex-start;}
     .entry-left{flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:3px;}
     .entry-time{font-family:var(--mono);font-size:8px;color:var(--muted);}
-    .entry-sev{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:var(--display);font-size:11px;}
+    .entry-sev{width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:var(--display);font-size:14px;}
     .sev-low{background:rgba(64,184,112,0.15);color:var(--green);}
     .sev-mid{background:rgba(240,168,48,0.15);color:var(--amber);}
     .sev-high{background:rgba(224,80,80,0.15);color:var(--red);}
     .entry-body{flex:1;min-width:0;}
-    .entry-symptom{font-size:14px;font-weight:700;color:var(--text);margin-bottom:2px;}
-    .entry-area{font-family:var(--mono);font-size:8px;color:var(--muted);margin-bottom:3px;letter-spacing:.05em;}
+    .entry-symptom{font-size:16px;font-weight:700;color:var(--text);margin-bottom:3px;}
+    .entry-area{font-family:var(--mono);font-size:10px;color:var(--muted);margin-bottom:4px;letter-spacing:.04em;}
     .entry-vitals{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:3px;}
     .vital-tag{font-family:var(--mono);font-size:8px;padding:2px 6px;border-radius:6px;background:rgba(58,143,212,0.1);border:1px solid var(--border);color:var(--blue);}
-    .entry-notes{font-size:11px;color:var(--muted);font-weight:600;line-height:1.5;margin-top:3px;}
+    .entry-notes{font-size:13px;color:var(--muted);font-weight:600;line-height:1.55;margin-top:4px;}
     .entry-del{background:none;border:none;color:var(--dim);font-size:11px;cursor:pointer;padding:3px;transition:.15s;flex-shrink:0;margin-top:2px;}
     .entry-del:hover{color:var(--red);}
 
@@ -223,6 +223,17 @@
     /* STATUS */
     .status-toast{position:fixed;top:64px;left:50%;transform:translateX(-50%);z-index:600;font-family:var(--mono);font-size:9px;padding:6px 14px;border-radius:20px;background:var(--bg2);border:1px solid var(--border2);color:var(--text);pointer-events:none;opacity:0;transition:opacity .2s;white-space:nowrap;}
     .status-toast.show{opacity:1;}
+    /* Specialist tagging */
+    .specialist-wrap{margin-top:.85rem;}
+    .specialist-label{font-family:var(--sans);font-size:13px;font-weight:700;color:var(--muted);margin-bottom:.6rem;}
+    .specialist-row{display:flex;flex-wrap:wrap;gap:7px;}
+    .spec-chip{font-family:var(--sans);font-weight:700;font-size:13px;padding:.5rem 1rem;border-radius:30px;border:1px solid var(--border2);background:var(--bg3);color:var(--muted);cursor:pointer;transition:.15s;min-height:44px;display:inline-flex;align-items:center;-webkit-tap-highlight-color:transparent;}
+    .spec-chip:hover,.spec-chip.active{border-color:var(--teal);background:rgba(64,196,192,0.08);color:var(--teal);}
+    .spec-chip.none-chip{border-style:dashed;}
+    /* Timeline filter bar */
+    .tl-filter-bar{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:.85rem;}
+    .tl-filter-chip{font-family:var(--sans);font-weight:700;font-size:12px;padding:.4rem .85rem;border-radius:30px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;transition:.15s;min-height:36px;display:inline-flex;align-items:center;}
+    .tl-filter-chip.active{border-color:var(--blue);color:var(--blue);background:rgba(58,143,212,0.08);}
     .hidden{display:none!important;}
   </style>
 </head>
@@ -331,6 +342,11 @@
         </div>
       </div>
 
+      <!-- SPECIALIST TAG (optional) -->
+      <div class="specialist-wrap" id="specialistWrap">
+        <div class="specialist-label">Who is this for? <span style="font-size:11px;font-weight:600;color:var(--muted);">(optional)</span></div>
+        <div class="specialist-row" id="specialistRow"></div>
+      </div>
       <button class="save-btn show" id="saveBtn" onclick="saveEntry()">Save entry</button>
     </div>
   </div>
@@ -342,8 +358,8 @@
         <div class="tl-title">My timeline</div>
         <div class="tl-count" id="tlCount">0 entries</div>
       </div>
-      <div style="display:flex;gap:6px;flex-wrap:wrap;" id="tlFilters"></div>
     </div>
+    <div class="tl-filter-bar" id="tlFilterBar"></div>
     <div id="timelineList"></div>
   </div>
 
@@ -356,11 +372,16 @@
 
     <div class="share-card">
       <div class="share-card-title">Doctor QR code</div>
+      <div style="font-family:var(--sans);font-size:12px;font-weight:700;color:var(--muted);margin-bottom:.4rem;">Date range</div>
       <div class="filter-row" id="shareFilterRow">
         <button class="filter-btn active" data-days="0" onclick="setShareFilter(this,0)">All entries</button>
         <button class="filter-btn" data-days="7" onclick="setShareFilter(this,7)">Last 7 days</button>
         <button class="filter-btn" data-days="14" onclick="setShareFilter(this,14)">Last 14 days</button>
         <button class="filter-btn" data-days="30" onclick="setShareFilter(this,30)">Last 30 days</button>
+      </div>
+      <div style="font-family:var(--sans);font-size:12px;font-weight:700;color:var(--muted);margin-bottom:.4rem;margin-top:.5rem;">Specialist filter</div>
+      <div class="filter-row" id="shareSpecFilterRow">
+        <button class="filter-btn active" data-spec="" onclick="setShareSpecFilter(this,'')">All symptoms</button>
       </div>
       <div id="qrContainer"></div>
       <div class="share-btn-row">
@@ -490,6 +511,23 @@ const LANG_EN = {
 const LANG = LANG_EN; // active language — swap in v0.2
 
 // ════════════════════════════════════════════════
+// SPECIALIST DATA
+// ════════════════════════════════════════════════
+const SPECIALISTS = [
+  {id:'gp',       label:'GP / Family Doctor', icon:'🩺'},
+  {id:'cardio',   label:'Cardiologist',        icon:'❤️'},
+  {id:'neuro',    label:'Neurologist',         icon:'🧠'},
+  {id:'gastro',   label:'Gastroenterologist',  icon:'🫃'},
+  {id:'ortho',    label:'Orthopaedic',         icon:'🦴'},
+  {id:'pulmo',    label:'Pulmonologist',       icon:'🫁'},
+  {id:'dermato',  label:'Dermatologist',       icon:'🫧'},
+  {id:'uro',      label:'Urologist',           icon:'🚿'},
+  {id:'rheum',    label:'Rheumatologist',      icon:'💪'},
+  {id:'endo',     label:'Endocrinologist',     icon:'⚗️'},
+  {id:'other',    label:'Other',               icon:'👨‍⚕️'},
+];
+
+// ════════════════════════════════════════════════
 // SYMPTOM DATA
 // ════════════════════════════════════════════════
 const BODY_AREAS = [
@@ -533,6 +571,9 @@ let currentArea = null;
 let currentSymptom = null;
 let currentIntensity = null;
 let shareFilterDays = 0;
+let shareSpecFilter = '';
+let currentSpecialist = null; // selected specialist for current entry
+let tlSpecFilter = ''; // timeline specialist filter
 let qrInstance = null;
 
 // ════════════════════════════════════════════════
@@ -650,6 +691,57 @@ function buildIntensityScale(){
     btn.onclick=()=>selectIntensity(i);
     scale.appendChild(btn);
   }
+  buildSpecialistChips();
+}
+
+function buildSpecialistChips(){
+  const row = document.getElementById('specialistRow');
+  if(!row) return;
+  // "No tag" option
+  row.innerHTML = `<button class="spec-chip none-chip active" id="spec-none" onclick="selectSpecialist(null,this)">No specific doctor</button>` +
+    SPECIALISTS.map(s=>`<button class="spec-chip" id="spec-${s.id}" onclick="selectSpecialist('${s.id}',this)">${s.icon} ${s.label}</button>`).join('');
+}
+
+function selectSpecialist(id, btn){
+  currentSpecialist = id;
+  document.querySelectorAll('.spec-chip').forEach(c=>c.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+function buildTimelineFilterBar(){
+  const bar = document.getElementById('tlFilterBar');
+  if(!bar) return;
+  const usedSpecs = [...new Set(entries.map(e=>e.specialist).filter(Boolean))];
+  bar.innerHTML = `<button class="tl-filter-chip active" id="tlf-all" onclick="setTlSpecFilter(this,'')">All</button>` +
+    usedSpecs.map(id=>{
+      const sp = SPECIALISTS.find(s=>s.id===id)||{icon:'👨‍⚕️',label:id};
+      return `<button class="tl-filter-chip" id="tlf-${id}" onclick="setTlSpecFilter(this,'${id}')">${sp.icon} ${sp.label}</button>`;
+    }).join('');
+}
+
+function setTlSpecFilter(btn, specId){
+  tlSpecFilter = specId;
+  document.querySelectorAll('.tl-filter-chip').forEach(c=>c.classList.remove('active'));
+  btn.classList.add('active');
+  renderTimeline();
+}
+
+function buildShareSpecFilterRow(){
+  const row = document.getElementById('shareSpecFilterRow');
+  if(!row) return;
+  const usedSpecs = [...new Set(entries.map(e=>e.specialist).filter(Boolean))];
+  row.innerHTML = `<button class="filter-btn active" data-spec="" onclick="setShareSpecFilter(this,'')">All symptoms</button>` +
+    usedSpecs.map(id=>{
+      const sp = SPECIALISTS.find(s=>s.id===id)||{icon:'👨‍⚕️',label:id};
+      return `<button class="filter-btn" data-spec="${id}" onclick="setShareSpecFilter(this,'${id}')">${sp.icon} ${sp.label}</button>`;
+    }).join('');
+}
+
+function setShareSpecFilter(btn, specId){
+  shareSpecFilter = specId;
+  document.querySelectorAll('#shareSpecFilterRow .filter-btn').forEach(c=>c.classList.remove('active'));
+  btn.classList.add('active');
+  renderShareTab();
 }
 
 function setNow(){
@@ -759,6 +851,7 @@ function saveEntry(){
   const areaId=currentArea?.id;
   const vitalsConf=VITALS_FOR[areaId];
   if(vitalsConf) vitalsConf.forEach(v=>{ const el=document.getElementById('vital-'+v.id); if(el&&el.value.trim()) vitals[v.label]=el.value.trim()+' '+v.unit; });
+  const specObj = currentSpecialist ? SPECIALISTS.find(s=>s.id===currentSpecialist) : null;
   const entry={
     id:'e_'+Date.now().toString(36),
     symptom: currentSymptom,
@@ -769,7 +862,9 @@ function saveEntry(){
     notes: document.getElementById('notesInput').value.trim(),
     date: document.getElementById('entryDate').value,
     time: document.getElementById('entryTime').value,
-    timestamp: new Date(document.getElementById('entryDate').value+'T'+document.getElementById('entryTime').value).getTime()||Date.now()
+    timestamp: new Date(document.getElementById('entryDate').value+'T'+document.getElementById('entryTime').value).getTime()||Date.now(),
+    specialist: currentSpecialist||null,
+    specialistLabel: specObj?specObj.label:null,
   };
   entries.unshift(entry);
   save();
@@ -784,7 +879,10 @@ function saveEntry(){
   document.getElementById('intensityWrap').classList.remove('open');
   document.getElementById('saveBtn').classList.remove('show');
   document.getElementById('notesInput').value='';
-  document.querySelectorAll('.body-area-btn,.general-btn,.symptom-chip,.int-btn').forEach(b=>b.classList.remove('active'));
+  currentSpecialist=null;
+  document.querySelectorAll('.body-area-btn,.general-btn,.symptom-chip,.int-btn,.spec-chip').forEach(b=>b.classList.remove('active'));
+  const noneChip=document.getElementById('spec-none');
+  if(noneChip) noneChip.classList.add('active');
   renderTimeline();
   renderShareTab();
 }
@@ -798,6 +896,8 @@ function renderTimeline(filterDays=0){
   let filtered=filterDays>0
     ? entries.filter(e=>Date.now()-e.timestamp<filterDays*86400000)
     : entries;
+  if(tlSpecFilter) filtered=filtered.filter(e=>e.specialist===tlSpecFilter);
+  buildTimelineFilterBar();
   count.textContent=filtered.length+' entr'+(filtered.length===1?'y':'ies');
   if(!filtered.length){
     list.innerHTML=`<div class="empty-timeline"><span class="empty-icon">📋</span><div class="empty-text">No entries yet.<br>Tap Log to record your first symptom.</div></div>`;
@@ -819,7 +919,9 @@ function renderTimeline(filterDays=0){
 
 function renderEntry(e){
   const sevClass=e.intensity<=3?'sev-low':e.intensity<=6?'sev-mid':'sev-high';
-  const vitalsHtml=Object.entries(e.vitals||{}).map(([k,v])=>`<span class="vital-tag">${k}: ${escH(v)}</span>`).join('');
+  const vitalsHtml=Object.entries(e.vitals||{}).map(([k,v])=>`<span class="vital-tag">${k}: ${escH(v)}</span>`).join('')+specTag;
+  const specObj = e.specialist ? SPECIALISTS.find(s=>s.id===e.specialist) : null;
+  const specTag = specObj ? `<span class="vital-tag" style="border-color:rgba(64,196,192,0.3);color:var(--teal);">${specObj.icon} ${specObj.label}</span>` : '';
   return `<div class="entry-card">
     <div class="entry-left">
       <div class="entry-time">${e.time||'—'}</div>
@@ -845,9 +947,11 @@ function deleteEntry(id){
 // SHARE / QR
 // ════════════════════════════════════════════════
 function getFilteredEntries(){
-  return shareFilterDays>0
+  let filtered = shareFilterDays>0
     ? entries.filter(e=>Date.now()-e.timestamp<shareFilterDays*86400000)
     : entries;
+  if(shareSpecFilter) filtered=filtered.filter(e=>e.specialist===shareSpecFilter);
+  return filtered;
 }
 
 async function buildShareURL(){
@@ -873,6 +977,7 @@ async function buildShareURL(){
 }
 
 async function renderShareTab(){
+  buildShareSpecFilterRow();
   const url=await buildShareURL();
   const container=document.getElementById('qrContainer');
   container.innerHTML='';
@@ -1004,7 +1109,7 @@ async function renderReadOnly(encoded){
               <div><span class="ro-symptom">${escH(e.symptom)}</span>${e.time?` <span style="font-family:var(--mono);font-size:9px;color:var(--muted);">${e.time}</span>`:''}</div>
               <span class="ro-sev-badge ${sevClass}">${e.intensity}/10</span>
             </div>
-            <div class="ro-area">${escH(e.area)}</div>
+            <div class="ro-area">${escH(e.area)}${e.specialistLabel?' · <span style="color:var(--teal);font-size:9px;">'+escH(e.specialistLabel)+'</span>':''}</div>
             ${vitalsHtml?`<div class="ro-vitals">${vitalsHtml}</div>`:''}
             ${e.notes?`<div class="ro-notes">${escH(e.notes)}</div>`:''}
           </div>`;
