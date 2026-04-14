@@ -1,0 +1,1036 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>DrH.md | Symptom Journal</title>
+  <link rel="icon" type="image/png" href="https://radiopumpo.github.io/radiopumpologo.png">
+  <link href="https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Space+Mono:wght@400;700&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:#080c10; --bg2:#0d1520; --bg3:#121e2e;
+      --blue:#3a8fd4; --blue2:#2a6fa8; --teal:#40c4c0;
+      --red:#e05050; --amber:#f0a830; --green:#40b870;
+      --text:#e8eef4; --muted:#5a7090; --dim:#1a2535;
+      --border:rgba(58,143,212,0.15); --border2:rgba(58,143,212,0.28);
+      --mono:'Space Mono',monospace; --sans:'Rajdhani',sans-serif; --display:'Black Ops One',cursive;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    html{-webkit-text-size-adjust:100%;}
+    body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:100vh;-webkit-tap-highlight-color:transparent;}
+    body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.018) 2px,rgba(0,0,0,0.018) 4px);pointer-events:none;z-index:9999;}
+
+    /* NAV */
+    .top-nav{position:fixed;top:0;left:0;right:0;z-index:500;display:flex;justify-content:space-between;align-items:center;padding:10px 16px;padding-top:max(10px,env(safe-area-inset-top));background:rgba(8,12,16,0.96);backdrop-filter:blur(14px);border-bottom:1px solid var(--border);}
+    .nav-brand{font-family:var(--mono);font-size:.88rem;color:var(--blue);letter-spacing:.05em;text-decoration:none;font-weight:700;}
+    .nav-brand .ext{color:var(--teal);}
+    .nav-right{display:flex;gap:8px;align-items:center;}
+    .nav-link{color:var(--muted);text-decoration:none;font-weight:700;font-size:.62rem;border:1px solid rgba(58,143,212,0.2);padding:4px 10px;border-radius:20px;font-family:var(--mono);transition:.2s;}
+    .nav-link:hover{border-color:var(--blue);color:var(--blue);}
+
+    /* SCREENS */
+    .screen{display:none;padding-top:52px;}
+    .screen.active{display:block;}
+
+    /* ── SETUP SCREEN ── */
+    #setupScreen{min-height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:70px 1.5rem 2rem;}
+    .setup-card{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:2rem 1.5rem;max-width:400px;width:100%;text-align:center;}
+    .setup-icon{font-size:52px;margin-bottom:1rem;}
+    .setup-title{font-family:var(--display);font-size:24px;color:var(--blue);letter-spacing:1px;margin-bottom:.4rem;}
+    .setup-sub{font-size:13px;color:var(--muted);font-weight:600;line-height:1.65;margin-bottom:1.5rem;}
+    .setup-label{font-family:var(--mono);font-size:8px;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);text-align:left;display:block;margin-bottom:.4rem;}
+    .setup-input{width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);font-family:var(--sans);font-weight:600;font-size:16px;padding:.65rem .9rem;border-radius:10px;outline:none;margin-bottom:1rem;transition:border-color .15s;}
+    .setup-input:focus{border-color:var(--blue);}
+    .setup-input::placeholder{color:var(--dim);}
+    .setup-dob-row{display:flex;gap:8px;margin-bottom:1rem;}
+    .setup-dob-row .setup-input{margin-bottom:0;font-size:14px;}
+    .setup-btn{width:100%;background:var(--blue);color:#fff;border:none;padding:.85rem;font-family:var(--display);font-size:15px;letter-spacing:1px;border-radius:10px;cursor:pointer;transition:.2s;}
+    .setup-btn:hover{background:var(--blue2);}
+    .setup-disclaimer{font-size:10px;color:var(--muted);line-height:1.6;margin-top:1.25rem;padding:.65rem .85rem;background:rgba(58,143,212,0.06);border-radius:8px;border:1px solid var(--border);text-align:left;}
+
+    /* ── MAIN APP ── */
+    #appScreen{padding-bottom:80px;}
+
+    /* BOTTOM NAV */
+    .bottom-nav{position:fixed;bottom:0;left:0;right:0;z-index:400;background:rgba(8,12,16,0.97);backdrop-filter:blur(14px);border-top:1px solid var(--border);display:flex;padding-bottom:max(8px,env(safe-area-inset-bottom));}
+    .bnav-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:.55rem .25rem .3rem;background:none;border:none;cursor:pointer;transition:.15s;-webkit-tap-highlight-color:transparent;}
+    .bnav-icon{font-size:20px;line-height:1;}
+    .bnav-label{font-family:var(--mono);font-size:7px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);}
+    .bnav-btn.active .bnav-label{color:var(--blue);}
+    .bnav-btn.active .bnav-icon{filter:drop-shadow(0 0 4px rgba(58,143,212,0.6));}
+
+    /* TAB VIEWS */
+    .tab-view{display:none;padding:1rem;}
+    .tab-view.active{display:block;}
+
+    /* ── LOG TAB ── */
+    .log-header{margin-bottom:1.25rem;}
+    .log-title{font-family:var(--display);font-size:18px;color:var(--blue);letter-spacing:.5px;margin-bottom:.2rem;}
+    .log-sub{font-size:12px;color:var(--muted);font-weight:600;}
+
+    /* Path selector */
+    .path-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1.25rem;}
+    .path-card{background:var(--bg3);border:2px solid var(--border);border-radius:14px;padding:1rem .85rem;cursor:pointer;transition:all .2s;text-align:center;-webkit-tap-highlight-color:transparent;}
+    .path-card:hover,.path-card.active{border-color:var(--blue);background:rgba(58,143,212,0.06);}
+    .path-icon{font-size:28px;margin-bottom:.4rem;display:block;}
+    .path-label{font-family:var(--display);font-size:11px;color:var(--blue);letter-spacing:.5px;margin-bottom:.2rem;}
+    .path-desc{font-size:10px;color:var(--muted);font-weight:600;line-height:1.4;}
+
+    /* Body diagram */
+    .body-diagram-wrap{display:none;margin-bottom:1rem;}
+    .body-diagram-wrap.open{display:block;}
+    .diagram-label{font-family:var(--mono);font-size:8px;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);margin-bottom:.65rem;}
+    .body-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+    .body-area-btn{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:.65rem .5rem;text-align:center;cursor:pointer;transition:.15s;-webkit-tap-highlight-color:transparent;}
+    .body-area-btn:hover,.body-area-btn.active{border-color:var(--blue);background:rgba(58,143,212,0.08);}
+    .body-area-icon{font-size:22px;display:block;margin-bottom:.2rem;}
+    .body-area-name{font-size:10px;font-weight:700;color:var(--text);}
+
+    /* General symptoms */
+    .general-wrap{display:none;margin-bottom:1rem;}
+    .general-wrap.open{display:block;}
+    .general-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;}
+    .general-btn{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:.75rem .65rem;display:flex;align-items:center;gap:8px;cursor:pointer;transition:.15s;-webkit-tap-highlight-color:transparent;}
+    .general-btn:hover,.general-btn.active{border-color:var(--teal);background:rgba(64,196,192,0.06);}
+    .general-btn-icon{font-size:22px;flex-shrink:0;}
+    .general-btn-info{flex:1;min-width:0;}
+    .general-btn-name{font-size:12px;font-weight:700;color:var(--text);}
+    .general-btn-desc{font-size:10px;color:var(--muted);font-weight:600;}
+
+    /* Symptom picker */
+    .symptom-picker{display:none;margin-bottom:1rem;}
+    .symptom-picker.open{display:block;}
+    .picker-title{font-family:var(--mono);font-size:8px;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);margin-bottom:.65rem;display:flex;justify-content:space-between;align-items:center;}
+    .picker-back{background:none;border:none;color:var(--blue);font-family:var(--mono);font-size:8px;cursor:pointer;padding:0;}
+    .symptom-grid{display:flex;flex-wrap:wrap;gap:7px;}
+    .symptom-chip{font-family:var(--sans);font-weight:700;font-size:13px;padding:.5rem 1rem;border-radius:30px;border:1px solid var(--border2);background:var(--bg3);color:var(--text);cursor:pointer;transition:.15s;-webkit-tap-highlight-color:transparent;}
+    .symptom-chip:hover,.symptom-chip.active{border-color:var(--blue);background:rgba(58,143,212,0.1);color:var(--blue);}
+
+    /* Intensity + details */
+    .intensity-wrap{display:none;margin-bottom:1rem;}
+    .intensity-wrap.open{display:block;}
+    .intensity-label{font-family:var(--mono);font-size:8px;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);margin-bottom:.65rem;}
+    .intensity-scale{display:flex;gap:6px;flex-wrap:wrap;}
+    .int-btn{width:48px;height:48px;border-radius:10px;border:2px solid var(--border);background:var(--bg3);font-family:var(--display);font-size:14px;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:1px;-webkit-tap-highlight-color:transparent;}
+    .int-btn:hover{border-color:var(--blue);}
+    .int-btn.active{border-color:var(--blue);background:rgba(58,143,212,0.15);}
+    .int-btn.level-low.active{border-color:var(--green);background:rgba(64,184,112,0.15);}
+    .int-btn.level-mid.active{border-color:var(--amber);background:rgba(240,168,48,0.15);}
+    .int-btn.level-high.active{border-color:var(--red);background:rgba(224,80,80,0.15);}
+    .int-num{font-size:13px;font-weight:700;}
+    .int-emoji{font-size:11px;}
+    .vitals-row{display:flex;gap:8px;margin-top:.85rem;flex-wrap:wrap;}
+    .vitals-field{flex:1;min-width:120px;}
+    .vitals-label{font-family:var(--mono);font-size:8px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:.3rem;display:flex;align-items:center;gap:5px;}
+    .vitals-input{width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:15px;padding:.5rem .75rem;border-radius:8px;outline:none;transition:border-color .15s;}
+    .vitals-input:focus{border-color:var(--blue);}
+    .vitals-input::placeholder{color:var(--dim);}
+    .notes-field{margin-top:.85rem;}
+    .notes-input{width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);font-family:var(--sans);font-weight:600;font-size:13px;padding:.55rem .75rem;border-radius:8px;outline:none;resize:none;min-height:60px;transition:border-color .15s;line-height:1.55;}
+    .notes-input:focus{border-color:var(--blue);}
+    .notes-input::placeholder{color:var(--muted);}
+    .datetime-row{display:flex;gap:8px;margin-top:.85rem;flex-wrap:wrap;}
+    .datetime-row .vitals-input{font-size:12px;}
+    .save-btn{width:100%;background:var(--blue);color:#fff;border:none;padding:.85rem;font-family:var(--display);font-size:15px;letter-spacing:.5px;border-radius:12px;cursor:pointer;transition:.2s;margin-top:1rem;display:none;}
+    .save-btn.show{display:block;}
+    .save-btn:hover{background:var(--blue2);}
+
+    /* ── TIMELINE TAB ── */
+    .timeline-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1rem;flex-wrap:wrap;gap:8px;}
+    .tl-title{font-family:var(--display);font-size:18px;color:var(--blue);letter-spacing:.5px;}
+    .tl-count{font-family:var(--mono);font-size:9px;color:var(--muted);}
+    .empty-timeline{text-align:center;padding:3rem 1rem;color:var(--muted);}
+    .empty-icon{font-size:40px;display:block;margin-bottom:.75rem;opacity:.5;}
+    .empty-text{font-size:13px;font-weight:600;line-height:1.6;}
+    .day-group{margin-bottom:1.25rem;}
+    .day-label{font-family:var(--mono);font-size:8px;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border);padding-bottom:.4rem;margin-bottom:.65rem;}
+    .entry-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:.75rem .9rem;margin-bottom:.5rem;display:flex;gap:10px;align-items:flex-start;}
+    .entry-left{flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:3px;}
+    .entry-time{font-family:var(--mono);font-size:8px;color:var(--muted);}
+    .entry-sev{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:var(--display);font-size:11px;}
+    .sev-low{background:rgba(64,184,112,0.15);color:var(--green);}
+    .sev-mid{background:rgba(240,168,48,0.15);color:var(--amber);}
+    .sev-high{background:rgba(224,80,80,0.15);color:var(--red);}
+    .entry-body{flex:1;min-width:0;}
+    .entry-symptom{font-size:14px;font-weight:700;color:var(--text);margin-bottom:2px;}
+    .entry-area{font-family:var(--mono);font-size:8px;color:var(--muted);margin-bottom:3px;letter-spacing:.05em;}
+    .entry-vitals{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:3px;}
+    .vital-tag{font-family:var(--mono);font-size:8px;padding:2px 6px;border-radius:6px;background:rgba(58,143,212,0.1);border:1px solid var(--border);color:var(--blue);}
+    .entry-notes{font-size:11px;color:var(--muted);font-weight:600;line-height:1.5;margin-top:3px;}
+    .entry-del{background:none;border:none;color:var(--dim);font-size:11px;cursor:pointer;padding:3px;transition:.15s;flex-shrink:0;margin-top:2px;}
+    .entry-del:hover{color:var(--red);}
+
+    /* ── SHARE TAB ── */
+    .share-header{margin-bottom:1.25rem;}
+    .share-title{font-family:var(--display);font-size:18px;color:var(--blue);letter-spacing:.5px;margin-bottom:.3rem;}
+    .share-sub{font-size:12px;color:var(--muted);font-weight:600;line-height:1.6;}
+    .share-card{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:1.1rem;margin-bottom:.85rem;}
+    .share-card-title{font-family:var(--mono);font-size:8px;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);margin-bottom:.75rem;}
+    #qrContainer{display:flex;justify-content:center;padding:.5rem 0 .75rem;}
+    #qrContainer canvas,#qrContainer img{border-radius:10px;border:4px solid #fff;}
+    .share-btn-row{display:flex;gap:8px;flex-wrap:wrap;}
+    .share-btn{font-family:var(--mono);font-size:8px;letter-spacing:.1em;text-transform:uppercase;padding:7px 13px;border-radius:20px;border:1px solid var(--border2);background:transparent;color:var(--muted);cursor:pointer;transition:.15s;}
+    .share-btn:hover{border-color:var(--blue);color:var(--blue);}
+    .share-btn.primary{background:var(--blue);border-color:var(--blue);color:#fff;}
+    .share-btn.primary:hover{background:var(--blue2);}
+    .filter-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:.75rem;}
+    .filter-btn{font-family:var(--mono);font-size:8px;letter-spacing:.08em;padding:4px 10px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;transition:.15s;}
+    .filter-btn.active{border-color:var(--blue);color:var(--blue);background:rgba(58,143,212,0.08);}
+    .share-url-display{font-family:var(--mono);font-size:8px;color:var(--muted);background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:.5rem .75rem;word-break:break-all;line-height:1.55;margin-top:.5rem;display:none;}
+
+    /* ── SETTINGS TAB ── */
+    .settings-section{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:.85rem 1rem;margin-bottom:.85rem;}
+    .settings-title{font-family:var(--mono);font-size:8px;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);margin-bottom:.6rem;}
+    .settings-row{display:flex;justify-content:space-between;align-items:center;padding:.4rem 0;border-bottom:1px solid var(--border);font-size:13px;font-weight:600;}
+    .settings-row:last-child{border-bottom:none;}
+    .settings-key{color:var(--muted);}
+    .settings-val{color:var(--text);font-family:var(--mono);font-size:10px;}
+    .settings-input{background:var(--bg3);border:1px solid var(--border);color:var(--text);font-family:var(--sans);font-weight:600;font-size:13px;padding:.35rem .6rem;border-radius:6px;outline:none;width:160px;transition:border-color .15s;}
+    .settings-input:focus{border-color:var(--blue);}
+    .danger-section{border-color:rgba(224,80,80,0.2);}
+    .danger-btn{font-family:var(--mono);font-size:8px;letter-spacing:.1em;padding:5px 12px;border-radius:20px;border:1px solid rgba(224,80,80,0.3);background:transparent;color:var(--red);cursor:pointer;transition:.15s;}
+    .danger-btn:hover{background:rgba(224,80,80,0.1);}
+
+    /* ── READ-ONLY VIEW ── */
+    #readonlyScreen{padding:1.5rem;max-width:680px;margin:0 auto;}
+    .ro-header{margin-bottom:1.5rem;}
+    .ro-brand{font-family:var(--mono);font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);margin-bottom:.4rem;}
+    .ro-title{font-family:var(--display);font-size:22px;color:var(--blue);letter-spacing:1px;margin-bottom:.2rem;}
+    .ro-meta{font-size:12px;color:var(--muted);font-weight:600;line-height:1.6;}
+    .ro-disclaimer{font-size:10px;color:var(--muted);font-weight:600;line-height:1.6;padding:.55rem .8rem;background:rgba(240,168,48,0.06);border:1px solid rgba(240,168,48,0.2);border-radius:8px;margin-bottom:1.25rem;}
+    .ro-day-group{margin-bottom:1.25rem;}
+    .ro-day-label{font-family:var(--mono);font-size:9px;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border);padding-bottom:.4rem;margin-bottom:.65rem;}
+    .ro-entry{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:.7rem .9rem;margin-bottom:.45rem;}
+    .ro-entry-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.3rem;}
+    .ro-symptom{font-size:14px;font-weight:700;color:var(--text);}
+    .ro-sev-badge{font-family:var(--mono);font-size:8px;padding:2px 8px;border-radius:20px;border:1px solid;}
+    .ro-sev-low{border-color:var(--green);color:var(--green);}
+    .ro-sev-mid{border-color:var(--amber);color:var(--amber);}
+    .ro-sev-high{border-color:var(--red);color:var(--red);}
+    .ro-area{font-family:var(--mono);font-size:8px;color:var(--muted);margin-bottom:4px;}
+    .ro-vitals{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:4px;}
+    .ro-vital-tag{font-family:var(--mono);font-size:8px;padding:2px 7px;border-radius:6px;background:rgba(58,143,212,0.1);border:1px solid var(--border);color:var(--blue);}
+    .ro-notes{font-size:12px;color:var(--muted);font-weight:600;line-height:1.5;}
+    .ro-summary{background:var(--bg2);border:1px solid var(--border2);border-radius:12px;padding:1rem;margin-bottom:1.25rem;}
+    .ro-summary-title{font-family:var(--mono);font-size:8px;letter-spacing:.15em;text-transform:uppercase;color:var(--blue);margin-bottom:.65rem;}
+    .ro-summary-row{display:flex;justify-content:space-between;font-size:12px;font-weight:600;padding:.25rem 0;border-bottom:1px solid var(--border);}
+    .ro-summary-row:last-child{border-bottom:none;}
+    .ro-summary-key{color:var(--muted);}
+    .ro-summary-val{color:var(--text);font-family:var(--mono);font-size:10px;}
+
+    /* STATUS */
+    .status-toast{position:fixed;top:64px;left:50%;transform:translateX(-50%);z-index:600;font-family:var(--mono);font-size:9px;padding:6px 14px;border-radius:20px;background:var(--bg2);border:1px solid var(--border2);color:var(--text);pointer-events:none;opacity:0;transition:opacity .2s;white-space:nowrap;}
+    .status-toast.show{opacity:1;}
+    .hidden{display:none!important;}
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="top-nav" id="topNav" style="display:none;">
+  <span class="nav-brand">DrH<span class="ext">.md</span></span>
+  <div class="nav-right">
+    <a href="index.html" class="nav-link">← Tools</a>
+  </div>
+</nav>
+
+<!-- READ-ONLY VIEW -->
+<div id="readonlyScreen" class="hidden"></div>
+
+<!-- SETUP SCREEN -->
+<div id="setupScreen" class="screen active">
+  <div class="setup-card">
+    <div class="setup-icon">🩺</div>
+    <div class="setup-title">DrH.md</div>
+    <div class="setup-sub">Your personal symptom journal. Log how you feel, when it started, and how bad it is — then show your doctor a clear timeline at your next visit.</div>
+    <label class="setup-label">Your first name</label>
+    <input class="setup-input" id="setupName" placeholder="e.g. Margaret" maxlength="40" autocomplete="given-name">
+    <label class="setup-label">Date of birth</label>
+    <input class="setup-input" id="setupDob" type="date" style="font-size:14px;">
+    <button class="setup-btn" onclick="completeSetup()">Start my journal →</button>
+    <div class="setup-disclaimer">
+      All data stays on your device. Nothing is sent anywhere. No accounts. No servers. Your health information is private.
+    </div>
+  </div>
+</div>
+
+<!-- MAIN APP SCREEN -->
+<div id="appScreen" class="screen">
+
+  <!-- ── LOG TAB ── -->
+  <div class="tab-view active" id="tab-log">
+    <div class="log-header">
+      <div class="log-title">Log a symptom</div>
+      <div class="log-sub">What are you experiencing right now?</div>
+    </div>
+
+    <!-- PATH SELECTOR -->
+    <div class="path-row">
+      <div class="path-card" id="pathBody" onclick="selectPath('body')">
+        <span class="path-icon">🫀</span>
+        <div class="path-label">Body area</div>
+        <div class="path-desc">Pain or discomfort in a specific part of your body</div>
+      </div>
+      <div class="path-card" id="pathGeneral" onclick="selectPath('general')">
+        <span class="path-icon">🌡️</span>
+        <div class="path-label">How I feel</div>
+        <div class="path-desc">Fatigue, fever, dizziness, nausea or other general feelings</div>
+      </div>
+    </div>
+
+    <!-- BODY AREA GRID -->
+    <div class="body-diagram-wrap" id="bodyDiagram">
+      <div class="diagram-label">Select the area that hurts or feels wrong</div>
+      <div class="body-grid" id="bodyGrid"></div>
+    </div>
+
+    <!-- GENERAL SYMPTOMS GRID -->
+    <div class="general-wrap" id="generalWrap">
+      <div class="diagram-label">How are you feeling?</div>
+      <div class="general-grid" id="generalGrid"></div>
+    </div>
+
+    <!-- SYMPTOM PICKER -->
+    <div class="symptom-picker" id="symptomPicker">
+      <div class="picker-title">
+        <span id="pickerTitle">Select symptom</span>
+        <button class="picker-back" onclick="resetPicker()">← back</button>
+      </div>
+      <div class="symptom-grid" id="symptomGrid"></div>
+    </div>
+
+    <!-- INTENSITY + DETAILS -->
+    <div class="intensity-wrap" id="intensityWrap">
+      <div class="picker-title">
+        <span id="intensityTitle">Rate the intensity</span>
+        <button class="picker-back" onclick="backToSymptoms()">← back</button>
+      </div>
+      <div class="intensity-label">How bad does it feel? (1 = barely noticeable, 10 = worst ever)</div>
+      <div class="intensity-scale" id="intensityScale"></div>
+
+      <!-- VITALS (optional) -->
+      <div class="vitals-row" id="vitalsRow" style="display:none;"></div>
+
+      <!-- NOTES -->
+      <div class="notes-field">
+        <div class="intensity-label" style="margin-bottom:.4rem;">Additional notes (optional)</div>
+        <textarea class="notes-input" id="notesInput" placeholder="Any other details — what makes it better or worse, when it started, anything else..." rows="2"></textarea>
+      </div>
+
+      <!-- DATE/TIME -->
+      <div class="datetime-row">
+        <div style="flex:1;">
+          <div class="vitals-label">Date</div>
+          <input type="date" class="vitals-input" id="entryDate">
+        </div>
+        <div style="flex:1;">
+          <div class="vitals-label">Time</div>
+          <input type="time" class="vitals-input" id="entryTime">
+        </div>
+      </div>
+
+      <button class="save-btn show" id="saveBtn" onclick="saveEntry()">Save entry</button>
+    </div>
+  </div>
+
+  <!-- ── TIMELINE TAB ── -->
+  <div class="tab-view" id="tab-timeline">
+    <div class="timeline-header">
+      <div>
+        <div class="tl-title">My timeline</div>
+        <div class="tl-count" id="tlCount">0 entries</div>
+      </div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;" id="tlFilters"></div>
+    </div>
+    <div id="timelineList"></div>
+  </div>
+
+  <!-- ── SHARE TAB ── -->
+  <div class="tab-view" id="tab-share">
+    <div class="share-header">
+      <div class="share-title">Share with doctor</div>
+      <div class="share-sub">Show the QR code at your appointment. Your doctor scans it to see your complete symptom timeline — no app needed on their end.</div>
+    </div>
+
+    <div class="share-card">
+      <div class="share-card-title">Doctor QR code</div>
+      <div class="filter-row" id="shareFilterRow">
+        <button class="filter-btn active" data-days="0" onclick="setShareFilter(this,0)">All entries</button>
+        <button class="filter-btn" data-days="7" onclick="setShareFilter(this,7)">Last 7 days</button>
+        <button class="filter-btn" data-days="14" onclick="setShareFilter(this,14)">Last 14 days</button>
+        <button class="filter-btn" data-days="30" onclick="setShareFilter(this,30)">Last 30 days</button>
+      </div>
+      <div id="qrContainer"></div>
+      <div class="share-btn-row">
+        <button class="share-btn primary" onclick="copyShareURL()">Copy link</button>
+        <button class="share-btn" onclick="shareViaShare()">Share ↗</button>
+        <button class="share-btn" onclick="downloadQR()">Save QR</button>
+      </div>
+      <div class="share-url-display" id="shareUrlDisplay"></div>
+    </div>
+
+    <div class="share-card">
+      <div class="share-card-title">Export as text</div>
+      <div style="font-size:11px;color:var(--muted);font-weight:600;line-height:1.6;margin-bottom:.6rem;">Plain text summary suitable for email or printing.</div>
+      <div class="share-btn-row">
+        <button class="share-btn primary" onclick="copyTextSummary()">Copy text summary</button>
+        <button class="share-btn" onclick="downloadText()">Download .txt</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SETTINGS TAB ── -->
+  <div class="tab-view" id="tab-settings">
+    <div class="settings-section">
+      <div class="settings-title">Your profile</div>
+      <div class="settings-row">
+        <span class="settings-key">Name</span>
+        <input class="settings-input" id="settingsName" placeholder="Your name" onchange="updateProfile()">
+      </div>
+      <div class="settings-row">
+        <span class="settings-key">Date of birth</span>
+        <input class="settings-input" id="settingsDob" type="date" onchange="updateProfile()">
+      </div>
+      <div class="settings-row">
+        <span class="settings-key">Entries logged</span>
+        <span class="settings-val" id="settingsCount">0</span>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <div class="settings-title">Road ahead — v1</div>
+      <div class="settings-row" style="opacity:.45;">
+        <span class="settings-key">✦ AI symptom interpretation</span>
+        <span class="settings-val" style="color:var(--muted);">coming</span>
+      </div>
+      <div class="settings-row" style="opacity:.45;">
+        <span class="settings-key">✦ Medication reminders</span>
+        <span class="settings-val" style="color:var(--muted);">coming</span>
+      </div>
+      <div class="settings-row" style="opacity:.45;">
+        <span class="settings-key">✦ Voice entry assistant</span>
+        <span class="settings-val" style="color:var(--muted);">coming</span>
+      </div>
+      <div class="settings-row" style="opacity:.45;">
+        <span class="settings-key">✦ Wearable device sync</span>
+        <span class="settings-val" style="color:var(--muted);">v2</span>
+      </div>
+    </div>
+
+    <div class="settings-section danger-section">
+      <div class="settings-title">Data</div>
+      <div class="settings-row">
+        <span class="settings-key" style="font-size:11px;">Export all data as JSON backup</span>
+        <button class="share-btn" style="padding:4px 10px;font-size:8px;" onclick="exportJSON()">Export</button>
+      </div>
+      <div class="settings-row">
+        <span class="settings-key" style="font-size:11px;color:var(--muted);">Clear all entries. Cannot be undone.</span>
+        <button class="danger-btn" onclick="clearAll()">Clear all</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- BOTTOM NAV -->
+  <nav class="bottom-nav">
+    <button class="bnav-btn active" onclick="switchTab('log')" id="bnav-log">
+      <span class="bnav-icon">➕</span>
+      <span class="bnav-label">Log</span>
+    </button>
+    <button class="bnav-btn" onclick="switchTab('timeline')" id="bnav-timeline">
+      <span class="bnav-icon">📋</span>
+      <span class="bnav-label">Timeline</span>
+    </button>
+    <button class="bnav-btn" onclick="switchTab('share')" id="bnav-share">
+      <span class="bnav-icon">🔗</span>
+      <span class="bnav-label">Share</span>
+    </button>
+    <button class="bnav-btn" onclick="switchTab('settings')" id="bnav-settings">
+      <span class="bnav-icon">⚙️</span>
+      <span class="bnav-label">Settings</span>
+    </button>
+  </nav>
+</div>
+
+<div class="status-toast" id="statusToast"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+// ════════════════════════════════════════════════
+// SYMPTOM DATA
+// ════════════════════════════════════════════════
+const BODY_AREAS = [
+  {id:'head',     icon:'🧠', name:'Head',      symptoms:['Headache','Migraine','Pressure','Throbbing','Dizziness','Eye pain','Ear pain','Jaw pain','Toothache','Neck pain','Stiff neck']},
+  {id:'chest',    icon:'🫁', name:'Chest',     symptoms:['Chest pain','Tightness','Shortness of breath','Palpitations','Wheezing','Cough','Chest pressure']},
+  {id:'stomach',  icon:'🫃', name:'Abdomen',   symptoms:['Stomach pain','Cramps','Bloating','Nausea','Vomiting','Diarrhea','Constipation','Acid reflux','Loss of appetite']},
+  {id:'back',     icon:'🦴', name:'Back',      symptoms:['Lower back pain','Upper back pain','Shooting pain','Stiffness','Muscle spasm','Spine pain']},
+  {id:'arms',     icon:'💪', name:'Arms/Hands',symptoms:['Arm pain','Shoulder pain','Elbow pain','Wrist pain','Hand pain','Tingling','Numbness','Weakness','Swelling','Joint pain']},
+  {id:'legs',     icon:'🦵', name:'Legs/Feet', symptoms:['Leg pain','Knee pain','Hip pain','Ankle pain','Foot pain','Calf cramp','Swelling','Tingling','Numbness','Varicose pain']},
+  {id:'skin',     icon:'🫧', name:'Skin',      symptoms:['Rash','Redness','Itching','Swelling','Bruising','Hives','Dry skin','Flaking','Burning skin']},
+  {id:'throat',   icon:'🗣️', name:'Throat',    symptoms:['Sore throat','Difficulty swallowing','Hoarseness','Swollen glands','Throat tightness']},
+  {id:'urinary',  icon:'🚽', name:'Urinary',   symptoms:['Frequent urination','Burning urination','Blood in urine','Difficulty urinating','Lower pelvic pain']},
+];
+
+const GENERAL_CATEGORIES = [
+  {id:'energy',   icon:'😴', name:'Energy',      desc:'Tiredness, fatigue, weakness',    symptoms:['Fatigue','Exhaustion','Weakness','Low energy','Can\'t get out of bed']},
+  {id:'temp',     icon:'🌡️', name:'Temperature', desc:'Fever, chills, sweating',         symptoms:['Fever','Chills','Night sweats','Hot flushes','Shivering','Cold sweats']},
+  {id:'mental',   icon:'🧠', name:'Mind',        desc:'Confusion, mood, anxiety',         symptoms:['Dizziness','Confusion','Brain fog','Anxiety','Low mood','Irritability','Memory issues','Concentration issues']},
+  {id:'sleep',    icon:'🌙', name:'Sleep',       desc:'Insomnia, oversleeping, restless', symptoms:['Insomnia','Oversleeping','Restless sleep','Nightmares','Waking frequently','Sleepwalking']},
+  {id:'appetite', icon:'🍽️', name:'Appetite',   desc:'Hunger, thirst, weight changes',   symptoms:['No appetite','Excessive hunger','Excessive thirst','Weight loss','Weight gain','Taste changes']},
+  {id:'breath',   icon:'💨', name:'Breathing',   desc:'Shortness of breath, wheezing',   symptoms:['Shortness of breath','Wheezing','Rapid breathing','Shallow breathing','Breathless at rest']},
+];
+
+// Which areas get vitals inputs
+const VITALS_FOR = {
+  temp:     [{id:'temp',    label:'Temperature', placeholder:'e.g. 38.5', unit:'°C / °F'}],
+  chest:    [{id:'hr',      label:'Heart rate',  placeholder:'e.g. 92',   unit:'bpm'},
+             {id:'bp',      label:'Blood pressure', placeholder:'e.g. 140/90', unit:'mmHg'}],
+  head:     [{id:'hr',      label:'Heart rate',  placeholder:'e.g. 92',   unit:'bpm'}],
+  breath:   [{id:'o2',      label:'O₂ saturation', placeholder:'e.g. 96', unit:'%'},
+             {id:'hr',      label:'Heart rate',  placeholder:'e.g. 92',   unit:'bpm'}],
+};
+
+// ════════════════════════════════════════════════
+// STATE
+// ════════════════════════════════════════════════
+let profile = {name:'', dob:''};
+let entries = [];
+let currentPath = null;
+let currentArea = null;
+let currentSymptom = null;
+let currentIntensity = null;
+let shareFilterDays = 0;
+let qrInstance = null;
+
+// ════════════════════════════════════════════════
+// PERSISTENCE
+// ════════════════════════════════════════════════
+function save(){
+  localStorage.setItem('drh_profile', JSON.stringify(profile));
+  localStorage.setItem('drh_entries', JSON.stringify(entries));
+}
+
+function load(){
+  try{ profile = JSON.parse(localStorage.getItem('drh_profile')||'{"name":"","dob":""}'); }catch(e){}
+  try{ entries = JSON.parse(localStorage.getItem('drh_entries')||'[]'); }catch(e){ entries=[]; }
+}
+
+// ════════════════════════════════════════════════
+// INIT
+// ════════════════════════════════════════════════
+window.onload = function(){
+  load();
+  // Check for read-only view parameter
+  const params = new URLSearchParams(window.location.search);
+  const viewData = params.get('view');
+  if(viewData){
+    renderReadOnly(viewData);
+    return;
+  }
+  if(profile.name){
+    showApp();
+  } else {
+    showSetup();
+  }
+};
+
+function showSetup(){
+  document.getElementById('setupScreen').classList.add('active');
+  document.getElementById('appScreen').classList.remove('active');
+}
+
+function showApp(){
+  document.getElementById('setupScreen').classList.remove('active');
+  document.getElementById('appScreen').classList.add('active');
+  document.getElementById('topNav').style.display='flex';
+  buildBodyGrid();
+  buildGeneralGrid();
+  buildIntensityScale();
+  setNow();
+  renderTimeline();
+  renderShareTab();
+  updateSettings();
+}
+
+function completeSetup(){
+  const name = document.getElementById('setupName').value.trim();
+  const dob  = document.getElementById('setupDob').value;
+  if(!name){ toast('Please enter your name.'); return; }
+  profile = {name, dob};
+  save();
+  showApp();
+}
+
+// ════════════════════════════════════════════════
+// BUILD UI COMPONENTS
+// ════════════════════════════════════════════════
+function buildBodyGrid(){
+  document.getElementById('bodyGrid').innerHTML = BODY_AREAS.map(a=>
+    `<div class="body-area-btn" id="area-${a.id}" onclick="selectArea('${a.id}')">
+      <span class="body-area-icon">${a.icon}</span>
+      <div class="body-area-name">${a.name}</div>
+    </div>`
+  ).join('');
+}
+
+function buildGeneralGrid(){
+  document.getElementById('generalGrid').innerHTML = GENERAL_CATEGORIES.map(c=>
+    `<div class="general-btn" id="gen-${c.id}" onclick="selectGeneral('${c.id}')">
+      <span class="general-btn-icon">${c.icon}</span>
+      <div class="general-btn-info">
+        <div class="general-btn-name">${c.name}</div>
+        <div class="general-btn-desc">${c.desc}</div>
+      </div>
+    </div>`
+  ).join('');
+}
+
+function buildIntensityScale(){
+  const scale = document.getElementById('intensityScale');
+  scale.innerHTML = '';
+  for(let i=1;i<=10;i++){
+    const level = i<=3?'low':i<=6?'mid':'high';
+    const emoji = i<=3?'😐':i<=6?'😣':'😫';
+    const btn = document.createElement('button');
+    btn.className=`int-btn level-${level}`;
+    btn.id=`int-${i}`;
+    btn.innerHTML=`<span class="int-num">${i}</span><span class="int-emoji">${emoji}</span>`;
+    btn.onclick=()=>selectIntensity(i);
+    scale.appendChild(btn);
+  }
+}
+
+function setNow(){
+  const now = new Date();
+  document.getElementById('entryDate').value = now.toISOString().slice(0,10);
+  document.getElementById('entryTime').value = now.toTimeString().slice(0,5);
+}
+
+// ════════════════════════════════════════════════
+// LOG FLOW
+// ════════════════════════════════════════════════
+function selectPath(path){
+  currentPath=path; currentArea=null; currentSymptom=null; currentIntensity=null;
+  document.getElementById('pathBody').classList.toggle('active',path==='body');
+  document.getElementById('pathGeneral').classList.toggle('active',path==='general');
+  document.getElementById('bodyDiagram').classList.toggle('open',path==='body');
+  document.getElementById('generalWrap').classList.toggle('open',path==='general');
+  document.getElementById('symptomPicker').classList.remove('open');
+  document.getElementById('intensityWrap').classList.remove('open');
+  document.getElementById('saveBtn').classList.remove('show');
+}
+
+function selectArea(areaId){
+  currentArea = BODY_AREAS.find(a=>a.id===areaId);
+  if(!currentArea) return;
+  document.querySelectorAll('.body-area-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('area-'+areaId).classList.add('active');
+  showSymptomPicker(currentArea.name, currentArea.symptoms);
+}
+
+function selectGeneral(catId){
+  currentArea = GENERAL_CATEGORIES.find(c=>c.id===catId);
+  if(!currentArea) return;
+  document.querySelectorAll('.general-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('gen-'+catId).classList.add('active');
+  showSymptomPicker(currentArea.name, currentArea.symptoms);
+}
+
+function showSymptomPicker(title, symptoms){
+  document.getElementById('pickerTitle').textContent = title+' — what specifically?';
+  document.getElementById('symptomGrid').innerHTML = symptoms.map(s=>
+    `<button class="symptom-chip" onclick="selectSymptom('${s}')">${s}</button>`
+  ).join('');
+  document.getElementById('symptomPicker').classList.add('open');
+  document.getElementById('intensityWrap').classList.remove('open');
+  document.getElementById('saveBtn').classList.remove('show');
+}
+
+function selectSymptom(symptom){
+  currentSymptom=symptom;
+  document.querySelectorAll('.symptom-chip').forEach(c=>c.classList.remove('active'));
+  // find and highlight
+  document.querySelectorAll('.symptom-chip').forEach(c=>{ if(c.textContent===symptom) c.classList.add('active'); });
+  showIntensity(symptom);
+}
+
+function showIntensity(symptom){
+  document.getElementById('intensityTitle').textContent = '"'+symptom+'" — how bad?';
+  document.getElementById('intensityWrap').classList.add('open');
+  // Show vitals if relevant
+  const areaId = currentArea?.id;
+  const vitalsConf = VITALS_FOR[areaId];
+  const vitalsRow = document.getElementById('vitalsRow');
+  if(vitalsConf){
+    vitalsRow.style.display='flex';
+    vitalsRow.innerHTML = vitalsConf.map(v=>`
+      <div class="vitals-field">
+        <div class="vitals-label">${v.label} <span style="color:var(--muted);font-size:7px;">${v.unit}</span></div>
+        <input class="vitals-input" id="vital-${v.id}" placeholder="${v.placeholder}" type="text" inputmode="decimal">
+      </div>`).join('');
+  } else {
+    vitalsRow.style.display='none';
+    vitalsRow.innerHTML='';
+  }
+  // Reset intensity
+  currentIntensity=null;
+  document.querySelectorAll('.int-btn').forEach(b=>b.classList.remove('active'));
+  setNow();
+  // Scroll into view
+  setTimeout(()=>document.getElementById('intensityWrap').scrollIntoView({behavior:'smooth',block:'nearest'}),100);
+}
+
+function selectIntensity(n){
+  currentIntensity=n;
+  document.querySelectorAll('.int-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('int-'+n).classList.add('active');
+  document.getElementById('saveBtn').classList.add('show');
+}
+
+function backToSymptoms(){
+  document.getElementById('intensityWrap').classList.remove('open');
+  document.getElementById('saveBtn').classList.remove('show');
+}
+
+function resetPicker(){
+  currentArea=null; currentSymptom=null; currentIntensity=null;
+  document.getElementById('symptomPicker').classList.remove('open');
+  document.getElementById('intensityWrap').classList.remove('open');
+  document.getElementById('saveBtn').classList.remove('show');
+  document.querySelectorAll('.body-area-btn,.general-btn').forEach(b=>b.classList.remove('active'));
+}
+
+function saveEntry(){
+  if(!currentSymptom||currentIntensity===null){ toast('Select a symptom and intensity first.'); return; }
+  // Collect vitals
+  const vitals={};
+  const areaId=currentArea?.id;
+  const vitalsConf=VITALS_FOR[areaId];
+  if(vitalsConf) vitalsConf.forEach(v=>{ const el=document.getElementById('vital-'+v.id); if(el&&el.value.trim()) vitals[v.label]=el.value.trim()+' '+v.unit; });
+  const entry={
+    id:'e_'+Date.now().toString(36),
+    symptom: currentSymptom,
+    area: currentArea?.name||'General',
+    areaId: currentArea?.id||'general',
+    intensity: currentIntensity,
+    vitals,
+    notes: document.getElementById('notesInput').value.trim(),
+    date: document.getElementById('entryDate').value,
+    time: document.getElementById('entryTime').value,
+    timestamp: new Date(document.getElementById('entryDate').value+'T'+document.getElementById('entryTime').value).getTime()||Date.now()
+  };
+  entries.unshift(entry);
+  save();
+  toast('Entry saved ✓');
+  // Reset
+  currentPath=null; currentArea=null; currentSymptom=null; currentIntensity=null;
+  document.getElementById('pathBody').classList.remove('active');
+  document.getElementById('pathGeneral').classList.remove('active');
+  document.getElementById('bodyDiagram').classList.remove('open');
+  document.getElementById('generalWrap').classList.remove('open');
+  document.getElementById('symptomPicker').classList.remove('open');
+  document.getElementById('intensityWrap').classList.remove('open');
+  document.getElementById('saveBtn').classList.remove('show');
+  document.getElementById('notesInput').value='';
+  document.querySelectorAll('.body-area-btn,.general-btn,.symptom-chip,.int-btn').forEach(b=>b.classList.remove('active'));
+  renderTimeline();
+  renderShareTab();
+}
+
+// ════════════════════════════════════════════════
+// TIMELINE
+// ════════════════════════════════════════════════
+function renderTimeline(filterDays=0){
+  const list=document.getElementById('timelineList');
+  const count=document.getElementById('tlCount');
+  let filtered=filterDays>0
+    ? entries.filter(e=>Date.now()-e.timestamp<filterDays*86400000)
+    : entries;
+  count.textContent=filtered.length+' entr'+(filtered.length===1?'y':'ies');
+  if(!filtered.length){
+    list.innerHTML=`<div class="empty-timeline"><span class="empty-icon">📋</span><div class="empty-text">No entries yet.<br>Tap Log to record your first symptom.</div></div>`;
+    return;
+  }
+  // Group by date
+  const groups={};
+  filtered.forEach(e=>{
+    const d=e.date||new Date(e.timestamp).toISOString().slice(0,10);
+    if(!groups[d]) groups[d]=[];
+    groups[d].push(e);
+  });
+  list.innerHTML = Object.entries(groups).sort((a,b)=>b[0].localeCompare(a[0])).map(([date,dayEntries])=>`
+    <div class="day-group">
+      <div class="day-label">${formatDate(date)}</div>
+      ${dayEntries.map(e=>renderEntry(e)).join('')}
+    </div>`).join('');
+}
+
+function renderEntry(e){
+  const sevClass=e.intensity<=3?'sev-low':e.intensity<=6?'sev-mid':'sev-high';
+  const vitalsHtml=Object.entries(e.vitals||{}).map(([k,v])=>`<span class="vital-tag">${k}: ${escH(v)}</span>`).join('');
+  return `<div class="entry-card">
+    <div class="entry-left">
+      <div class="entry-time">${e.time||'—'}</div>
+      <div class="entry-sev ${sevClass}">${e.intensity}</div>
+    </div>
+    <div class="entry-body">
+      <div class="entry-symptom">${escH(e.symptom)}</div>
+      <div class="entry-area">${escH(e.area)}</div>
+      ${vitalsHtml?`<div class="entry-vitals">${vitalsHtml}</div>`:''}
+      ${e.notes?`<div class="entry-notes">${escH(e.notes)}</div>`:''}
+    </div>
+    <button class="entry-del" onclick="deleteEntry('${e.id}')" title="Delete">✕</button>
+  </div>`;
+}
+
+function deleteEntry(id){
+  if(!confirm('Delete this entry?')) return;
+  entries=entries.filter(e=>e.id!==id);
+  save(); renderTimeline(); renderShareTab();
+}
+
+// ════════════════════════════════════════════════
+// SHARE / QR
+// ════════════════════════════════════════════════
+function getFilteredEntries(){
+  return shareFilterDays>0
+    ? entries.filter(e=>Date.now()-e.timestamp<shareFilterDays*86400000)
+    : entries;
+}
+
+async function buildShareURL(){
+  const payload={profile, entries:getFilteredEntries(), generated:Date.now()};
+  const json=JSON.stringify(payload);
+  // Compress
+  try{
+    const enc=new TextEncoder();
+    const stream=new CompressionStream('gzip');
+    const writer=stream.writable.getWriter();
+    writer.write(enc.encode(json)); writer.close();
+    const chunks=[]; const reader=stream.readable.getReader();
+    while(true){const{done,value}=await reader.read();if(done)break;chunks.push(value);}
+    const total=chunks.reduce((a,c)=>a+c.length,0);
+    const bytes=new Uint8Array(total); let off=0;
+    chunks.forEach(c=>{bytes.set(c,off);off+=c.length;});
+    const b64=btoa(String.fromCharCode(...bytes));
+    return window.location.href.split('?')[0]+'?view='+encodeURIComponent(b64);
+  }catch(e){
+    // Fallback to plain base64
+    return window.location.href.split('?')[0]+'?view='+encodeURIComponent(btoa(unescape(encodeURIComponent(json))));
+  }
+}
+
+async function renderShareTab(){
+  const url=await buildShareURL();
+  const container=document.getElementById('qrContainer');
+  container.innerHTML='';
+  try{
+    const qr=new QRCode(container,{
+      text:url, width:200, height:200,
+      colorDark:'#08090c', colorLight:'#e8eef4',
+      correctLevel:QRCode.CorrectLevel.M
+    });
+  }catch(e){ container.innerHTML='<div style="font-family:var(--mono);font-size:9px;color:var(--muted);padding:1rem;">QR unavailable — use copy link instead.</div>'; }
+  document.getElementById('shareUrlDisplay').textContent=url;
+}
+
+function setShareFilter(btn, days){
+  shareFilterDays=days;
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderShareTab();
+}
+
+async function copyShareURL(){
+  const url=await buildShareURL();
+  navigator.clipboard.writeText(url).then(()=>{ toast('Link copied ✓'); document.getElementById('shareUrlDisplay').style.display='block'; });
+}
+
+function shareViaShare(){
+  buildShareURL().then(url=>{
+    if(navigator.share) navigator.share({title:'DrH.md — '+profile.name+' symptom timeline', url}).catch(()=>{});
+    else copyShareURL();
+  });
+}
+
+function downloadQR(){
+  const canvas=document.querySelector('#qrContainer canvas');
+  if(!canvas){toast('Generate QR first.');return;}
+  const a=document.createElement('a');
+  a.href=canvas.toDataURL('image/png');
+  a.download='drh_symptoms_'+profile.name.replace(/\s+/g,'_')+'.png';
+  a.click();
+}
+
+function buildTextSummary(){
+  const filtered=getFilteredEntries();
+  const dob=profile.dob?'\nDate of birth: '+formatDate(profile.dob):'';
+  let out=`SYMPTOM JOURNAL — ${profile.name}${dob}\nGenerated: ${new Date().toLocaleString()}\nTotal entries: ${filtered.length}\n${'─'.repeat(40)}\n\n`;
+  const groups={};
+  filtered.forEach(e=>{ const d=e.date||new Date(e.timestamp).toISOString().slice(0,10); if(!groups[d]) groups[d]=[]; groups[d].push(e); });
+  Object.entries(groups).sort((a,b)=>b[0].localeCompare(a[0])).forEach(([date,dayEntries])=>{
+    out+=formatDate(date)+'\n';
+    dayEntries.forEach(e=>{
+      out+=`  ${e.time||'--:--'} | ${e.symptom} (${e.area}) — Intensity: ${e.intensity}/10\n`;
+      Object.entries(e.vitals||{}).forEach(([k,v])=>{ out+=`         ${k}: ${v}\n`; });
+      if(e.notes) out+=`         Notes: ${e.notes}\n`;
+    });
+    out+='\n';
+  });
+  out+=`${'─'.repeat(40)}\nThis journal was generated by DrH.md (Pumpo Tools).\nThis is a patient-reported symptom log — not a medical diagnosis.`;
+  return out;
+}
+
+function copyTextSummary(){
+  navigator.clipboard.writeText(buildTextSummary()).then(()=>toast('Text summary copied ✓'));
+}
+
+function downloadText(){
+  const a=document.createElement('a');
+  a.href='data:text/plain;charset=utf-8,'+encodeURIComponent(buildTextSummary());
+  a.download='drh_symptoms_'+profile.name.replace(/\s+/g,'_')+'_'+new Date().toISOString().slice(0,10)+'.txt';
+  a.click();
+}
+
+// ════════════════════════════════════════════════
+// READ-ONLY VIEW (doctor-facing)
+// ════════════════════════════════════════════════
+async function renderReadOnly(encoded){
+  document.getElementById('setupScreen').style.display='none';
+  document.getElementById('appScreen').style.display='none';
+  document.getElementById('topNav').style.display='none';
+  const ro=document.getElementById('readonlyScreen');
+  ro.classList.remove('hidden');
+  try{
+    let json;
+    try{
+      const bytes=Uint8Array.from(atob(decodeURIComponent(encoded)),c=>c.charCodeAt(0));
+      const stream=new DecompressionStream('gzip');
+      const writer=stream.writable.getWriter();
+      writer.write(bytes); writer.close();
+      const chunks=[]; const reader=stream.readable.getReader();
+      while(true){const{done,value}=await reader.read();if(done)break;chunks.push(value);}
+      const total=chunks.reduce((a,c)=>a+c.length,0);
+      const result=new Uint8Array(total); let off=0;
+      chunks.forEach(c=>{result.set(c,off);off+=c.length;});
+      json=new TextDecoder().decode(result);
+    }catch(e){
+      json=decodeURIComponent(escape(atob(decodeURIComponent(encoded))));
+    }
+    const data=JSON.parse(json);
+    const p=data.profile||{}; const ents=data.entries||[];
+    // Summary stats
+    const byArea={};
+    ents.forEach(e=>{ byArea[e.area]=(byArea[e.area]||0)+1; });
+    const topArea=Object.entries(byArea).sort((a,b)=>b[1]-a[1])[0];
+    const avgInt=ents.length?Math.round(ents.reduce((a,e)=>a+e.intensity,0)/ents.length*10)/10:0;
+    const dateRange=ents.length?new Date(Math.min(...ents.map(e=>e.timestamp))).toLocaleDateString()+' – '+new Date(Math.max(...ents.map(e=>e.timestamp))).toLocaleDateString():'No entries';
+    let html=`<div class="ro-header">
+      <div class="ro-brand">DrH.md · Symptom Journal</div>
+      <div class="ro-title">${escH(p.name||'Patient')}</div>
+      <div class="ro-meta">${p.dob?'DOB: '+formatDate(p.dob)+' · ':''}Generated: ${new Date(data.generated||Date.now()).toLocaleString()}</div>
+    </div>
+    <div class="ro-disclaimer">⚠ This is a patient-reported symptom log. It is not a clinical diagnosis. Please review with the patient for context and accuracy.</div>
+    <div class="ro-summary">
+      <div class="ro-summary-title">Summary</div>
+      <div class="ro-summary-row"><span class="ro-summary-key">Total entries</span><span class="ro-summary-val">${ents.length}</span></div>
+      <div class="ro-summary-row"><span class="ro-summary-key">Date range</span><span class="ro-summary-val">${dateRange}</span></div>
+      <div class="ro-summary-row"><span class="ro-summary-key">Average intensity</span><span class="ro-summary-val">${avgInt}/10</span></div>
+      ${topArea?`<div class="ro-summary-row"><span class="ro-summary-key">Most reported area</span><span class="ro-summary-val">${escH(topArea[0])} (${topArea[1]} entries)</span></div>`:''}
+    </div>`;
+    // Timeline
+    const groups={};
+    ents.forEach(e=>{ const d=e.date||new Date(e.timestamp).toISOString().slice(0,10); if(!groups[d]) groups[d]=[]; groups[d].push(e); });
+    html+=Object.entries(groups).sort((a,b)=>b[0].localeCompare(a[0])).map(([date,dayEntries])=>`
+      <div class="ro-day-group">
+        <div class="ro-day-label">${formatDate(date)}</div>
+        ${dayEntries.map(e=>{
+          const sevClass=e.intensity<=3?'ro-sev-low':e.intensity<=6?'ro-sev-mid':'ro-sev-high';
+          const vitalsHtml=Object.entries(e.vitals||{}).map(([k,v])=>`<span class="ro-vital-tag">${k}: ${escH(v)}</span>`).join('');
+          return `<div class="ro-entry">
+            <div class="ro-entry-head">
+              <div><span class="ro-symptom">${escH(e.symptom)}</span>${e.time?` <span style="font-family:var(--mono);font-size:9px;color:var(--muted);">${e.time}</span>`:''}</div>
+              <span class="ro-sev-badge ${sevClass}">${e.intensity}/10</span>
+            </div>
+            <div class="ro-area">${escH(e.area)}</div>
+            ${vitalsHtml?`<div class="ro-vitals">${vitalsHtml}</div>`:''}
+            ${e.notes?`<div class="ro-notes">${escH(e.notes)}</div>`:''}
+          </div>`;
+        }).join('')}
+      </div>`).join('');
+    ro.innerHTML=html;
+  }catch(err){
+    ro.innerHTML=`<div style="padding:2rem;font-family:var(--mono);font-size:11px;color:var(--red);">Could not load symptom data. The link may be invalid or corrupted.<br><br>${escH(err.message)}</div>`;
+  }
+}
+
+// ════════════════════════════════════════════════
+// SETTINGS
+// ════════════════════════════════════════════════
+function updateSettings(){
+  document.getElementById('settingsName').value=profile.name||'';
+  document.getElementById('settingsDob').value=profile.dob||'';
+  document.getElementById('settingsCount').textContent=entries.length;
+}
+
+function updateProfile(){
+  profile.name=document.getElementById('settingsName').value.trim()||profile.name;
+  profile.dob=document.getElementById('settingsDob').value||profile.dob;
+  save(); toast('Profile updated');
+}
+
+function exportJSON(){
+  const a=document.createElement('a');
+  a.href='data:application/json;charset=utf-8,'+encodeURIComponent(JSON.stringify({profile,entries},null,2));
+  a.download='drh_backup_'+new Date().toISOString().slice(0,10)+'.json';
+  a.click();
+}
+
+function clearAll(){
+  if(!confirm('Delete all entries? This cannot be undone.')) return;
+  entries=[]; save(); renderTimeline(); renderShareTab(); updateSettings(); toast('All entries cleared.');
+}
+
+// ════════════════════════════════════════════════
+// TAB SWITCHING
+// ════════════════════════════════════════════════
+function switchTab(tab){
+  document.querySelectorAll('.tab-view').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.bnav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab-'+tab).classList.add('active');
+  document.getElementById('bnav-'+tab).classList.add('active');
+  if(tab==='timeline') renderTimeline(shareFilterDays);
+  if(tab==='share') renderShareTab();
+  if(tab==='settings') updateSettings();
+}
+
+// ════════════════════════════════════════════════
+// COMPRESSION HELPERS (same as Buffaloes)
+// ════════════════════════════════════════════════
+// (CompressionStream used inline in buildShareURL and renderReadOnly)
+
+// ════════════════════════════════════════════════
+// UTILS
+// ════════════════════════════════════════════════
+function formatDate(dateStr){
+  if(!dateStr) return '—';
+  try{
+    const d=new Date(dateStr+'T12:00:00');
+    return d.toLocaleDateString('en-GB',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  }catch(e){ return dateStr; }
+}
+
+function escH(s){
+  if(typeof s!=='string') return '';
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function toast(msg){
+  const el=document.getElementById('statusToast');
+  el.textContent=msg; el.classList.add('show');
+  clearTimeout(el._t); el._t=setTimeout(()=>el.classList.remove('show'),2500);
+}
+</script>
+<!-- PUMPO BAR — paste shared snippet here -->
+</body>
+</html>
