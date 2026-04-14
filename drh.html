@@ -35,7 +35,7 @@
     .screen.active{display:block;}
 
     /* ── SETUP SCREEN ── */
-    #setupScreen{min-height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:70px 1.5rem 2rem;}
+    #setupScreen{position:fixed;inset:0;z-index:800;background:var(--bg);display:flex;flex-direction:column;justify-content:center;align-items:center;padding:1.5rem;overflow-y:auto;}
     .setup-card{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:2rem 1.5rem;max-width:400px;width:100%;text-align:center;}
     .setup-icon{font-size:52px;margin-bottom:1rem;}
     .setup-title{font-family:var(--display);font-size:24px;color:var(--blue);letter-spacing:1px;margin-bottom:.4rem;}
@@ -240,7 +240,7 @@
 <div id="readonlyScreen" class="hidden"></div>
 
 <!-- SETUP SCREEN -->
-<div id="setupScreen" class="screen active">
+<div id="setupScreen">
   <div class="setup-card">
     <div class="setup-icon">🩺</div>
     <div class="setup-title">DrH.md</div>
@@ -257,7 +257,7 @@
 </div>
 
 <!-- MAIN APP SCREEN -->
-<div id="appScreen" class="screen">
+<div id="appScreen" style="display:none;">
 
   <!-- ── LOG TAB ── -->
   <div class="tab-view active" id="tab-log">
@@ -419,15 +419,22 @@
       </div>
     </div>
 
-    <div class="settings-section danger-section">
+    <div class="settings-section">
       <div class="settings-title">Data</div>
       <div class="settings-row">
-        <span class="settings-key" style="font-size:11px;">Export all data as JSON backup</span>
+        <span class="settings-key" style="font-size:11px;">Export backup (JSON)</span>
         <button class="share-btn" style="padding:4px 10px;font-size:8px;" onclick="exportJSON()">Export</button>
       </div>
+    </div>
+    <div class="settings-section danger-section">
+      <div class="settings-title">Reset options</div>
       <div class="settings-row">
-        <span class="settings-key" style="font-size:11px;color:var(--muted);">Clear all entries. Cannot be undone.</span>
-        <button class="danger-btn" onclick="clearAll()">Clear all</button>
+        <span class="settings-key" style="font-size:11px;line-height:1.5;">Clear entries only<br><span style="font-size:10px;color:var(--muted);">Wipes the timeline. Keeps your name and DOB.</span></span>
+        <button class="danger-btn" onclick="clearEntries()">Clear entries</button>
+      </div>
+      <div class="settings-row">
+        <span class="settings-key" style="font-size:11px;line-height:1.5;">Reset everything<br><span style="font-size:10px;color:var(--muted);">Clears all data and returns to setup.</span></span>
+        <button class="danger-btn" onclick="resetEverything()">Reset all</button>
       </div>
     </div>
   </div>
@@ -456,6 +463,32 @@
 <div class="status-toast" id="statusToast"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script>
+// ════════════════════════════════════════════════
+// LANGUAGE CONFIG (v0.1: English only)
+// To add a language: duplicate LANG_EN, translate all
+// strings, add to LANGS object, and add to the
+// language selector on the setup screen.
+// Priority for v0.2: Italian, Spanish
+// ════════════════════════════════════════════════
+const LANG_EN = {
+  appName:'DrH.md',
+  setupTitle:'DrH.md',
+  setupSub:'Your personal symptom journal. Log how you feel, when it started, and how bad it is — then show your doctor a clear timeline at your next visit.',
+  setupNameLabel:'Your first name',
+  setupDobLabel:'Date of birth',
+  setupBtn:'Start my journal →',
+  setupDisclaimer:'All data stays on your device. Nothing is sent anywhere. No accounts. No servers. Your health information is private.',
+  logTitle:'Log a symptom',
+  logSub:'What are you experiencing right now?',
+  pathBodyLabel:'Body area',
+  pathBodyDesc:'Pain or discomfort in a specific part of your body',
+  pathGeneralLabel:'How I feel',
+  pathGeneralDesc:'Fatigue, fever, dizziness, nausea or other general feelings',
+  saveBtn:'Save entry',
+  roDisclaimer:'⚠ This is a patient-reported symptom log. It is not a clinical diagnosis. Please review with the patient for context and accuracy.',
+};
+const LANG = LANG_EN; // active language — swap in v0.2
+
 // ════════════════════════════════════════════════
 // SYMPTOM DATA
 // ════════════════════════════════════════════════
@@ -528,6 +561,8 @@ window.onload = function(){
     return;
   }
   if(profile.name){
+    // Profile exists — go straight to app, setup screen stays hidden
+    document.getElementById('setupScreen').style.display='none';
     showApp();
   } else {
     showSetup();
@@ -535,13 +570,23 @@ window.onload = function(){
 };
 
 function showSetup(){
-  document.getElementById('setupScreen').classList.add('active');
-  document.getElementById('appScreen').classList.remove('active');
+  document.getElementById('setupScreen').style.display='flex';
+  document.getElementById('appScreen').style.display='none';
 }
 
 function showApp(){
-  document.getElementById('setupScreen').classList.remove('active');
-  document.getElementById('appScreen').classList.add('active');
+  // Animate setup away then show app
+  const setup = document.getElementById('setupScreen');
+  setup.style.transition='opacity .35s ease, transform .35s ease';
+  setup.style.opacity='0';
+  setup.style.transform='translateY(-20px)';
+  setTimeout(()=>{
+    setup.style.display='none';
+    setup.style.transition='';
+    setup.style.opacity='';
+    setup.style.transform='';
+  },350);
+  document.getElementById('appScreen').style.display='block';
   document.getElementById('topNav').style.display='flex';
   buildBodyGrid();
   buildGeneralGrid();
@@ -559,6 +604,13 @@ function completeSetup(){
   profile = {name, dob};
   save();
   showApp();
+}
+
+// Setup can only be re-triggered by full reset
+function triggerSetup(){
+  document.getElementById('setupName').value = '';
+  document.getElementById('setupDob').value = '';
+  document.getElementById('setupScreen').style.display='flex';
 }
 
 // ════════════════════════════════════════════════
@@ -986,10 +1038,24 @@ function exportJSON(){
   a.click();
 }
 
-function clearAll(){
-  if(!confirm('Delete all entries? This cannot be undone.')) return;
-  entries=[]; save(); renderTimeline(); renderShareTab(); updateSettings(); toast('All entries cleared.');
+function clearEntries(){
+  if(!confirm('Clear all timeline entries? Your profile (name and date of birth) will be kept. This cannot be undone.')) return;
+  entries=[]; save(); renderTimeline(); renderShareTab(); updateSettings(); toast('Entries cleared.');
 }
+
+function resetEverything(){
+  if(!confirm('Reset everything? This will delete all entries AND your profile. You will need to set up again. Cannot be undone.')) return;
+  entries=[]; profile={name:'',dob:''};
+  localStorage.removeItem('drh_profile');
+  localStorage.removeItem('drh_entries');
+  document.getElementById('appScreen').style.display='none';
+  document.getElementById('topNav').style.display='none';
+  triggerSetup();
+  toast('All data cleared.');
+}
+
+// Legacy alias
+function clearAll(){ clearEntries(); }
 
 // ════════════════════════════════════════════════
 // TAB SWITCHING
