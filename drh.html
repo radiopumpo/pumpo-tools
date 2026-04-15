@@ -934,9 +934,9 @@ function renderTimeline(filterDays=0){
 
 function renderEntry(e){
   const sevClass=e.intensity<=3?'sev-low':e.intensity<=6?'sev-mid':'sev-high';
-  const vitalsHtml=Object.entries(e.vitals||{}).map(([k,v])=>`<span class="vital-tag">${k}: ${escH(v)}</span>`).join('')+specTag;
   const specObj = e.specialist ? SPECIALISTS.find(s=>s.id===e.specialist) : null;
   const specTag = specObj ? `<span class="vital-tag" style="border-color:rgba(64,196,192,0.3);color:var(--teal);">${specObj.icon} ${specObj.label}</span>` : '';
+  const vitalsHtml=Object.entries(e.vitals||{}).map(([k,v])=>`<span class="vital-tag">${k}: ${escH(v)}</span>`).join('')+specTag;
   return `<div class="entry-card">
     <div class="entry-left">
       <div class="entry-time">${e.time||'—'}</div>
