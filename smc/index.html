@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>SMC Suite — Smart Money Concepts</title>
+  <link rel="stylesheet" href="styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Space+Mono:wght@400;700&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<!-- TOP NAV -->
+<nav class="top-nav">
+  <div class="nav-brand">
+    SMC<span style="color:var(--pink)">SUITE</span>
+    <span class="nav-tag">POC v0.1</span>
+  </div>
+  <div class="nav-right">
+    <a href="https://radiopumpo.github.io/tools-index.html" class="nav-link">← Pumpo Tools</a>
+  </div>
+</nav>
+
+<!-- SECTION TABS -->
+<div class="section-tabs">
+  <button class="section-tab active" onclick="switchSection('learn')" id="tab-learn">
+    <span class="tab-num">01</span> Learn
+  </button>
+  <button class="section-tab" onclick="switchSection('think')" id="tab-think">
+    <span class="tab-num">02</span> Think
+  </button>
+  <button class="section-tab" onclick="switchSection('apply')" id="tab-apply">
+    <span class="tab-num">03</span> Apply
+  </button>
+</div>
+
+<!-- ════════════════════════════════════════════════
+     SECTION 1: LEARN — Mentorship Engine
+     ════════════════════════════════════════════════ -->
+<section class="section active" id="section-learn">
+  <div class="section-inner">
+    <div class="section-eyebrow">Smart Money Concepts — Interactive Mentorship</div>
+    <h1 class="section-title">The Framework</h1>
+    <p class="section-sub">Master the price delivery algorithm. Every concept builds on the last. Start with Market Structure — everything else flows from understanding how price moves and why.</p>
+
+    <div class="concept-grid" id="conceptGrid"></div>
+
+    <!-- MODULE DETAIL PANEL -->
+    <div class="module-panel" id="modulePanel">
+      <div class="module-header">
+        <div>
+          <div class="module-title" id="moduleTitle">—</div>
+          <div style="display:flex;gap:6px;align-items:center;margin-top:.3rem;">
+            <span class="pill" id="moduleCat">—</span>
+          </div>
+        </div>
+        <button class="module-close" onclick="closeModule()">✕ Close</button>
+      </div>
+      <div class="module-desc" id="moduleDesc"></div>
+      <div class="rules-title">Core Rules</div>
+      <ul class="rules-list" id="moduleRules"></ul>
+      <div class="visual-area" id="moduleVisual"></div>
+      <div class="related-row" id="moduleRelated"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════════
+     SECTION 2: THINK — Decision Engine
+     ════════════════════════════════════════════════ -->
+<section class="section" id="section-think">
+  <div class="section-inner">
+    <div class="section-eyebrow">Structured Decision Making</div>
+    <h1 class="section-title">Decision Engine</h1>
+    <p class="section-sub">Work through each gate systematically. Your confidence score reflects setup quality — not a signal to follow blindly, but a discipline framework to follow consistently.</p>
+
+    <div class="engine-layout">
+      <!-- FORM -->
+      <div class="engine-form">
+
+        <!-- GATE 1: HTF BIAS -->
+        <div class="gate-group">
+          <div class="gate-group-title"><span class="gate-num">01</span> Higher Timeframe Bias</div>
+          <div class="field-row">
+            <div class="field-label">Monthly structure</div>
+            <div class="btn-group">
+              <button class="opt-btn" data-field="monthly_structure" data-val="bullish" onclick="setField(this,'monthly_structure','bullish','bull')">▲ Bullish</button>
+              <button class="opt-btn" data-field="monthly_structure" data-val="bearish" onclick="setField(this,'monthly_structure','bearish','bear')">▼ Bearish</button>
+              <button class="opt-btn" data-field="monthly_structure" data-val="ranging" onclick="setField(this,'monthly_structure','ranging','warn')">↔ Ranging</button>
+            </div>
+          </div>
+          <div class="field-row">
+            <div class="field-label">Weekly structure</div>
+            <div class="btn-group">
+              <button class="opt-btn" data-field="weekly_structure" data-val="bullish" onclick="setField(this,'weekly_structure','bullish','bull')">▲ Bullish</button>
+              <button class="opt-btn" data-field="weekly_structure" data-val="bearish" onclick="setField(this,'weekly_structure','bearish','bear')">▼ Bearish</button>
+              <button class="opt-btn" data-field="weekly_structure" data-val="ranging" onclick="setField(this,'weekly_structure','ranging','warn')">↔ Ranging</button>
+            </div>
+          </div>
+          <div class="field-row">
+            <div class="field-label">Weekly position</div>
+            <div class="btn-group">
+              <button class="opt-btn" data-field="weekly_position" data-val="discount" onclick="setField(this,'weekly_position','discount','bull')">📉 Discount (below 50%)</button>
+              <button class="opt-btn" data-field="weekly_position" data-val="equilibrium" onclick="setField(this,'weekly_position','equilibrium','warn')">⚖ Equilibrium</button>
+              <button class="opt-btn" data-field="weekly_position" data-val="premium" onclick="setField(this,'weekly_position','premium','bear')">📈 Premium (above 50%)</button>
+            </div>
+          </div>
+          <div class="field-row">
+            <div class="field-label">Day of week</div>
+            <div class="btn-group">
+              <button class="opt-btn" data-field="weekly_day" data-val="monday" onclick="setField(this,'weekly_day','monday')">Mon</button>
+              <button class="opt-btn" data-field="weekly_day" data-val="tuesday" onclick="setField(this,'weekly_day','tuesday')">Tue</button>
+              <button class="opt-btn" data-field="weekly_day" data-val="wednesday" onclick="setField(this,'weekly_day','wednesday')">Wed</button>
+              <button class="opt-btn" data-field="weekly_day" data-val="thursday" onclick="setField(this,'weekly_day','thursday')">Thu</button>
+              <button class="opt-btn" data-field="weekly_day" data-val="friday" onclick="setField(this,'weekly_day','friday')">Fri</button>
+            </div>
+          </div>
+          <div class="field-row">
+            <div class="field-label">Has the weekly high/low been set yet?</div>
+            <div class="btn-group">
+              <button class="opt-btn" data-field="weekly_high_set" data-val="true" onclick="setField(this,'weekly_high_set',true,'bull')">✓ Yes</button>
+              <button class="opt-btn" data-field="weekly_high_set" data-val="false" onclick="setField(this,'weekly_high_set',false,'warn')">✗ Not yet</button>
+            </div>
+          </div>
+        </div>
+
+        <hr class="divider">
+
+        <!-- GATE 2: SESSION -->
+        <div class="gate-group">
+          <div class="gate-group-title"><span class="gate-num">02</span> Session & Time</div>
+          <div class="field-row">
+            <div class="field-label">Current session</div>
+            <div class="btn-group">
+              <button class="opt-btn" data-field="session" data-val="asian" onclick="setField(this,'session','asian','warn')">🌏 Asian</button>
+              <button class="opt-btn" data-field="session" data-val="london" onclick="setField(this,'session','london','bull')">🇬🇧 London</button>
+              <button class="opt-btn" data-field="session" data-val="newyork_am" onclick="setField(this,'session','newyork_am','bull')">🇺🇸 NY AM</button>
+              <button class="opt-btn" data-field="session" data-val="lunch" onclick="setField(this,'session','lunch','bear')">🍽 Lunch</button>
+              <button class="opt-btn" data-field="session" data-val="newyork_pm" onclick="setField(this,'session','newyork_pm')">🌆 NY PM</button>
+            </div>
+          </div>
+          <div class="field-row">
+            <div class="field-label">Inside killzone?</div>
+            <div class="btn-group">
+              <button class="opt-btn" data-field="in_killzone" data-val="true" onclick="setField(this,'in_killzone',true,'bull')">✓ Yes</button>
+              <button class="opt-btn" data-field="in_killzone" data-val="false" onclick="setField(this,'in_killzone',false,'warn')">✗ No</button>
+            </div>
+          </div>
+          <div class="field-row">
+            <div class="field-label">Silver bullet window? <span class="field-sub">(03:00–04:00 / 10:00–11:00 / 14:00–15:00 NY)</span></div>
+            <div class="btn-group">
+              <button class="opt-btn" data-field="silver_bullet" data-val="true" onclick="setField(this,'silver_bullet',true,'bull')">✓ Yes</button>
+              <button class="opt-btn" data-field="silver_bullet" data-val="false" onclick="setField(this,'silver_bullet',false)">✗ No</button>
+            </div>
+          </div>
+        </div>
+
+        <hr class="divider">
+
+        <!-- GATE 3: LIQUIDITY -->
+        <div class="gate-group">
+          <div class="gate-group-title"><span class="gate-num">03</span> Liquidity Raid</div>
+          <div class="field-row">
+            <div class="field-label">Has a significant liquidity level been taken?</div>
+            <div class="btn-group">
+              <button class="opt-btn" data-field="liquidity_raided" data-val="true" onclick="setField(this,'liquidity_raided',true,'bull')">✓ Yes — swept</button>
+              <button class="opt-btn" data-field="liquidity_raided" data-val="false" onclick="setField(this,'liquidity_raided',false,'warn')">✗ Not yet</button>
+            </div>
+          </div>
+          <div class="field-row">
+            <div class="field-label">Which liquidity was taken?</div>
+            <div class="btn-group">
+              <button class="opt-btn" data-field="raid_direction" data-val="sellside" onclick="setField(this,'raid_direction','sellside','bull')">⬇ Sell-side (lows swept)</button>
+              <button class="opt-btn" data-field="raid_direction" data-val="buyside" onclick="setField(this,'raid_direction','buyside','bear')">⬆ Buy-side (highs swept)</button>
+            </div>
+          </div>
+        </div>
+
+        <hr class="divider">
+
+        <!-- GATE 4: ChoCH -->
+        <div class="gate-group">
+          <div class="gate-group-title"><span class="gate-num">04</span> Change of Character</div>
+          <div class="field-row">
+            <div class="field-label">ChoCH confirmed on entry timeframe?</div>
+            <div class="btn-group">
+              <button class="opt-btn" data-field="choch_confirmed" data-val="true" onclick="setField(this,'choch_confirmed',true,'bull')">✓ Confirmed</button>
+              <button class="opt-btn" data-field="choch_confirmed" data-val="false" onclick="setField(this,'choch_confirmed',false,'warn')">✗ Not yet</button>
+            </div>
+          </div>
+          <div class="field-row">
+            <div class="field-label">ChoCH direction</div>
+            <div class="btn-group">
+              <button class="opt-btn" data-field="choch_direction" data-val="bullish" onclick="setField(this,'choch_direction','bullish','bull')">▲ Bullish ChoCH</button>
+              <button class="opt-btn" data-field="choch_direction" data-val="bearish" onclick="setField(this,'choch_direction','bearish','bear')">▼ Bearish ChoCH</button>
+            </div>
+          </div>
+        </div>
+
+        <hr class="divider">
+
+        <!-- GATE 5: ENTRY ARRAY -->
+        <div class="gate-group">
+          <div class="gate-group-title"><span class="gate-num">05</span> Entry Array</div>
+          <div class="field-row">
+            <div class="field-label">Order Block present?</div>
+            <div class="btn-group">
+              <button class="opt-btn" data-field="has_ob" data-val="true" onclick="setField(this,'has_ob',true,'bull')">✓ Yes</button>
+              <button class="opt-btn" data-field="has_ob" data-val="false" onclick="setField(this,'has_ob',false)">✗ No</button>
+            </div>
+          </div>
+          <div class="field-row">
+            <div class="field-label">Fair Value Gap present?</div>
+            <div class="btn-group">
+              <button class="opt-btn" data-field="has_fvg" data-val="true" onclick="setField(this,'has_fvg',true,'bull')">✓ Yes</button>
+              <button class="opt-btn" data-field="has_fvg" data-val="false" onclick="setField(this,'has_fvg',false)">✗ No</button>
+            </div>
+          </div>
+          <div class="field-row">
+            <div class="field-label">Price at OTE zone? <span class="field-sub">(0.618–0.786 retracement)</span></div>
+            <div class="btn-group">
+              <button class="opt-btn" data-field="at_ote" data-val="true" onclick="setField(this,'at_ote',true,'bull')">✓ Yes</button>
+              <button class="opt-btn" data-field="at_ote" data-val="false" onclick="setField(this,'at_ote',false)">✗ No</button>
+            </div>
+          </div>
+        </div>
+
+        <hr class="divider">
+
+        <!-- GATES 6+7 -->
+        <div class="gate-group">
+          <div class="gate-group-title"><span class="gate-num">06</span> Risk & Target</div>
+          <div class="field-row">
+            <div class="field-label">Risk:Reward ratio</div>
+            <div class="field-sub">Minimum 2:1. Preferred 3:1+</div>
+            <input type="number" class="rr-input" id="rrInput" placeholder="e.g. 3" step="0.5" min="0" oninput="SMCEngine.set('rr_ratio',this.value);evalEngine()">
+          </div>
+          <div class="field-row">
+            <div class="field-label">Clear liquidity target identified?</div>
+            <div class="btn-group">
+              <button class="opt-btn" data-field="target_identified" data-val="true" onclick="setField(this,'target_identified',true,'bull')">✓ Yes</button>
+              <button class="opt-btn" data-field="target_identified" data-val="false" onclick="setField(this,'target_identified',false)">✗ No</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="engine-actions">
+          <button class="eval-btn" onclick="evalEngine()">Evaluate Setup</button>
+          <button class="reset-btn" onclick="resetEngine()">↺ Reset</button>
+        </div>
+      </div>
+
+      <!-- RESULT PANEL -->
+      <div class="engine-result">
+        <div style="font-family:var(--mono);font-size:8px;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);margin-bottom:.85rem;">Confidence Score</div>
+        <div class="result-score">
+          <div class="score-circle" id="scoreCircle">
+            <div class="score-num" id="scoreNum">—</div>
+            <div class="score-max">/100</div>
+          </div>
+          <div class="result-tier" id="resultTier">—</div>
+          <div class="result-action" id="resultAction">Fill in the gates to evaluate</div>
+        </div>
+        <div style="text-align:center;margin-bottom:.75rem;" id="directionWrap"></div>
+        <div class="gates-breakdown" id="gatesBreakdown"></div>
+        <div id="weeklyWarning"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════════
+     SECTION 3: APPLY — Live Charts
+     ════════════════════════════════════════════════ -->
+<section class="section" id="section-apply">
+  <div class="section-inner">
+    <div class="section-eyebrow">Live Market — Read-Only POC</div>
+    <h1 class="section-title">Apply the Framework</h1>
+    <p class="section-sub">High-liquidity instruments only. Use the top-down protocol — start on the weekly, work down to the entry timeframe. Analysis tools in v1.</p>
+
+    <div class="instrument-grid" id="instrumentGrid"></div>
+
+    <div style="font-family:var(--mono);font-size:8px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:.5rem;">Timeframe</div>
+    <div class="tf-row" id="tfRow">
+      <button class="tf-btn" data-tf="W" onclick="setTF(this,'W')">Weekly</button>
+      <button class="tf-btn" data-tf="D" onclick="setTF(this,'D')">Daily</button>
+      <button class="tf-btn active" data-tf="240" onclick="setTF(this,'240')">4H</button>
+      <button class="tf-btn" data-tf="60" onclick="setTF(this,'60')">1H</button>
+      <button class="tf-btn" data-tf="15" onclick="setTF(this,'15')">15M</button>
+      <button class="tf-btn" data-tf="5" onclick="setTF(this,'5')">5M</button>
+    </div>
+
+    <div class="chart-container">
+      <div class="chart-info">
+        <div class="chart-symbol" id="chartSymbolLabel">Select an instrument above</div>
+        <div class="chart-context" id="chartContext">Top-down: start weekly → work to entry TF</div>
+      </div>
+      <div id="tradingview-widget" style="height:520px;"></div>
+    </div>
+  </div>
+</section>
+
+<div class="status-toast" id="statusToast"></div>
+
+<script src="smc-data.js"></script>
+<script src="smc-engine.js"></script>
+<script>
+// ════════════════════════════════════════════════
+// APP INIT
+// ════════════════════════════════════════════════
+let activeSection = 'learn';
+let activeConceptId = null;
+let currentSymbol = 'FX:EURUSD';
+let currentTF = '240';
+
+window.onload = function() {
+  buildConceptGrid();
+  buildInstrumentGrid();
+};
+
+// ════════════════════════════════════════════════
+// SECTION SWITCHING
+// ════════════════════════════════════════════════
+function switchSection(id) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.section-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('section-'+id).classList.add('active');
+  document.getElementById('tab-'+id).classList.add('active');
+  activeSection = id;
+  if (id === 'apply' && currentSymbol) {
+    renderChart(currentSymbol, currentTF);
+  }
+}
+
+// ════════════════════════════════════════════════
+// LEARN — CONCEPT GRID
+// ════════════════════════════════════════════════
+function buildConceptGrid() {
+  const grid = document.getElementById('conceptGrid');
+  grid.innerHTML = SMC_DATA.concepts.map(c => `
+    <div class="concept-card ${c.status === 'placeholder' ? 'placeholder' : ''}" 
+         id="card-${c.id}"
+         onclick="${c.status === 'built' ? `openModule('${c.id}')` : ''}">
+      <span class="concept-icon">${c.icon}</span>
+      <div class="concept-name">${c.name}</div>
+      <div class="concept-cat">${c.category}</div>
+      <div class="concept-desc">${c.description}</div>
+      <span class="concept-badge ${c.status === 'built' ? 'badge-built' : 'badge-placeholder'}">
+        ${c.status === 'built' ? 'INTERACTIVE' : 'COMING'}
+      </span>
+    </div>`).join('');
+}
+
+function openModule(id) {
+  const concept = SMC_DATA.concepts.find(c => c.id === id);
+  if (!concept || concept.status !== 'built') return;
+
+  // Highlight active card
+  document.querySelectorAll('.concept-card').forEach(c => c.classList.remove('active-card'));
+  document.getElementById('card-'+id)?.classList.add('active-card');
+  activeConceptId = id;
+
+  // Populate panel
+  document.getElementById('moduleTitle').textContent = concept.icon + ' ' + concept.name;
+  document.getElementById('moduleCat').textContent = concept.category;
+  document.getElementById('moduleDesc').textContent = concept.description;
+  document.getElementById('moduleRules').innerHTML = concept.rules
+    .map(r => `<li>${r}</li>`).join('');
+
+  // Visual
+  renderModuleVisual(concept);
+
+  // Related concepts
+  const related = concept.related || [];
+  document.getElementById('moduleRelated').innerHTML = related.length
+    ? `<div style="font-family:var(--mono);font-size:8px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-right:8px;">Related:</div>` +
+      related.map(r => {
+        const rc = SMC_DATA.concepts.find(c => c.id === r);
+        return rc ? `<span class="related-chip" onclick="openModule('${r}')">${rc.icon} ${rc.name}</span>` : '';
+      }).join('') : '';
+
+  // Open panel and scroll
+  const panel = document.getElementById('modulePanel');
+  panel.classList.add('open');
+  setTimeout(() => panel.scrollIntoView({ behavior: 'smooth', block: 'start' }), 80);
+}
+
+function closeModule() {
+  document.getElementById('modulePanel').classList.remove('open');
+  document.querySelectorAll('.concept-card').forEach(c => c.classList.remove('active-card'));
+  activeConceptId = null;
+}
+
+// ════════════════════════════════════════════════
+// MODULE VISUALS — SVG / Session Clock
+// ════════════════════════════════════════════════
+function renderModuleVisual(concept) {
+  const area = document.getElementById('moduleVisual');
+  switch(concept.visual_type) {
+    case 'session_clock': area.innerHTML = buildSessionClock(); break;
+    case 'annotated_chart': area.innerHTML = buildAnnotatedChart(concept.id); break;
+    case 'timeframe_cascade': area.innerHTML = buildTFCascade(); break;
+    default: area.innerHTML = `<div style="color:var(--muted);font-family:var(--mono);font-size:10px;padding:2rem;">Visual diagram for this concept</div>`;
+  }
+}
+
+function buildSessionClock() {
+  const sessions = [
+    { name:'Asian Range', time:'23:00–08:00 UTC / 18:00–03:00 NY', color:'#4a9eff', prob:'avoid', kz:false },
+    { name:'London Killzone', time:'02:00–05:00 NY · Silver Bullet 03:00–04:00', color:'#40e0d0', prob:'high', kz:true },
+    { name:'NY AM Killzone', time:'07:00–10:00 NY · Silver Bullet 10:00–11:00', color:'#ff0080', prob:'highest', kz:true },
+    { name:'NY Lunch', time:'12:00–13:00 NY', color:'#ffaa00', prob:'avoid', kz:false },
+    { name:'NY PM Window', time:'13:30–16:00 NY · Silver Bullet 14:00–15:00', color:'#9b59ff', prob:'mid', kz:true },
+  ];
+  const probClass = { avoid:'prob-avoid', low:'prob-low', mid:'prob-mid', high:'prob-high', highest:'prob-high' };
+  const probLabel = { avoid:'AVOID', low:'Low', mid:'Moderate', high:'High', highest:'Highest' };
+  return `<div class="session-clock">
+    <div style="font-family:var(--mono);font-size:8px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:.65rem;">Session Map — New York Time Reference</div>
+    <div class="session-rows">
+      ${sessions.map(s => `
+        <div class="session-row">
+          <div class="session-dot" style="background:${s.color}"></div>
+          <div class="session-row-name" style="color:${s.color}">${s.name}${s.kz ? '<span class="killzone-badge">KZ</span>' : ''}</div>
+          <div class="session-row-time">${s.time}</div>
+          <div class="session-row-prob ${probClass[s.prob]}">${probLabel[s.prob]}</div>
+        </div>`).join('')}
+    </div>
+    <div style="margin-top:.85rem;padding:.65rem .75rem;background:rgba(255,170,0,0.06);border:1px solid rgba(255,170,0,0.2);border-radius:8px;font-size:11px;font-weight:600;color:var(--amber);line-height:1.6;">
+      ⚡ Weekly bias rule: In a bearish week, 80% probability the weekly HIGH forms Monday or Tuesday.<br>
+      In a bullish week, 80% probability the weekly LOW forms Monday or Tuesday.
+    </div>
+  </div>`;
+}
+
+function buildAnnotatedChart(id) {
+  const charts = {
+    market_structure: buildStructureChart(),
+    liquidity: buildLiquidityChart(),
+    fvg: buildFVGChart(),
+    order_blocks: buildOBChart(),
+  };
+  return charts[id] || `<div style="color:var(--muted);font-family:var(--mono);font-size:10px;padding:2rem;">Interactive diagram</div>`;
+}
+
+function buildStructureChart() {
+  return `<svg class="svg-chart" viewBox="0 0 600 220" xmlns="http://www.w3.org/2000/svg">
+    <!-- Bullish structure then ChoCH -->
+    <!-- HL1 → HH1 → HL2 → HH2 → LH (ChoCH) → LL -->
+    <polyline class="price-line" points="20,180 80,140 120,155 190,100 230,115 310,55 360,90 420,50 490,120 560,160"/>
+    <!-- BOS lines -->
+    <line x1="190" y1="100" x2="310" y2="100" class="bos-line"/>
+    <text x="245" y="93" class="annotation annotation-bull">BOS</text>
+    <!-- ChoCH line -->
+    <line x1="420" y1="50" x2="560" y2="50" class="choch-line"/>
+    <text x="470" y="44" class="annotation" style="fill:var(--pink)">ChoCH</text>
+    <!-- Annotations -->
+    <text x="16" y="177" class="annotation">LL</text>
+    <text x="74" y="134" class="annotation annotation-bull">HL</text>
+    <text x="112" y="152" class="annotation annotation-bear">HL</text>
+    <text x="184" y="94" class="annotation annotation-bull">HH</text>
+    <text x="224" y="110" class="annotation annotation-bull">HL</text>
+    <text x="302" y="48" class="annotation annotation-bull">HH</text>
+    <text x="354" y="84" class="annotation annotation-bear">LH</text>
+    <text x="412" y="44" class="annotation annotation-bull">HH→</text>
+    <text x="483" y="116" class="annotation annotation-bear">LL forming</text>
+  </svg>`;
+}
+
+function buildLiquidityChart() {
+  return `<svg class="svg-chart" viewBox="0 0 600 220" xmlns="http://www.w3.org/2000/svg">
+    <!-- Equal highs (BSL) -->
+    <line x1="60" y1="55" x2="380" y2="55" class="liq-level"/>
+    <circle cx="90" cy="55" r="4" fill="var(--amber)"/>
+    <circle cx="200" cy="55" r="4" fill="var(--amber)"/>
+    <circle cx="320" cy="55" r="4" fill="var(--amber)"/>
+    <text x="385" y="58" class="annotation annotation-amber">BSL (equal highs)</text>
+    <!-- Equal lows (SSL) -->
+    <line x1="60" y1="165" x2="260" y2="165" class="liq-level"/>
+    <circle cx="80" cy="165" r="4" fill="var(--pink)"/>
+    <circle cx="180" cy="165" r="4" fill="var(--pink)"/>
+    <text x="265" y="168" class="annotation" style="fill:var(--pink)">SSL (equal lows)</text>
+    <!-- Price sweep then reverse -->
+    <polyline class="price-line" points="30,110 90,55 140,80 200,55 260,165 310,130 380,55 430,100 480,80"/>
+    <!-- Sweep annotations -->
+    <text x="375" y="44" class="annotation annotation-amber">↑ BSL swept</text>
+    <text x="245" y="180" class="annotation" style="fill:var(--pink)">↓ SSL swept</text>
+  </svg>`;
+}
+
+function buildFVGChart() {
+  return `<svg class="svg-chart" viewBox="0 0 600 220" xmlns="http://www.w3.org/2000/svg">
+    <!-- Candles before FVG -->
+    <rect x="40" y="120" width="16" height="50" fill="var(--red)" opacity=".8"/>
+    <line x1="48" y1="110" x2="48" y2="175" stroke="var(--red)" stroke-width="1.5"/>
+    <!-- FVG zone (bullish) -->
+    <rect x="120" y="75" width="180" height="35" class="fvg-bull"/>
+    <text x="128" y="68" class="annotation annotation-cyan">Bullish FVG</text>
+    <!-- Impulse candle (candle 2) -->
+    <rect x="70" y="70" width="16" height="60" fill="var(--green)" opacity=".8"/>
+    <line x1="78" y1="60" x2="78" y2="135" stroke="var(--green)" stroke-width="1.5"/>
+    <!-- Candle 3 -->
+    <rect x="100" y="75" width="16" height="35" fill="var(--green)" opacity=".7"/>
+    <!-- Price returns to fill FVG -->
+    <polyline class="price-line" points="30,145 48,130 70,70 100,80 150,150 190,110 240,95 290,85 350,80"/>
+    <!-- 50% fill level -->
+    <line x1="120" y1="92" x2="300" y2="92" stroke="var(--cyan)" stroke-width=".8" stroke-dasharray="2,2"/>
+    <text x="305" y="95" class="annotation annotation-cyan">50% fill</text>
+    <!-- Arrow back into FVG -->
+    <text x="145" y="168" class="annotation">Price returns ↑</text>
+  </svg>`;
+}
+
+function buildOBChart() {
+  return `<svg class="svg-chart" viewBox="0 0 600 220" xmlns="http://www.w3.org/2000/svg">
+    <!-- Bullish OB zone -->
+    <rect x="60" y="130" width="100" height="35" class="bullish-ob"/>
+    <text x="64" y="124" class="annotation annotation-bull">Bullish OB</text>
+    <!-- Last bearish candle (the OB) -->
+    <rect x="75" y="135" width="14" height="25" fill="var(--red)" opacity=".7"/>
+    <line x1="82" y1="128" x2="82" y2="162" stroke="var(--red)" stroke-width="1.5"/>
+    <!-- Impulse away -->
+    <rect x="95" y="80" width="14" height="55" fill="var(--green)" opacity=".8"/>
+    <line x1="102" y1="70" x2="102" y2="140" stroke="var(--green)" stroke-width="1.5"/>
+    <!-- BOS -->
+    <line x1="110" y1="115" x2="240" y2="115" class="bos-line"/>
+    <text x="165" y="108" class="annotation annotation-bull">BOS</text>
+    <!-- Price continues up then returns to OB -->
+    <polyline class="price-line" points="30,180 75,160 95,80 150,50 210,65 270,40 330,135 380,138 420,90"/>
+    <!-- Return to OB arrow -->
+    <text x="325" y="155" class="annotation">← Returns to OB</text>
+    <!-- Refined entry line -->
+    <line x1="60" y1="148" x2="160" y2="148" stroke="var(--cyan)" stroke-width=".8" stroke-dasharray="3,2"/>
+    <text x="164" y="151" class="annotation annotation-cyan">50% (refined)</text>
+  </svg>`;
+}
+
+function buildTFCascade() {
+  const tfs = [
+    { tf:'Monthly', role:'Overall structure & direction', color:'var(--amber)' },
+    { tf:'Weekly', role:'Premium / Discount, weekly bias', color:'var(--pink)' },
+    { tf:'Daily', role:'OBs and FVGs to target', color:'var(--violet)' },
+    { tf:'4H', role:'Refined arrays, structural shifts', color:'var(--cyan)' },
+    { tf:'1H', role:'Entry array identification', color:'var(--blue)' },
+    { tf:'15M', role:'ChoCH confirmation + trigger', color:'var(--green)' },
+    { tf:'5M/1M', role:'Precision entry refinement', color:'var(--muted)' },
+  ];
+  return `<div style="width:100%;padding:1rem;">
+    ${tfs.map((t,i) => `
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;padding:.5rem .75rem;background:var(--bg3);border-radius:8px;border-left:2px solid ${t.color};">
+        <div style="font-family:var(--display);font-size:11px;color:${t.color};width:60px;flex-shrink:0;">${t.tf}</div>
+        <div style="font-size:11px;font-weight:600;color:var(--text);">${t.role}</div>
+        ${i < 6 ? `<div style="margin-left:auto;font-family:var(--mono);font-size:9px;color:var(--muted);">↓</div>` : ''}
+      </div>`).join('')}
+    <div style="padding:.6rem .75rem;background:rgba(64,224,208,0.06);border:1px solid rgba(64,224,208,0.2);border-radius:8px;font-size:11px;font-weight:600;color:var(--cyan);margin-top:.5rem;line-height:1.6;">
+      Rule: Never trade against the monthly or weekly structure — no matter how clean the entry timeframe looks.
+    </div>
+  </div>`;
+}
+
+// ════════════════════════════════════════════════
+// DECISION ENGINE
+// ════════════════════════════════════════════════
+function setField(btn, field, value, colorClass) {
+  // Clear siblings
+  const group = btn.parentElement;
+  group.querySelectorAll('.opt-btn').forEach(b => {
+    b.classList.remove('active','active-bull','active-bear','active-warn');
+  });
+  // Set active
+  const cls = colorClass === 'bull' ? 'active-bull'
+    : colorClass === 'bear' ? 'active-bear'
+    : colorClass === 'warn' ? 'active-warn' : 'active';
+  btn.classList.add(cls);
+  SMCEngine.set(field, value);
+  evalEngine();
+}
+
+function evalEngine() {
+  const { gates, total, tier, direction, weekly_warning } = SMCEngine.evaluateGates();
+
+  // Score circle
+  const circle = document.getElementById('scoreCircle');
+  circle.style.borderColor = tier.color;
+  document.getElementById('scoreNum').style.color = tier.color;
+  document.getElementById('scoreNum').textContent = total;
+  document.getElementById('resultTier').textContent = tier.label;
+  document.getElementById('resultTier').style.color = tier.color;
+  document.getElementById('resultAction').textContent = tier.action;
+
+  // Direction badge
+  const dirClass = direction.includes('LONG') ? 'dir-long' : direction.includes('SHORT') ? 'dir-short' : 'dir-neutral';
+  document.getElementById('directionWrap').innerHTML = `<span class="result-direction ${dirClass}">${direction}</span>`;
+
+  // Gates breakdown
+  document.getElementById('gatesBreakdown').innerHTML = Object.values(gates).map(g => `
+    <div class="gate-row">
+      <div class="gate-status ${g.pass ? 'gate-pass' : g.score > 0 ? 'gate-warn' : 'gate-fail'}"></div>
+      <div class="gate-row-label">${g.label}</div>
+      <div class="gate-row-score">${g.score}/${g.max}</div>
+    </div>
+    <div class="gate-detail">${g.detail}</div>`).join('');
+
+  // Weekly warning
+  document.getElementById('weeklyWarning').innerHTML = weekly_warning
+    ? `<div class="warning-box">⚡ ${weekly_warning}</div>` : '';
+}
+
+function resetEngine() {
+  SMCEngine.reset();
+  document.getElementById('rrInput').value = '';
+  document.querySelectorAll('.opt-btn').forEach(b => b.classList.remove('active','active-bull','active-bear','active-warn'));
+  document.getElementById('scoreNum').textContent = '—';
+  document.getElementById('resultTier').textContent = '—';
+  document.getElementById('resultAction').textContent = 'Fill in the gates to evaluate';
+  document.getElementById('scoreCircle').style.borderColor = 'var(--cyan)';
+  document.getElementById('scoreNum').style.color = 'var(--cyan)';
+  document.getElementById('directionWrap').innerHTML = '';
+  document.getElementById('gatesBreakdown').innerHTML = '';
+  document.getElementById('weeklyWarning').innerHTML = '';
+}
+
+// ════════════════════════════════════════════════
+// APPLY — INSTRUMENT GRID + TRADINGVIEW
+// ════════════════════════════════════════════════
+function buildInstrumentGrid() {
+  const grid = document.getElementById('instrumentGrid');
+  grid.innerHTML = SMC_DATA.instruments.map(inst => `
+    <div class="instrument-btn ${inst.symbol === currentSymbol ? 'active' : ''}"
+         onclick="selectInstrument(this,'${inst.symbol}','${inst.label}')">
+      <span class="instrument-icon">${inst.icon}</span>
+      <div class="instrument-label">${inst.label}</div>
+      <div class="instrument-type">${inst.type}</div>
+    </div>`).join('');
+}
+
+function selectInstrument(btn, symbol, label) {
+  document.querySelectorAll('.instrument-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  currentSymbol = symbol;
+  document.getElementById('chartSymbolLabel').textContent = label;
+  renderChart(symbol, currentTF);
+}
+
+function setTF(btn, tf) {
+  document.querySelectorAll('.tf-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  currentTF = tf;
+  renderChart(currentSymbol, tf);
+}
+
+function renderChart(symbol, tf) {
+  const container = document.getElementById('tradingview-widget');
+  container.innerHTML = '';
+  const script = document.createElement('script');
+  script.src = 'https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js';
+  script.async = true;
+  script.innerHTML = JSON.stringify({
+    symbol,
+    interval: tf,
+    timezone: 'America/New_York',
+    theme: 'dark',
+    style: '1',
+    locale: 'en',
+    hide_top_toolbar: false,
+    hide_legend: false,
+    allow_symbol_change: false,
+    save_image: true,
+    backgroundColor: 'rgba(7,9,13,1)',
+    gridColor: 'rgba(64,224,208,0.06)',
+    width: '100%',
+    height: 520,
+  });
+  container.appendChild(script);
+}
+
+// ── UTILS ──────────────────────────────────────
+function toast(msg) {
+  const el = document.getElementById('statusToast');
+  el.textContent = msg; el.classList.add('show');
+  clearTimeout(el._t); el._t = setTimeout(() => el.classList.remove('show'), 2500);
+}
+</script>
+</body>
+</html>
