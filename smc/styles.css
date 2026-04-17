@@ -172,3 +172,4 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
 .related-chip:hover{background:rgba(64,224,208,0.08);}
 .status-toast{position:fixed;top:calc(var(--nav-h) + var(--tab-h) + 8px);left:50%;transform:translateX(-50%);z-index:700;font-family:var(--mono);font-size:9px;padding:6px 14px;border-radius:20px;background:var(--bg2);border:1px solid var(--border2);color:var(--text);pointer-events:none;opacity:0;transition:opacity .2s;white-space:nowrap;}
 .status-toast.show{opacity:1;}
+@media(max-width:600px){.apply-tools-grid{grid-template-columns:1fr!important;}}
