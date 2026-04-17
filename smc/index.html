@@ -16,7 +16,7 @@
     <span class="nav-tag">POC v0.1</span>
   </div>
   <div class="nav-right">
-    <a href="../index.html" class="nav-link">← Pumpo Tools</a>
+    <a href="https://radiopumpo.github.io/tools-index.html" class="nav-link">← Pumpo Tools</a>
   </div>
 </nav>
 
@@ -158,40 +158,40 @@
 
         <!-- GATE 3: LIQUIDITY -->
         <div class="gate-group">
-          <div class="gate-group-title"><span class="gate-num">03</span> Liquidity Raid</div>
+          <div class="gate-group-title"><span class="gate-num">03</span> Liquidity Grab</div>
           <div class="field-row">
-            <div class="field-label">Has a significant liquidity level been taken?</div>
+            <div class="field-label">Has a significant liquidity level been grabbed?</div>
             <div class="btn-group">
-              <button class="opt-btn" data-field="liquidity_raided" data-val="true" onclick="setField(this,'liquidity_raided',true,'bull')">✓ Yes — swept</button>
-              <button class="opt-btn" data-field="liquidity_raided" data-val="false" onclick="setField(this,'liquidity_raided',false,'warn')">✗ Not yet</button>
+              <button class="opt-btn" data-field="liquidity_grabbed" data-val="true" onclick="setField(this,'liquidity_grabbed',true,'bull')">✓ Yes — grabbed</button>
+              <button class="opt-btn" data-field="liquidity_grabbed" data-val="false" onclick="setField(this,'liquidity_grabbed',false,'warn')">✗ Not yet</button>
             </div>
           </div>
           <div class="field-row">
-            <div class="field-label">Which liquidity was taken?</div>
+            <div class="field-label">Which liquidity was grabbed?</div>
             <div class="btn-group">
-              <button class="opt-btn" data-field="raid_direction" data-val="sellside" onclick="setField(this,'raid_direction','sellside','bull')">⬇ Sell-side (lows swept)</button>
-              <button class="opt-btn" data-field="raid_direction" data-val="buyside" onclick="setField(this,'raid_direction','buyside','bear')">⬆ Buy-side (highs swept)</button>
+              <button class="opt-btn" data-field="grab_direction" data-val="sellside" onclick="setField(this,'grab_direction','sellside','bull')">⬇ Sell-side (lows swept)</button>
+              <button class="opt-btn" data-field="grab_direction" data-val="buyside" onclick="setField(this,'grab_direction','buyside','bear')">⬆ Buy-side (highs swept)</button>
             </div>
           </div>
         </div>
 
         <hr class="divider">
 
-        <!-- GATE 4: ChoCH -->
+        <!-- GATE 4: MSS -->
         <div class="gate-group">
-          <div class="gate-group-title"><span class="gate-num">04</span> Change of Character</div>
+          <div class="gate-group-title"><span class="gate-num">04</span> Market Structure Shift</div>
           <div class="field-row">
-            <div class="field-label">ChoCH confirmed on entry timeframe?</div>
+            <div class="field-label">MSS confirmed on entry timeframe?</div>
             <div class="btn-group">
-              <button class="opt-btn" data-field="choch_confirmed" data-val="true" onclick="setField(this,'choch_confirmed',true,'bull')">✓ Confirmed</button>
-              <button class="opt-btn" data-field="choch_confirmed" data-val="false" onclick="setField(this,'choch_confirmed',false,'warn')">✗ Not yet</button>
+              <button class="opt-btn" data-field="mss_confirmed" data-val="true" onclick="setField(this,'mss_confirmed',true,'bull')">✓ Confirmed</button>
+              <button class="opt-btn" data-field="mss_confirmed" data-val="false" onclick="setField(this,'mss_confirmed',false,'warn')">✗ Not yet</button>
             </div>
           </div>
           <div class="field-row">
-            <div class="field-label">ChoCH direction</div>
+            <div class="field-label">MSS direction</div>
             <div class="btn-group">
-              <button class="opt-btn" data-field="choch_direction" data-val="bullish" onclick="setField(this,'choch_direction','bullish','bull')">▲ Bullish ChoCH</button>
-              <button class="opt-btn" data-field="choch_direction" data-val="bearish" onclick="setField(this,'choch_direction','bearish','bear')">▼ Bearish ChoCH</button>
+              <button class="opt-btn" data-field="mss_direction" data-val="bullish" onclick="setField(this,'mss_direction','bullish','bull')">▲ Bullish MSS</button>
+              <button class="opt-btn" data-field="mss_direction" data-val="bearish" onclick="setField(this,'mss_direction','bearish','bear')">▼ Bearish MSS</button>
             </div>
           </div>
         </div>
@@ -296,6 +296,86 @@
       </div>
       <div id="tradingview-widget" style="height:520px;"></div>
     </div>
+
+    <!-- APPLY TOOLS ROW -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:1.5rem;" class="apply-tools-grid">
+
+      <!-- TRADE IDEA JOURNAL -->
+      <div style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:1.1rem;">
+        <div style="font-family:var(--mono);font-size:8px;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);margin-bottom:.75rem;display:flex;justify-content:space-between;align-items:center;">
+          Trade Ideas
+          <button onclick="toggleJournal()" style="font-family:var(--mono);font-size:7px;letter-spacing:.08em;padding:3px 8px;border-radius:20px;border:1px solid var(--border2);background:transparent;color:var(--muted);cursor:pointer;">+ New idea</button>
+        </div>
+        <div id="journalForm" style="display:none;margin-bottom:.85rem;">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px;">
+            <select id="jInstrument" style="background:var(--bg3);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:9px;padding:.4rem .5rem;border-radius:7px;outline:none;"></select>
+            <select id="jBias" style="background:var(--bg3);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:9px;padding:.4rem .5rem;border-radius:7px;outline:none;">
+              <option value="">Bias...</option>
+              <option value="long">Long</option>
+              <option value="short">Short</option>
+            </select>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:6px;">
+            <input id="jEntry" placeholder="Entry" style="background:var(--bg3);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:9px;padding:.4rem .5rem;border-radius:7px;outline:none;" type="text">
+            <input id="jStop" placeholder="Stop" style="background:var(--bg3);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:9px;padding:.4rem .5rem;border-radius:7px;outline:none;" type="text">
+            <input id="jTarget" placeholder="Target" style="background:var(--bg3);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:9px;padding:.4rem .5rem;border-radius:7px;outline:none;" type="text">
+          </div>
+          <textarea id="jNotes" placeholder="Setup notes, key levels, session context..." rows="2" style="width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);font-family:var(--sans);font-weight:600;font-size:12px;padding:.4rem .6rem;border-radius:7px;outline:none;resize:none;margin-bottom:6px;line-height:1.5;"></textarea>
+          <button onclick="saveIdea()" style="background:var(--cyan);color:#07090d;border:none;font-family:var(--display);font-size:10px;letter-spacing:.5px;padding:.5rem 1rem;border-radius:8px;cursor:pointer;width:100%;">Save Idea</button>
+        </div>
+        <div id="ideaList" style="display:flex;flex-direction:column;gap:6px;max-height:280px;overflow-y:auto;"></div>
+      </div>
+
+      <!-- BACKTEST LOG -->
+      <div style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:1.1rem;">
+        <div style="font-family:var(--mono);font-size:8px;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);margin-bottom:.75rem;display:flex;justify-content:space-between;align-items:center;">
+          Backtest Log
+          <button onclick="toggleBacktest()" style="font-family:var(--mono);font-size:7px;letter-spacing:.08em;padding:3px 8px;border-radius:20px;border:1px solid var(--border2);background:transparent;color:var(--muted);cursor:pointer;">+ Log setup</button>
+        </div>
+        <div id="backtestForm" style="display:none;margin-bottom:.85rem;">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px;">
+            <select id="btInstrument" style="background:var(--bg3);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:9px;padding:.4rem .5rem;border-radius:7px;outline:none;"></select>
+            <select id="btOutcome" style="background:var(--bg3);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:9px;padding:.4rem .5rem;border-radius:7px;outline:none;">
+              <option value="">Outcome...</option>
+              <option value="win">Win</option>
+              <option value="loss">Loss</option>
+              <option value="be">Break Even</option>
+            </select>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px;">
+            <input id="btScore" placeholder="Engine score (0-100)" style="background:var(--bg3);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:9px;padding:.4rem .5rem;border-radius:7px;outline:none;" type="number" min="0" max="100">
+            <input id="btRR" placeholder="R:R achieved" style="background:var(--bg3);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:9px;padding:.4rem .5rem;border-radius:7px;outline:none;" type="text">
+          </div>
+          <textarea id="btNotes" placeholder="What did you see? What worked or didn't?" rows="2" style="width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);font-family:var(--sans);font-weight:600;font-size:12px;padding:.4rem .6rem;border-radius:7px;outline:none;resize:none;margin-bottom:6px;line-height:1.5;"></textarea>
+          <button onclick="saveBacktest()" style="background:var(--violet);color:#fff;border:none;font-family:var(--display);font-size:10px;letter-spacing:.5px;padding:.5rem 1rem;border-radius:8px;cursor:pointer;width:100%;">Log Setup</button>
+        </div>
+        <div id="btStats" style="display:flex;gap:10px;margin-bottom:.65rem;flex-wrap:wrap;"></div>
+        <div id="btList" style="display:flex;flex-direction:column;gap:6px;max-height:220px;overflow-y:auto;"></div>
+      </div>
+    </div>
+
+    <!-- AI CONSULTANT -->
+    <div style="background:var(--bg2);border:1px solid var(--border2);border-radius:14px;padding:1.1rem;margin-top:14px;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.75rem;flex-wrap:wrap;gap:.5rem;">
+        <div>
+          <div style="font-family:var(--mono);font-size:8px;letter-spacing:.15em;text-transform:uppercase;color:var(--cyan);">AI Consultant — SMC Interpreter</div>
+          <div style="font-size:11px;color:var(--muted);font-weight:600;margin-top:.25rem;">Provide your market context. The AI interprets it through the SMC framework. Not financial advice.</div>
+        </div>
+        <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
+          <input type="password" id="aiKeyInput" placeholder="Gemini API key" style="background:var(--bg3);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:9px;padding:.4rem .7rem;border-radius:7px;outline:none;width:160px;transition:border-color .15s;">
+          <button onclick="saveAIKey()" style="font-family:var(--mono);font-size:8px;letter-spacing:.08em;padding:.4rem .75rem;border-radius:7px;border:1px solid var(--border2);background:transparent;color:var(--muted);cursor:pointer;">Save</button>
+        </div>
+      </div>
+      <textarea id="aiContext" placeholder="Describe what you see: instrument, timeframe, structure, key levels, session, any liquidity grabs, MSS, OBs or FVGs visible. The more context, the better the interpretation." rows="3" style="width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);font-family:var(--sans);font-weight:600;font-size:13px;padding:.6rem .8rem;border-radius:8px;outline:none;resize:vertical;margin-bottom:.65rem;line-height:1.6;"></textarea>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:.65rem;">
+        <button onclick="consultAI()" id="consultBtn" style="background:var(--cyan);color:#07090d;border:none;font-family:var(--display);font-size:11px;letter-spacing:.5px;padding:.6rem 1.25rem;border-radius:10px;cursor:pointer;transition:.2s;">Interpret</button>
+        <button onclick="populateFromEngine()" style="font-family:var(--mono);font-size:8px;letter-spacing:.08em;padding:.6rem .85rem;border-radius:10px;border:1px solid var(--border2);background:transparent;color:var(--muted);cursor:pointer;" title="Auto-fill from current Decision Engine state">← From engine</button>
+        <span style="font-family:var(--mono);font-size:8px;color:var(--muted);" id="aiStatus"></span>
+      </div>
+      <div id="aiResponse" style="display:none;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:.85rem 1rem;font-size:13px;font-weight:600;line-height:1.75;color:var(--text);white-space:pre-wrap;"></div>
+      <div style="font-size:10px;color:var(--muted);font-weight:600;margin-top:.5rem;line-height:1.5;">⚠ This is an educational interpretation tool based on SMC framework principles. It is not financial advice. Never trade based solely on AI output.</div>
+    </div>
+
   </div>
 </section>
 
@@ -326,8 +406,9 @@ function switchSection(id) {
   document.getElementById('section-'+id).classList.add('active');
   document.getElementById('tab-'+id).classList.add('active');
   activeSection = id;
-  if (id === 'apply' && currentSymbol) {
-    renderChart(currentSymbol, currentTF);
+  if (id === 'apply') {
+    initApply();
+    if(currentSymbol) renderChart(currentSymbol, currentTF);
   }
 }
 
@@ -405,7 +486,7 @@ function renderModuleVisual(concept) {
 
 function buildSessionClock() {
   const sessions = [
-    { name:'Asian Range', time:'23:00–08:00 UTC / 18:00–03:00 NY', color:'#4a9eff', prob:'avoid', kz:false },
+    { name:'Asian Range', time:'18:00–03:00 NY', color:'#4a9eff', prob:'avoid', kz:false },
     { name:'London Killzone', time:'02:00–05:00 NY · Silver Bullet 03:00–04:00', color:'#40e0d0', prob:'high', kz:true },
     { name:'NY AM Killzone', time:'07:00–10:00 NY · Silver Bullet 10:00–11:00', color:'#ff0080', prob:'highest', kz:true },
     { name:'NY Lunch', time:'12:00–13:00 NY', color:'#ffaa00', prob:'avoid', kz:false },
@@ -442,94 +523,148 @@ function buildAnnotatedChart(id) {
 }
 
 function buildStructureChart() {
-  return `<svg class="svg-chart" viewBox="0 0 600 220" xmlns="http://www.w3.org/2000/svg">
-    <!-- Bullish structure then ChoCH -->
-    <!-- HL1 → HH1 → HL2 → HH2 → LH (ChoCH) → LL -->
-    <polyline class="price-line" points="20,180 80,140 120,155 190,100 230,115 310,55 360,90 420,50 490,120 560,160"/>
-    <!-- BOS lines -->
-    <line x1="190" y1="100" x2="310" y2="100" class="bos-line"/>
-    <text x="245" y="93" class="annotation annotation-bull">BOS</text>
-    <!-- ChoCH line -->
-    <line x1="420" y1="50" x2="560" y2="50" class="choch-line"/>
-    <text x="470" y="44" class="annotation" style="fill:var(--pink)">ChoCH</text>
-    <!-- Annotations -->
-    <text x="16" y="177" class="annotation">LL</text>
-    <text x="74" y="134" class="annotation annotation-bull">HL</text>
-    <text x="112" y="152" class="annotation annotation-bear">HL</text>
-    <text x="184" y="94" class="annotation annotation-bull">HH</text>
-    <text x="224" y="110" class="annotation annotation-bull">HL</text>
-    <text x="302" y="48" class="annotation annotation-bull">HH</text>
-    <text x="354" y="84" class="annotation annotation-bear">LH</text>
-    <text x="412" y="44" class="annotation annotation-bull">HH→</text>
-    <text x="483" y="116" class="annotation annotation-bear">LL forming</text>
+  return `<svg class="svg-chart" viewBox="0 0 620 240" xmlns="http://www.w3.org/2000/svg">
+    <style>.ann{font-family:'Space Mono',monospace;font-size:9px;}</style>
+    <!-- Correct sequence: LL → LH → HL → HH → HL → HH → LH (warning) → price breaks HL = MSS -->
+    <polyline fill="none" stroke="#40e0d0" stroke-width="1.8"
+      points="20,210 80,140 130,165 210,90 260,115 350,50 410,95 470,190 540,200"/>
+    <!-- LL -->
+    <circle cx="20" cy="210" r="4" fill="#e05050"/>
+    <text x="6" y="225" class="ann" style="fill:#e05050">LL</text>
+    <!-- LH (first rally — not yet HH) -->
+    <circle cx="80" cy="140" r="4" fill="#ffaa00"/>
+    <text x="64" y="133" class="ann" style="fill:#ffaa00">LH</text>
+    <!-- HL (higher low — structure shifts bullish) -->
+    <circle cx="130" cy="165" r="4" fill="#40b870"/>
+    <text x="114" y="180" class="ann" style="fill:#40b870">HL</text>
+    <!-- HH1 — BOS above LH -->
+    <circle cx="210" cy="90" r="4" fill="#40b870"/>
+    <text x="196" y="82" class="ann" style="fill:#40b870">HH</text>
+    <line x1="80" y1="140" x2="280" y2="140" stroke="#40b870" stroke-width="1" stroke-dasharray="5,3"/>
+    <text x="155" y="134" class="ann" style="fill:#40b870">BOS</text>
+    <!-- HL2 -->
+    <circle cx="260" cy="115" r="4" fill="#40b870"/>
+    <text x="244" y="130" class="ann" style="fill:#40b870">HL</text>
+    <!-- HH2 — continuation -->
+    <circle cx="350" cy="50" r="4" fill="#40b870"/>
+    <text x="336" y="42" class="ann" style="fill:#40b870">HH</text>
+    <line x1="210" y1="90" x2="430" y2="90" stroke="#40b870" stroke-width="1" stroke-dasharray="5,3"/>
+    <text x="300" y="84" class="ann" style="fill:#40b870">BOS</text>
+    <!-- LH — first lower high, warns of potential MSS -->
+    <circle cx="410" cy="95" r="4" fill="#e05050"/>
+    <text x="396" y="87" class="ann" style="fill:#e05050">LH ⚠</text>
+    <!-- MSS — price breaks below HL2 -->
+    <line x1="260" y1="115" x2="560" y2="115" stroke="#ff0080" stroke-width="1.2" stroke-dasharray="4,3"/>
+    <text x="462" y="109" class="ann" style="fill:#ff0080">MSS</text>
+    <!-- LL forming -->
+    <circle cx="540" cy="200" r="4" fill="#e05050"/>
+    <text x="524" y="215" class="ann" style="fill:#e05050">LL</text>
+    <text x="20" y="18" class="ann" style="fill:#40b870">Bullish structure → LH warns → MSS confirms reversal</text>
   </svg>`;
 }
 
 function buildLiquidityChart() {
-  return `<svg class="svg-chart" viewBox="0 0 600 220" xmlns="http://www.w3.org/2000/svg">
-    <!-- Equal highs (BSL) -->
-    <line x1="60" y1="55" x2="380" y2="55" class="liq-level"/>
-    <circle cx="90" cy="55" r="4" fill="var(--amber)"/>
-    <circle cx="200" cy="55" r="4" fill="var(--amber)"/>
-    <circle cx="320" cy="55" r="4" fill="var(--amber)"/>
-    <text x="385" y="58" class="annotation annotation-amber">BSL (equal highs)</text>
-    <!-- Equal lows (SSL) -->
-    <line x1="60" y1="165" x2="260" y2="165" class="liq-level"/>
-    <circle cx="80" cy="165" r="4" fill="var(--pink)"/>
-    <circle cx="180" cy="165" r="4" fill="var(--pink)"/>
-    <text x="265" y="168" class="annotation" style="fill:var(--pink)">SSL (equal lows)</text>
-    <!-- Price sweep then reverse -->
-    <polyline class="price-line" points="30,110 90,55 140,80 200,55 260,165 310,130 380,55 430,100 480,80"/>
-    <!-- Sweep annotations -->
-    <text x="375" y="44" class="annotation annotation-amber">↑ BSL swept</text>
-    <text x="245" y="180" class="annotation" style="fill:var(--pink)">↓ SSL swept</text>
+  return `<svg class="svg-chart" viewBox="0 0 620 240" xmlns="http://www.w3.org/2000/svg">
+    <style>.ann{font-family:'Space Mono',monospace;font-size:9px;}</style>
+    <!-- BSL: equal highs — 3 matching peaks -->
+    <line x1="55" y1="68" x2="410" y2="68" stroke="#ffaa00" stroke-width="1" stroke-dasharray="4,3"/>
+    <text x="415" y="72" class="ann" style="fill:#ffaa00">BSL (=H)</text>
+    <circle cx="90" cy="68" r="5" fill="#ffaa00"/>
+    <circle cx="210" cy="68" r="5" fill="#ffaa00"/>
+    <circle cx="350" cy="68" r="5" fill="#ffaa00"/>
+    <!-- SSL: equal lows — 3 matching troughs -->
+    <line x1="55" y1="178" x2="280" y2="178" stroke="#ff0080" stroke-width="1" stroke-dasharray="4,3"/>
+    <text x="285" y="182" class="ann" style="fill:#ff0080">SSL (=L)</text>
+    <circle cx="75" cy="178" r="5" fill="#ff0080"/>
+    <circle cx="165" cy="178" r="5" fill="#ff0080"/>
+    <circle cx="255" cy="178" r="5" fill="#ff0080"/>
+    <!-- Price path: touches equal highs twice, touches equal lows twice, then grabs BSL and reverses -->
+    <polyline fill="none" stroke="#40e0d0" stroke-width="1.8"
+      points="20,130 75,178 90,68 165,178 210,68 255,178 350,68 400,178 460,68 520,130 580,95"/>
+    <!-- BSL grab label -->
+    <text x="345" y="55" class="ann" style="fill:#ffaa00">↑ BSL grabbed → reversal</text>
+    <!-- SSL grab labels -->
+    <text x="60" y="200" class="ann" style="fill:#ff0080">↓ SSL</text>
+    <text x="150" y="200" class="ann" style="fill:#ff0080">↓ SSL</text>
+    <text x="240" y="200" class="ann" style="fill:#ff0080">↓ SSL</text>
+    <!-- Final BSL grab and reversal up -->
+    <text x="455" y="56" class="ann" style="fill:#ffaa00">↑ Grab</text>
+    <text x="515" y="122" class="ann" style="fill:#40b870">Rally</text>
   </svg>`;
 }
 
 function buildFVGChart() {
-  return `<svg class="svg-chart" viewBox="0 0 600 220" xmlns="http://www.w3.org/2000/svg">
-    <!-- Candles before FVG -->
-    <rect x="40" y="120" width="16" height="50" fill="var(--red)" opacity=".8"/>
-    <line x1="48" y1="110" x2="48" y2="175" stroke="var(--red)" stroke-width="1.5"/>
-    <!-- FVG zone (bullish) -->
-    <rect x="120" y="75" width="180" height="35" class="fvg-bull"/>
-    <text x="128" y="68" class="annotation annotation-cyan">Bullish FVG</text>
-    <!-- Impulse candle (candle 2) -->
-    <rect x="70" y="70" width="16" height="60" fill="var(--green)" opacity=".8"/>
-    <line x1="78" y1="60" x2="78" y2="135" stroke="var(--green)" stroke-width="1.5"/>
-    <!-- Candle 3 -->
-    <rect x="100" y="75" width="16" height="35" fill="var(--green)" opacity=".7"/>
-    <!-- Price returns to fill FVG -->
-    <polyline class="price-line" points="30,145 48,130 70,70 100,80 150,150 190,110 240,95 290,85 350,80"/>
-    <!-- 50% fill level -->
-    <line x1="120" y1="92" x2="300" y2="92" stroke="var(--cyan)" stroke-width=".8" stroke-dasharray="2,2"/>
-    <text x="305" y="95" class="annotation annotation-cyan">50% fill</text>
-    <!-- Arrow back into FVG -->
-    <text x="145" y="168" class="annotation">Price returns ↑</text>
+  return `<svg class="svg-chart" viewBox="0 0 620 240" xmlns="http://www.w3.org/2000/svg">
+    <style>.ann{font-family:'Space Mono',monospace;font-size:9px;}</style>
+    <!-- Pre-move consolidation -->
+    <polyline fill="none" stroke="#40e0d0" stroke-width="1.5" points="20,175 55,168 75,158"/>
+    <!-- Candle 1: bearish (C1 high = 145, C1 low = 168) -->
+    <rect x="78" y="145" width="18" height="23" fill="#e05050" opacity=".85"/>
+    <line x1="87" y1="136" x2="87" y2="172" stroke="#e05050" stroke-width="1.5"/>
+    <!-- C1 high marker -->
+    <line x1="78" y1="145" x2="108" y2="145" stroke="#e05050" stroke-width="0.8" stroke-dasharray="2,2"/>
+    <!-- Candle 2: big bullish impulse (closes well above C1 high) -->
+    <rect x="102" y="72" width="18" height="73" fill="#40b870" opacity=".9"/>
+    <line x1="111" y1="62" x2="111" y2="148" stroke="#40b870" stroke-width="1.5"/>
+    <!-- Candle 3: opens above C1 high — C3 low = 110 > C1 high = 145? No: C3 low must be > C1 high -->
+    <!-- Let's make C3 low = 108, C1 high = 145. Gap = 108 to 145. -->
+    <rect x="126" y="80" width="18" height="28" fill="#40b870" opacity=".8"/>
+    <line x1="135" y1="72" x2="135" y2="112" stroke="#40b870" stroke-width="1.5"/>
+    <!-- C3 low marker -->
+    <line x1="108" y1="108" x2="400" y2="108" stroke="#40b870" stroke-width="0.8" stroke-dasharray="2,2"/>
+    <!-- FVG ZONE: C1 high (145) to C3 low (108) -->
+    <rect x="78" y="108" width="320" height="37" fill="rgba(64,224,208,0.1)" stroke="#40e0d0" stroke-width="1" stroke-dasharray="3,2"/>
+    <text x="84" y="100" class="ann" style="fill:#40e0d0">Bullish FVG (imbalance)</text>
+    <!-- Three entry levels -->
+    <line x1="78" y1="108" x2="398" y2="108" stroke="#40b870" stroke-width="0.7" stroke-dasharray="2,3"/>
+    <text x="402" y="111" class="ann" style="fill:#40b870">Edge (aggressive)</text>
+    <line x1="78" y1="126" x2="398" y2="126" stroke="#40e0d0" stroke-width="1" stroke-dasharray="3,2"/>
+    <text x="402" y="129" class="ann" style="fill:#40e0d0">50% (standard)</text>
+    <line x1="78" y1="145" x2="398" y2="145" stroke="#ffaa00" stroke-width="0.7" stroke-dasharray="2,3"/>
+    <text x="402" y="148" class="ann" style="fill:#ffaa00">Full fill (conservative)</text>
+    <!-- Price post-FVG continues up -->
+    <polyline fill="none" stroke="#40e0d0" stroke-width="1.5" points="148,78 180,58 220,65 260,42 295,50"/>
+    <!-- Price returns to FVG and reacts -->
+    <polyline fill="none" stroke="#40e0d0" stroke-width="1.5" points="295,50 325,85 350,120 360,115 385,90 420,68 470,45 520,30"/>
+    <text x="338" y="155" class="ann" style="fill:#40e0d0">↑ Return into FVG → react</text>
+    <text x="20" y="225" class="ann" style="fill:#5a7090">If price closes fully through FVG without reaction: setup void</text>
   </svg>`;
 }
 
 function buildOBChart() {
-  return `<svg class="svg-chart" viewBox="0 0 600 220" xmlns="http://www.w3.org/2000/svg">
-    <!-- Bullish OB zone -->
-    <rect x="60" y="130" width="100" height="35" class="bullish-ob"/>
-    <text x="64" y="124" class="annotation annotation-bull">Bullish OB</text>
-    <!-- Last bearish candle (the OB) -->
-    <rect x="75" y="135" width="14" height="25" fill="var(--red)" opacity=".7"/>
-    <line x1="82" y1="128" x2="82" y2="162" stroke="var(--red)" stroke-width="1.5"/>
-    <!-- Impulse away -->
-    <rect x="95" y="80" width="14" height="55" fill="var(--green)" opacity=".8"/>
-    <line x1="102" y1="70" x2="102" y2="140" stroke="var(--green)" stroke-width="1.5"/>
-    <!-- BOS -->
-    <line x1="110" y1="115" x2="240" y2="115" class="bos-line"/>
-    <text x="165" y="108" class="annotation annotation-bull">BOS</text>
-    <!-- Price continues up then returns to OB -->
-    <polyline class="price-line" points="30,180 75,160 95,80 150,50 210,65 270,40 330,135 380,138 420,90"/>
-    <!-- Return to OB arrow -->
-    <text x="325" y="155" class="annotation">← Returns to OB</text>
-    <!-- Refined entry line -->
-    <line x1="60" y1="148" x2="160" y2="148" stroke="var(--cyan)" stroke-width=".8" stroke-dasharray="3,2"/>
-    <text x="164" y="151" class="annotation annotation-cyan">50% (refined)</text>
+  return `<svg class="svg-chart" viewBox="0 0 620 240" xmlns="http://www.w3.org/2000/svg">
+    <style>.ann{font-family:'Space Mono',monospace;font-size:9px;}</style>
+    <!-- Consolidation before OB -->
+    <polyline fill="none" stroke="#40e0d0" stroke-width="1.5"
+      points="20,168 45,158 68,172 95,152 118,170"/>
+    <!-- OB candle: LAST bearish candle before impulse -->
+    <rect x="120" y="148" width="20" height="28" fill="#e05050" opacity=".9"/>
+    <line x1="130" y1="138" x2="130" y2="180" stroke="#e05050" stroke-width="1.5"/>
+    <!-- OB zone: full body of that candle -->
+    <rect x="120" y="148" width="340" height="28" fill="rgba(64,184,112,0.13)" stroke="#40b870" stroke-width="1"/>
+    <text x="126" y="140" class="ann" style="fill:#40b870">Bullish OB</text>
+    <!-- 50% refined level -->
+    <line x1="120" y1="162" x2="460" y2="162" stroke="#40e0d0" stroke-width="0.8" stroke-dasharray="3,2"/>
+    <text x="464" y="165" class="ann" style="fill:#40e0d0">50%</text>
+    <!-- Bullish impulse away from OB -->
+    <rect x="146" y="82" width="20" height="66" fill="#40b870" opacity=".9"/>
+    <line x1="156" y1="70" x2="156" y2="152" stroke="#40b870" stroke-width="1.5"/>
+    <rect x="172" y="72" width="18" height="42" fill="#40b870" opacity=".8"/>
+    <rect x="196" y="60" width="18" height="38" fill="#40b870" opacity=".8"/>
+    <!-- BOS: prior swing high broken -->
+    <line x1="95" y1="152" x2="380" y2="152" stroke="#40b870" stroke-width="1" stroke-dasharray="5,3"/>
+    <text x="290" y="145" class="ann" style="fill:#40b870">BOS</text>
+    <!-- Price continues up -->
+    <polyline fill="none" stroke="#40e0d0" stroke-width="1.5"
+      points="220,55 260,42 300,50 340,35 375,44"/>
+    <!-- Returns to OB zone -->
+    <polyline fill="none" stroke="#40e0d0" stroke-width="1.5"
+      points="375,44 400,105 425,150 440,158 452,162"/>
+    <!-- Reacts from OB -->
+    <polyline fill="none" stroke="#40e0d0" stroke-width="1.5"
+      points="452,162 478,115 510,92 550,60 590,42"/>
+    <text x="418" y="185" class="ann" style="fill:#40b870">↑ Reaction from OB</text>
+    <text x="20" y="222" class="ann" style="fill:#5a7090">OB invalid if price CLOSES through full body (wick through = still valid)</text>
   </svg>`;
 }
 
@@ -540,7 +675,7 @@ function buildTFCascade() {
     { tf:'Daily', role:'OBs and FVGs to target', color:'var(--violet)' },
     { tf:'4H', role:'Refined arrays, structural shifts', color:'var(--cyan)' },
     { tf:'1H', role:'Entry array identification', color:'var(--blue)' },
-    { tf:'15M', role:'ChoCH confirmation + trigger', color:'var(--green)' },
+    { tf:'15M', role:'MSS confirmation + trigger', color:'var(--green)' },
     { tf:'5M/1M', role:'Precision entry refinement', color:'var(--muted)' },
   ];
   return `<div style="width:100%;padding:1rem;">
@@ -670,6 +805,243 @@ function renderChart(symbol, tf) {
     height: 520,
   });
   container.appendChild(script);
+}
+
+// ════════════════════════════════════════════════
+// TRADE IDEA JOURNAL
+// ════════════════════════════════════════════════
+function toggleJournal(){
+  const f=document.getElementById('journalForm');
+  f.style.display=f.style.display==='none'?'block':'none';
+  if(f.style.display==='block') populateInstrumentSelects();
+}
+
+function populateInstrumentSelects(){
+  const opts = SMC_DATA.instruments.map(i=>`<option value="${i.label}">${i.icon} ${i.label}</option>`).join('');
+  ['jInstrument','btInstrument'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el&&!el.options.length) el.innerHTML='<option value="">Instrument...</option>'+opts;
+  });
+}
+
+function saveIdea(){
+  const idea={
+    id:'i_'+Date.now(), type:'idea',
+    instrument:document.getElementById('jInstrument').value,
+    bias:document.getElementById('jBias').value,
+    entry:document.getElementById('jEntry').value,
+    stop:document.getElementById('jStop').value,
+    target:document.getElementById('jTarget').value,
+    notes:document.getElementById('jNotes').value,
+    score:SMCEngine.evaluateGates().total,
+    status:'active', ts:Date.now()
+  };
+  if(!idea.instrument||!idea.bias){toast('Select instrument and bias');return;}
+  const ideas=loadStore('smc_ideas');
+  ideas.unshift(idea);
+  saveStore('smc_ideas',ideas);
+  renderIdeas();
+  document.getElementById('journalForm').style.display='none';
+  ['jEntry','jStop','jTarget','jNotes'].forEach(id=>document.getElementById(id).value='');
+  toast('Idea saved ✓');
+}
+
+function renderIdeas(){
+  const list=document.getElementById('ideaList');
+  const ideas=loadStore('smc_ideas');
+  if(!ideas.length){list.innerHTML='<div style="font-family:var(--mono);font-size:9px;color:var(--muted);padding:.5rem;">No ideas saved yet.</div>';return;}
+  list.innerHTML=ideas.map(i=>{
+    const biasCol=i.bias==='long'?'var(--green)':'var(--red)';
+    const statusCol=i.status==='win'?'var(--green)':i.status==='loss'?'var(--red)':i.status==='be'?'var(--amber)':'var(--cyan)';
+    return `<div style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:.55rem .7rem;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:3px;">
+        <div style="font-family:var(--display);font-size:11px;color:${biasCol};">${i.instrument} <span style="font-size:9px;">${i.bias?.toUpperCase()}</span></div>
+        <div style="display:flex;gap:5px;align-items:center;">
+          <span style="font-family:var(--mono);font-size:7px;color:var(--muted);">score: ${i.score}</span>
+          <select onchange="updateIdeaStatus('${i.id}',this.value)" style="background:var(--bg2);border:1px solid var(--border);color:${statusCol};font-family:var(--mono);font-size:7px;padding:1px 3px;border-radius:5px;outline:none;">
+            <option value="active" ${i.status==='active'?'selected':''}>Active</option>
+            <option value="win" ${i.status==='win'?'selected':''}>Win</option>
+            <option value="loss" ${i.status==='loss'?'selected':''}>Loss</option>
+            <option value="be" ${i.status==='be'?'selected':''}>BE</option>
+          </select>
+          <button onclick="deleteIdea('${i.id}')" style="background:none;border:none;color:var(--muted);font-size:10px;cursor:pointer;">✕</button>
+        </div>
+      </div>
+      ${i.entry?`<div style="font-family:var(--mono);font-size:8px;color:var(--muted);">E:${i.entry} SL:${i.stop||'—'} TP:${i.target||'—'}</div>`:''}
+      ${i.notes?`<div style="font-size:10px;color:var(--text);font-weight:600;margin-top:3px;">${escHtml(i.notes)}</div>`:''}
+      <div style="font-family:var(--mono);font-size:7px;color:var(--muted);margin-top:3px;">${new Date(i.ts).toLocaleString()}</div>
+    </div>`;
+  }).join('');
+}
+
+function updateIdeaStatus(id,status){
+  const ideas=loadStore('smc_ideas');
+  const idx=ideas.findIndex(i=>i.id===id);
+  if(idx>=0){ideas[idx].status=status;saveStore('smc_ideas',ideas);}
+}
+
+function deleteIdea(id){
+  saveStore('smc_ideas',loadStore('smc_ideas').filter(i=>i.id!==id));
+  renderIdeas();
+}
+
+// ════════════════════════════════════════════════
+// BACKTEST LOG
+// ════════════════════════════════════════════════
+function toggleBacktest(){
+  const f=document.getElementById('backtestForm');
+  f.style.display=f.style.display==='none'?'block':'none';
+  if(f.style.display==='block') populateInstrumentSelects();
+}
+
+function saveBacktest(){
+  const bt={
+    id:'b_'+Date.now(),
+    instrument:document.getElementById('btInstrument').value,
+    outcome:document.getElementById('btOutcome').value,
+    score:parseInt(document.getElementById('btScore').value)||0,
+    rr:document.getElementById('btRR').value,
+    notes:document.getElementById('btNotes').value,
+    ts:Date.now()
+  };
+  if(!bt.instrument||!bt.outcome){toast('Select instrument and outcome');return;}
+  const log=loadStore('smc_backtest');
+  log.unshift(bt);
+  saveStore('smc_backtest',log);
+  renderBacktest();
+  document.getElementById('backtestForm').style.display='none';
+  ['btScore','btRR','btNotes'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('btOutcome').value='';
+  toast('Setup logged ✓');
+}
+
+function renderBacktest(){
+  const log=loadStore('smc_backtest');
+  const wins=log.filter(b=>b.outcome==='win').length;
+  const losses=log.filter(b=>b.outcome==='loss').length;
+  const total=log.length;
+  const wr=total?Math.round(wins/total*100):0;
+  const avgScore=total?Math.round(log.reduce((a,b)=>a+b.score,0)/total):0;
+  document.getElementById('btStats').innerHTML=total?`
+    <div style="font-family:var(--mono);font-size:9px;padding:3px 8px;border-radius:7px;background:var(--bg3);border:1px solid var(--border);">
+      <span style="color:var(--green);">${wins}W</span> <span style="color:var(--red);">${losses}L</span> ${total-wins-losses>0?`<span style="color:var(--amber);">${total-wins-losses}BE</span>`:''}
+    </div>
+    <div style="font-family:var(--mono);font-size:9px;padding:3px 8px;border-radius:7px;background:var(--bg3);border:1px solid var(--border);color:var(--cyan);">${wr}% WR</div>
+    <div style="font-family:var(--mono);font-size:9px;padding:3px 8px;border-radius:7px;background:var(--bg3);border:1px solid var(--border);color:var(--muted);">avg score: ${avgScore}</div>
+  `:'';
+  const list=document.getElementById('btList');
+  if(!log.length){list.innerHTML='<div style="font-family:var(--mono);font-size:9px;color:var(--muted);padding:.5rem;">No setups logged yet.</div>';return;}
+  list.innerHTML=log.map(b=>{
+    const col=b.outcome==='win'?'var(--green)':b.outcome==='loss'?'var(--red)':'var(--amber)';
+    return `<div style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:.5rem .7rem;display:flex;gap:8px;align-items:flex-start;">
+      <div style="font-family:var(--display);font-size:11px;color:${col};flex-shrink:0;padding-top:2px;">${b.outcome?.toUpperCase()}</div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-family:var(--mono);font-size:9px;color:var(--text);">${b.instrument} ${b.rr?'· R:R '+b.rr:''} · score ${b.score}</div>
+        ${b.notes?`<div style="font-size:10px;color:var(--muted);font-weight:600;margin-top:2px;">${escHtml(b.notes)}</div>`:''}
+        <div style="font-family:var(--mono);font-size:7px;color:var(--muted);margin-top:2px;">${new Date(b.ts).toLocaleString()}</div>
+      </div>
+      <button onclick="deleteBacktest('${b.id}')" style="background:none;border:none;color:var(--muted);font-size:10px;cursor:pointer;flex-shrink:0;">✕</button>
+    </div>`;
+  }).join('');
+}
+
+function deleteBacktest(id){
+  saveStore('smc_backtest',loadStore('smc_backtest').filter(b=>b.id!==id));
+  renderBacktest();
+}
+
+// ════════════════════════════════════════════════
+// AI CONSULTANT
+// ════════════════════════════════════════════════
+const AI_SYSTEM = `You are an expert Smart Money Concepts (SMC) market analyst and educational consultant. You interpret market context through the SMC framework only. You speak in precise SMC vocabulary: order blocks, fair value gaps, market structure shifts (MSS), liquidity grabs, killzones, premium/discount, top-down analysis, optimal trade entry (OTE).
+
+You NEVER give financial advice or tell anyone to buy or sell. You interpret and educate.
+
+When given a market description you provide:
+1. Structure read — what the HTF and LTF structure suggests
+2. Liquidity — where the likely grab targets are (BSL/SSL)
+3. Key arrays — any OBs or FVGs that are relevant
+4. Time context — which session/killzone is relevant and why
+5. What to watch for — specific conditions that would confirm or invalidate a setup
+
+Be concise, precise, and use the framework vocabulary throughout. If the context given is insufficient, ask one specific clarifying question.`;
+
+function saveAIKey(){
+  const key=document.getElementById('aiKeyInput').value.trim();
+  if(!key) return;
+  localStorage.setItem('smc_ai_key',key);
+  document.getElementById('aiStatus').textContent='Key saved ✓';
+  setTimeout(()=>document.getElementById('aiStatus').textContent='',2000);
+}
+
+function populateFromEngine(){
+  const s=SMCEngine.state;
+  const {total,tier,direction}=SMCEngine.evaluateGates();
+  const sym=document.getElementById('chartSymbolLabel').textContent;
+  const parts=[
+    sym&&sym!=='Select an instrument above'?`Instrument: ${sym}`:'',
+    s.monthly_structure?`Monthly structure: ${s.monthly_structure}`:'',
+    s.weekly_structure?`Weekly structure: ${s.weekly_structure}`:'',
+    s.weekly_position?`Weekly position: ${s.weekly_position}`:'',
+    s.session?`Current session: ${s.session}`:'',
+    s.in_killzone?`Inside killzone: yes`:'',
+    s.silver_bullet?`Silver bullet window: yes`:'',
+    s.liquidity_grabbed?`Liquidity grabbed: ${s.grab_direction||'yes'}`:'',
+    s.mss_confirmed?`MSS confirmed: ${s.mss_direction}`:'',
+    s.has_ob?`Order block present: yes`:'',
+    s.has_fvg?`FVG present: yes`:'',
+    s.at_ote?`At OTE zone: yes`:'',
+    s.rr_ratio?`R:R: ${s.rr_ratio}:1`:'',
+    `Engine score: ${total}/100 (${tier.label})`,
+    direction!=='NEUTRAL'?`Direction signal: ${direction}`:'',
+  ].filter(Boolean).join('\n');
+  document.getElementById('aiContext').value=parts||'No engine data yet — fill in the Decision Engine first.';
+}
+
+async function consultAI(){
+  const key=localStorage.getItem('smc_ai_key')||document.getElementById('aiKeyInput').value.trim();
+  if(!key){toast('Add your Gemini API key first');return;}
+  const ctx=document.getElementById('aiContext').value.trim();
+  if(!ctx){toast('Describe the market context first');return;}
+  const btn=document.getElementById('consultBtn');
+  btn.textContent='Reading...'; btn.disabled=true;
+  document.getElementById('aiStatus').textContent='';
+  document.getElementById('aiResponse').style.display='none';
+  try{
+    const res=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${key}`,{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        system_instruction:{parts:[{text:AI_SYSTEM}]},
+        contents:[{role:'user',parts:[{text:ctx}]}],
+        generationConfig:{temperature:0.6,maxOutputTokens:900}
+      })
+    });
+    if(!res.ok){const e=await res.json();throw new Error(e?.error?.message||'API error');}
+    const data=await res.json();
+    const text=data.candidates?.[0]?.content?.parts?.[0]?.text;
+    if(!text) throw new Error('Empty response');
+    const respEl=document.getElementById('aiResponse');
+    respEl.textContent=text.trim();
+    respEl.style.display='block';
+  }catch(e){
+    toast('AI error: '+e.message);
+    document.getElementById('aiStatus').textContent='Error: '+e.message;
+  }
+  btn.textContent='Interpret'; btn.disabled=false;
+}
+
+// ── LOCAL STORAGE HELPERS ──
+function loadStore(key){ try{return JSON.parse(localStorage.getItem(key)||'[]');}catch(e){return[];} }
+function saveStore(key,val){ localStorage.setItem(key,JSON.stringify(val)); }
+function escHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+// Init apply section data
+function initApply(){
+  populateInstrumentSelects();
+  renderIdeas();
+  renderBacktest();
+  const key=localStorage.getItem('smc_ai_key');
+  if(key) document.getElementById('aiKeyInput').value=key;
 }
 
 // ── UTILS ──────────────────────────────────────
