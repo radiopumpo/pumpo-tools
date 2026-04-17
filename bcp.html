@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>Better Call Pumpo | AI Legal Guide</title>
+  <link rel="icon" type="image/png" href="https://radiopumpo.github.io/radiopumpologo.png">
+  <link href="https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Space+Mono:wght@400;700&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg:#09080d;--bg2:#100f18;--bg3:#18162a;--bg4:#201d35;
+      --gold:#d4a843;--gold2:#b8902e;--teal:#40d4b8;--violet:#7c5cbf;
+      --red:#d44040;--green:#40b870;--amber:#e0a030;
+      --text:#f0ece8;--muted:#7a7090;--dim:#252035;
+      --border:rgba(212,168,67,0.15);--border2:rgba(212,168,67,0.28);
+      --mono:'Space Mono',monospace;--sans:'Rajdhani',sans-serif;--display:'Black Ops One',cursive;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    html{-webkit-text-size-adjust:100%;}
+    body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:100vh;-webkit-tap-highlight-color:transparent;}
+    body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.02) 2px,rgba(0,0,0,0.02) 4px);pointer-events:none;z-index:9999;}
+
+    /* NAV */
+    .top-nav{position:fixed;top:0;left:0;right:0;z-index:500;display:flex;justify-content:space-between;align-items:center;padding:10px 16px;padding-top:max(10px,env(safe-area-inset-top));background:rgba(9,8,13,0.97);backdrop-filter:blur(14px);border-bottom:1px solid var(--border);}
+    .nav-brand{font-family:var(--display);font-size:.88rem;color:var(--gold);letter-spacing:1px;text-decoration:none;}
+    .nav-brand span{color:var(--teal);}
+    .nav-right{display:flex;gap:7px;align-items:center;}
+    .nav-link{color:var(--muted);text-decoration:none;font-weight:700;font-size:.6rem;border:1px solid rgba(212,168,67,0.2);padding:4px 10px;border-radius:20px;font-family:var(--mono);transition:.2s;}
+    .nav-link:hover{border-color:var(--gold);color:var(--gold);}
+    .model-toggle{display:flex;background:var(--bg3);border-radius:20px;overflow:hidden;border:1px solid var(--border);}
+    .model-btn{font-family:var(--mono);font-size:7px;letter-spacing:.08em;padding:4px 9px;cursor:pointer;border:none;background:transparent;color:var(--muted);transition:.2s;text-transform:uppercase;}
+    .model-btn.active{background:var(--gold2);color:#fff;}
+
+    /* SCREENS */
+    .screen{display:none;}
+    .screen.active{display:block;}
+
+    /* ONBOARDING */
+    #onboardScreen{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:80px 1.5rem 3rem;}
+    .ob-card{background:var(--bg2);border:1px solid var(--border);border-radius:18px;padding:2rem 1.5rem;max-width:520px;width:100%;}
+    .ob-icon{font-size:52px;display:block;text-align:center;margin-bottom:1rem;}
+    .ob-title{font-family:var(--display);font-size:clamp(22px,5vw,34px);color:var(--gold);letter-spacing:1px;text-align:center;margin-bottom:.3rem;}
+    .ob-sub{font-size:13px;color:var(--muted);font-weight:600;line-height:1.65;text-align:center;margin-bottom:1.5rem;}
+    .ob-label{font-family:var(--mono);font-size:8px;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);margin-bottom:.4rem;display:block;}
+    .ob-input{width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);font-family:var(--sans);font-weight:600;font-size:15px;padding:.65rem .9rem;border-radius:10px;outline:none;margin-bottom:.9rem;transition:border-color .15s;}
+    .ob-input:focus{border-color:var(--gold);}
+    .ob-input::placeholder{color:var(--dim);}
+    .ob-textarea{min-height:80px;resize:vertical;font-size:14px;line-height:1.6;}
+    .ob-disclaimer{font-size:10px;color:var(--muted);font-weight:600;line-height:1.6;padding:.65rem .85rem;background:rgba(212,168,67,0.05);border:1px solid var(--border);border-radius:8px;margin-bottom:1.25rem;}
+    .ob-btn{width:100%;background:var(--gold);color:#09080d;border:none;padding:.85rem;font-family:var(--display);font-size:15px;letter-spacing:.5px;border-radius:12px;cursor:pointer;transition:.2s;}
+    .ob-btn:hover{background:var(--gold2);color:var(--text);}
+    .ob-btn:disabled{opacity:.35;cursor:not-allowed;}
+
+    /* MAIN APP */
+    #appScreen{padding-top:54px;padding-bottom:1rem;}
+
+    /* CASE FILE SIDEBAR + CHAT LAYOUT */
+    .app-layout{display:flex;max-width:1100px;margin:0 auto;padding:1rem;gap:14px;min-height:calc(100vh - 54px);}
+    @media(max-width:760px){.app-layout{flex-direction:column;padding:.75rem;}}
+
+    /* SIDEBAR — CASE FILE */
+    .sidebar{width:260px;flex-shrink:0;}
+    @media(max-width:760px){.sidebar{width:100%;}}
+    .case-file-card{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:1rem;margin-bottom:10px;}
+    .cf-title{font-family:var(--mono);font-size:8px;letter-spacing:.15em;text-transform:uppercase;color:var(--gold);margin-bottom:.65rem;display:flex;justify-content:space-between;align-items:center;}
+    .cf-row{font-size:11px;font-weight:600;padding:.3rem 0;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;}
+    .cf-row:last-child{border-bottom:none;}
+    .cf-key{color:var(--muted);}
+    .cf-val{color:var(--text);font-family:var(--mono);font-size:9px;text-align:right;max-width:130px;word-break:break-word;}
+    .mode-select-grid{display:flex;flex-direction:column;gap:7px;margin-bottom:10px;}
+    .mode-btn{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:.7rem .85rem;cursor:pointer;transition:.15s;text-align:left;display:flex;align-items:center;gap:9px;}
+    .mode-btn:hover,.mode-btn.active{border-color:var(--gold);background:rgba(212,168,67,0.05);}
+    .mode-icon{font-size:20px;flex-shrink:0;}
+    .mode-info{flex:1;min-width:0;}
+    .mode-name{font-family:var(--display);font-size:11px;color:var(--gold);letter-spacing:.5px;margin-bottom:1px;}
+    .mode-desc{font-size:10px;color:var(--muted);font-weight:600;line-height:1.4;}
+    .saved-cases{max-height:160px;overflow-y:auto;}
+    .saved-case-item{font-family:var(--mono);font-size:8px;padding:.4rem .5rem;border-radius:6px;cursor:pointer;transition:.15s;border:1px solid transparent;margin-bottom:3px;display:flex;justify-content:space-between;align-items:center;}
+    .saved-case-item:hover{background:var(--bg3);border-color:var(--border);}
+    .saved-case-item.active-case{background:var(--bg3);border-color:var(--border2);color:var(--gold);}
+    .sc-del{background:none;border:none;color:var(--dim);cursor:pointer;font-size:10px;padding:0 3px;transition:.15s;}
+    .sc-del:hover{color:var(--red);}
+
+    /* CHAT AREA */
+    .chat-area{flex:1;display:flex;flex-direction:column;min-width:0;}
+    .chat-messages{flex:1;overflow-y:auto;background:var(--bg2);border:1px solid var(--border);border-radius:14px 14px 0 0;padding:1rem;display:flex;flex-direction:column;gap:12px;min-height:400px;max-height:calc(100vh - 260px);-webkit-overflow-scrolling:touch;}
+    .chat-messages::-webkit-scrollbar{width:3px;}
+    .chat-messages::-webkit-scrollbar-thumb{background:var(--border2);}
+    .msg{display:flex;gap:9px;max-width:88%;}
+    .msg.user{align-self:flex-end;flex-direction:row-reverse;}
+    .msg.ai{align-self:flex-start;}
+    .msg.system{align-self:center;max-width:95%;}
+    .avatar{width:28px;height:28px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:13px;margin-top:2px;}
+    .avatar.ai-av{background:var(--gold2);color:#09080d;font-family:var(--display);font-size:9px;}
+    .avatar.user-av{background:var(--bg3);border:1px solid var(--border2);}
+    .bubble{padding:.65rem .9rem;border-radius:12px;font-size:13px;line-height:1.7;font-weight:600;}
+    .msg.user .bubble{background:var(--bg3);border:1px solid var(--border);color:var(--text);border-bottom-right-radius:3px;}
+    .msg.ai .bubble{background:var(--bg4);border:1px solid var(--border2);color:var(--text);border-bottom-left-radius:3px;}
+    .msg.system .bubble{background:transparent;border:1px solid rgba(212,168,67,0.15);color:var(--muted);font-size:10px;font-family:var(--mono);letter-spacing:.04em;text-align:center;border-radius:8px;padding:.45rem .85rem;}
+    .bubble p{margin-bottom:.5rem;}
+    .bubble p:last-child{margin-bottom:0;}
+    .bubble strong{color:var(--gold);}
+    .bubble em{color:var(--teal);font-style:normal;}
+    .disclaimer-inline{font-size:10px;color:var(--muted);font-weight:600;border-top:1px solid var(--border);margin-top:.65rem;padding-top:.5rem;line-height:1.55;}
+    .save-response-btn{font-family:var(--mono);font-size:7px;letter-spacing:.08em;padding:2px 7px;border-radius:20px;border:1px solid rgba(212,168,67,0.2);background:transparent;color:var(--muted);cursor:pointer;transition:.15s;margin-top:.4rem;display:inline-block;}
+    .save-response-btn:hover{border-color:var(--gold);color:var(--gold);}
+    .typing-dots{display:flex;gap:4px;align-items:center;padding:.3rem 0;}
+    .typing-dots span{width:6px;height:6px;border-radius:50%;background:var(--gold);opacity:.4;animation:bounce .9s ease-in-out infinite;}
+    .typing-dots span:nth-child(2){animation-delay:.15s;}
+    .typing-dots span:nth-child(3){animation-delay:.3s;}
+    @keyframes bounce{0%,60%,100%{transform:translateY(0);opacity:.4}30%{transform:translateY(-5px);opacity:.9}}
+
+    /* QUICK ACTIONS */
+    .quick-actions{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:.5rem;}
+    .qa-btn{font-family:var(--mono);font-size:7px;letter-spacing:.07em;padding:4px 9px;border-radius:20px;border:1px solid var(--border2);background:transparent;color:var(--muted);cursor:pointer;transition:.15s;white-space:nowrap;}
+    .qa-btn:hover{border-color:var(--gold);color:var(--gold);}
+
+    /* INPUT BAR */
+    .input-bar{background:var(--bg2);border:1px solid var(--border);border-top:none;border-radius:0 0 14px 14px;padding:.75rem;}
+    .input-row{display:flex;gap:7px;align-items:flex-end;}
+    .msg-input{flex:1;min-width:0;background:var(--bg3);border:1px solid var(--border2);color:var(--text);font-family:var(--sans);font-weight:600;font-size:14px;padding:.6rem .85rem;border-radius:10px;outline:none;resize:none;min-height:42px;max-height:120px;transition:border-color .15s;line-height:1.5;}
+    .msg-input:focus{border-color:var(--gold);}
+    .msg-input::placeholder{color:var(--muted);}
+    .send-btn{background:var(--gold);color:#09080d;border:none;width:42px;height:42px;border-radius:10px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;transition:.2s;flex-shrink:0;align-self:flex-end;}
+    .send-btn:hover:not(:disabled){background:var(--gold2);color:var(--text);}
+    .send-btn:disabled{opacity:.3;cursor:not-allowed;}
+    .new-chat-btn{background:transparent;border:1px solid var(--border);color:var(--muted);font-family:var(--mono);font-size:8px;letter-spacing:.08em;padding:5px 10px;border-radius:20px;cursor:pointer;transition:.2s;white-space:nowrap;align-self:flex-end;height:42px;}
+    .new-chat-btn:hover{border-color:var(--red);color:var(--red);}
+
+    /* KEY SETUP (sidebar) */
+    .key-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:.85rem;margin-bottom:10px;}
+    .key-label{font-family:var(--mono);font-size:7px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:.4rem;display:flex;justify-content:space-between;}
+    .key-label a{color:var(--gold);text-decoration:none;font-size:7px;}
+    .key-input-row{display:flex;gap:5px;}
+    .key-in{flex:1;min-width:0;background:var(--bg3);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:9px;padding:.35rem .6rem;border-radius:6px;outline:none;transition:border-color .15s;}
+    .key-in:focus{border-color:var(--gold);}
+    .key-in::placeholder{color:var(--dim);}
+    .key-save-btn{background:var(--gold2);color:#fff;border:none;font-family:var(--display);font-size:8px;padding:.35rem .7rem;border-radius:6px;cursor:pointer;}
+
+    /* STATUS */
+    .status-toast{position:fixed;top:64px;left:50%;transform:translateX(-50%);z-index:600;font-family:var(--mono);font-size:9px;padding:6px 14px;border-radius:20px;background:var(--bg2);border:1px solid var(--border2);color:var(--text);pointer-events:none;opacity:0;transition:opacity .2s;white-space:nowrap;}
+    .status-toast.show{opacity:1;}
+    .hidden{display:none!important;}
+
+    /* EXPORT BTN */
+    .export-btn{width:100%;font-family:var(--mono);font-size:8px;letter-spacing:.1em;text-transform:uppercase;padding:7px;border-radius:8px;border:1px solid var(--border2);background:transparent;color:var(--muted);cursor:pointer;transition:.15s;margin-top:6px;}
+    .export-btn:hover{border-color:var(--gold);color:var(--gold);}
+  </style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <a href="index.html" class="nav-brand">BETTER CALL<span> PUMPO</span></a>
+  <div class="nav-right">
+    <div class="model-toggle">
+      <button class="model-btn active" data-m="gemini" onclick="setModel(this,'gemini')">Gemini</button>
+      <button class="model-btn" data-m="claude" onclick="setModel(this,'claude')">Claude</button>
+    </div>
+    <a href="index.html" class="nav-link">← Tools</a>
+  </div>
+</nav>
+
+<!-- ONBOARDING -->
+<div id="onboardScreen" class="screen active">
+  <div class="ob-card">
+    <span class="ob-icon">⚖️</span>
+    <div class="ob-title">Better Call Pumpo</div>
+    <div class="ob-sub">Your AI-powered legal guide. Tell me where you are and what's happening — I'll help you understand your rights, build your case, or draft what you need.</div>
+
+    <label class="ob-label">Your country</label>
+    <input class="ob-input" id="obCountry" placeholder="e.g. Spain, Germany, France, United States..." autocomplete="country" list="countryList">
+    <datalist id="countryList">
+      <option value="Spain"><option value="Germany"><option value="France"><option value="Italy">
+      <option value="Portugal"><option value="Netherlands"><option value="Belgium"><option value="Poland">
+      <option value="United Kingdom"><option value="United States"><option value="Australia"><option value="Canada">
+      <option value="Ireland"><option value="Sweden"><option value="Denmark"><option value="Austria">
+    </datalist>
+
+    <label class="ob-label">Region / State <span style="color:var(--dim);font-size:7px;">(optional but helpful)</span></label>
+    <input class="ob-input" id="obRegion" placeholder="e.g. Catalonia, Bavaria, California...">
+
+    <label class="ob-label">Briefly describe your situation</label>
+    <textarea class="ob-input ob-textarea" id="obSituation" placeholder="e.g. My landlord is refusing to return my deposit. I moved out 6 weeks ago and they haven't provided any breakdown of deductions..."></textarea>
+
+    <label class="ob-label">Name this case <span style="color:var(--dim);font-size:7px;">(optional)</span></label>
+    <input class="ob-input" id="obCaseName" placeholder="e.g. Landlord deposit dispute" style="margin-bottom:1.25rem;">
+
+    <div class="ob-disclaimer">⚖️ Better Call Pumpo is an AI-guided legal tool, not a qualified lawyer. It provides information and drafting assistance — not formal legal advice. For complex, high-stakes, or urgent legal matters, consult a qualified legal professional in your jurisdiction.</div>
+
+    <button class="ob-btn" onclick="startSession()">Let's get to work →</button>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="appScreen" class="screen">
+  <div class="app-layout">
+
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+
+      <!-- API KEYS -->
+      <div class="key-card" id="geminiKeyCard">
+        <div class="key-label">Gemini Key <a href="https://aistudio.google.com/app/apikey" target="_blank">Get key ↗</a></div>
+        <div class="key-input-row">
+          <input type="password" class="key-in" id="geminiKeyIn" placeholder="Paste key...">
+          <button class="key-save-btn" onclick="saveKey('gemini')">OK</button>
+        </div>
+      </div>
+      <div class="key-card hidden" id="claudeKeyCard">
+        <div class="key-label">Anthropic Key <a href="https://console.anthropic.com/settings/keys" target="_blank">Get key ↗</a></div>
+        <div class="key-input-row">
+          <input type="password" class="key-in" id="claudeKeyIn" placeholder="Paste key...">
+          <button class="key-save-btn" onclick="saveKey('claude')">OK</button>
+        </div>
+      </div>
+
+      <!-- CASE FILE -->
+      <div class="case-file-card">
+        <div class="cf-title">Case File <button onclick="exportCaseFile()" style="font-family:var(--mono);font-size:7px;letter-spacing:.08em;padding:2px 7px;border-radius:20px;border:1px solid rgba(212,168,67,0.2);background:transparent;color:var(--muted);cursor:pointer;">Export</button></div>
+        <div id="caseFileRows"></div>
+      </div>
+
+      <!-- MODE SELECT -->
+      <div class="mode-select-grid">
+        <div class="mode-btn" id="mode-rights" onclick="setMode('rights')">
+          <span class="mode-icon">🔍</span>
+          <div class="mode-info"><div class="mode-name">My Rights</div><div class="mode-desc">Quick legal overview for your situation</div></div>
+        </div>
+        <div class="mode-btn" id="mode-case" onclick="setMode('case')">
+          <span class="mode-icon">🗂️</span>
+          <div class="mode-info"><div class="mode-name">Build My Case</div><div class="mode-desc">Step-by-step guided case construction</div></div>
+        </div>
+        <div class="mode-btn" id="mode-draft" onclick="setMode('draft')">
+          <span class="mode-icon">✍️</span>
+          <div class="mode-info"><div class="mode-name">Draft Document</div><div class="mode-desc">Letters, complaints, templates, NDAs</div></div>
+        </div>
+        <div class="mode-btn" id="mode-simulate" onclick="setMode('simulate')">
+          <span class="mode-icon">⚔️</span>
+          <div class="mode-info"><div class="mode-name">Scenario Sim</div><div class="mode-desc">What if I do X? Stress-test your position</div></div>
+        </div>
+        <div class="mode-btn" id="mode-timeline" onclick="setMode('timeline')">
+          <span class="mode-icon">📅</span>
+          <div class="mode-info"><div class="mode-name">Case Timeline</div><div class="mode-desc">Track events, deadlines, and next steps</div></div>
+        </div>
+      </div>
+
+      <!-- SAVED CASES -->
+      <div class="case-file-card">
+        <div class="cf-title">Saved Cases
+          <button onclick="newCase()" style="font-family:var(--mono);font-size:7px;letter-spacing:.08em;padding:2px 7px;border-radius:20px;border:1px solid rgba(212,168,67,0.2);background:transparent;color:var(--muted);cursor:pointer;">+ New</button>
+        </div>
+        <div class="saved-cases" id="savedCasesList"></div>
+      </div>
+
+      <button class="export-btn" onclick="exportCaseFile()">📄 Export full case file</button>
+    </div>
+
+    <!-- CHAT -->
+    <div class="chat-area">
+      <div class="quick-actions" id="quickActions"></div>
+      <div class="chat-messages" id="chatMessages"></div>
+      <div class="input-bar">
+        <div class="input-row">
+          <textarea class="msg-input" id="msgInput" placeholder="Ask anything about your legal situation..." rows="1" onkeydown="onKey(event)" oninput="autoResize(this)"></textarea>
+          <button class="send-btn" id="sendBtn" onclick="sendMsg()">↑</button>
+          <button class="new-chat-btn" onclick="clearChat()">↺ Clear</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="status-toast" id="statusToast"></div>
+
+<script>
+// ════════════════════════════════════════════════
+// SYSTEM PROMPT
+// ════════════════════════════════════════════════
+function buildSystemPrompt(ctx){
+  return `You are Better Call Pumpo — a sharp, knowledgeable AI legal guide. You are unambiguously on the user's side. You speak plain language without dumbing things down. You are warm, direct, and never preachy. You know the law deeply and you explain it like a very good paralegal friend would.
+
+OPERATING CONTEXT:
+- User jurisdiction: ${ctx.country}${ctx.region?', '+ctx.region:''}
+- Situation: ${ctx.situation}
+- Current mode: ${ctx.mode||'general'}
+
+YOUR FOUR PRINCIPLES:
+1. CONTEXT FIRST — if you don't have enough information to give useful advice, ask the one most important clarifying question before proceeding. Never guess at facts.
+2. CITE THE LAW — always name the applicable legal framework: EU directive, article number, national law, regulation. Be specific. If you're uncertain about a specific national implementation, say so and suggest the user verify with the official source.
+3. PROPORTIONATE DISCLAIMERS — include brief, contextual disclaimers where relevant. Not walls of text. One clear sentence at the end of substantive advice: "This is based on [legal framework] — for [jurisdiction] specifics or before taking formal action, verify with a qualified local lawyer."
+4. ESCALATE CLEARLY — if the situation involves potential criminal liability, urgent court deadlines, significant financial stakes, or complex cross-border issues, say clearly and kindly: "This is a situation where I'd strongly recommend speaking to a qualified lawyer — here's what to look for and what to bring them."
+
+JURISDICTION APPROACH:
+- Apply the most specific law available for ${ctx.country}${ctx.region?', '+ctx.region:''}.
+- For EU member states: apply both the relevant EU directive AND the national implementation.
+- Where national law is uncertain, reason from the EU framework or international conventions and flag this explicitly.
+- For non-EU jurisdictions: apply the relevant national law and constitutional framework.
+- Always distinguish between "the law says X" (certain) and "typically courts interpret this as Y" (interpretive).
+
+MODE-SPECIFIC BEHAVIOUR:
+- "My Rights" mode: give a clear, structured overview of the user's rights in their specific situation. Cite applicable law. End with 2-3 concrete next steps.
+- "Build My Case" mode: guide the user step-by-step. First establish a complete picture of events. Then identify the legal claim(s). Then list evidence needed. Then draft or outline the formal complaint/letter. Produce a case summary at the end.
+- "Draft Document" mode: produce clean, professional legal documents. Include [PLACEHOLDER] tags for user-specific details. Always note what should be reviewed before sending.
+- "Scenario Simulation" mode: reason through the legal consequences of the user's proposed action. What are the best, worst, and most likely outcomes? What does the other side's legal position look like?
+- "Case Timeline" mode: help the user map events chronologically. Identify legally significant dates, applicable limitation periods, and upcoming deadlines.
+
+FORMATTING:
+- Use **bold** for legal terms and key points.
+- Use clear paragraph breaks.
+- When listing rights or steps, use numbered lists.
+- Keep responses focused — don't pad. If you've covered the point, stop.
+
+NEVER:
+- Tell the user what to do in a way that removes their agency.
+- Diagnose a situation as definitely winning or definitely losing.
+- Reproduce confidential or copyrighted legal text at length.
+- Pretend to be a qualified lawyer or provide a formal legal opinion.`;
+}
+
+// ════════════════════════════════════════════════
+// STATE
+// ════════════════════════════════════════════════
+let model = 'gemini';
+let currentCase = null;
+let allCases = {};
+let history = [];
+let generating = false;
+
+const MODES = {
+  rights:   { label:'My Rights',       icon:'🔍', prompt:'Explain my legal rights in this situation.'},
+  case:     { label:'Build My Case',   icon:'🗂️', prompt:'Guide me step-by-step to build my case.'},
+  draft:    { label:'Draft Document',  icon:'✍️', prompt:'Help me draft the appropriate legal document for this situation.'},
+  simulate: { label:'Scenario Sim',    icon:'⚔️', prompt:'Walk me through what happens if I take action — best, worst, and likely outcomes.'},
+  timeline: { label:'Case Timeline',   icon:'📅', prompt:'Help me map out the timeline of events and key legal deadlines.'},
+};
+
+const QUICK_ACTIONS = [
+  'What are my rights here?',
+  'What evidence do I need?',
+  'Draft a formal letter',
+  'What are the deadlines?',
+  'What should I do next?',
+  'What does the other side\'s position look like?',
+  'Is this worth pursuing?',
+  'When should I get a real lawyer?',
+];
+
+// ════════════════════════════════════════════════
+// INIT
+// ════════════════════════════════════════════════
+window.onload = function(){
+  loadState();
+  restoreKeys();
+  buildQuickActions();
+  renderSavedCases();
+  ['geminiKeyIn','claudeKeyIn'].forEach(id=>{
+    document.getElementById(id)?.addEventListener('keydown',e=>{if(e.key==='Enter')saveKey(id.includes('gemini')?'gemini':'claude');});
+  });
+  document.getElementById('msgInput').addEventListener('input',function(){autoResize(this);});
+};
+
+function loadState(){
+  try{ allCases=JSON.parse(localStorage.getItem('bcp_cases')||'{}'); }catch(e){allCases={};}
+}
+
+function saveState(){
+  localStorage.setItem('bcp_cases',JSON.stringify(allCases));
+}
+
+function restoreKeys(){
+  const gk=localStorage.getItem('bcp_gemini_key')||'';
+  const ck=localStorage.getItem('bcp_claude_key')||'';
+  if(gk) document.getElementById('geminiKeyIn').value=gk;
+  if(ck) document.getElementById('claudeKeyIn').value=ck;
+}
+
+// ════════════════════════════════════════════════
+// ONBOARDING
+// ════════════════════════════════════════════════
+function startSession(){
+  const country=document.getElementById('obCountry').value.trim();
+  const situation=document.getElementById('obSituation').value.trim();
+  if(!country||!situation){toast('Please enter your country and describe your situation.');return;}
+  const caseId='case_'+Date.now().toString(36);
+  const caseName=document.getElementById('obCaseName').value.trim()||country+' — '+situation.slice(0,30)+(situation.length>30?'…':'');
+  currentCase={
+    id:caseId, name:caseName,
+    country:document.getElementById('obCountry').value.trim(),
+    region:document.getElementById('obRegion').value.trim(),
+    situation,
+    mode:'general', created:Date.now(), updated:Date.now(),
+    savedResponses:[],
+    timeline:[]
+  };
+  allCases[caseId]=currentCase;
+  saveState();
+  showApp();
+}
+
+function showApp(){
+  document.getElementById('onboardScreen').classList.remove('active');
+  document.getElementById('appScreen').classList.add('active');
+  renderCaseFile();
+  renderSavedCases();
+  history=[];
+  addSystemMsg('Case file loaded: '+currentCase.name+'. Select a mode or just start talking.');
+  document.getElementById('msgInput').focus();
+}
+
+// ════════════════════════════════════════════════
+// MODEL / KEY
+// ════════════════════════════════════════════════
+function setModel(btn,m){
+  model=m;
+  document.querySelectorAll('.model-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('geminiKeyCard').classList.toggle('hidden',m!=='gemini');
+  document.getElementById('claudeKeyCard').classList.toggle('hidden',m!=='claude');
+}
+
+function saveKey(m){
+  const val=document.getElementById(m+'KeyIn').value.trim();
+  if(!val) return;
+  localStorage.setItem('bcp_'+m+'_key',val);
+  toast(m.charAt(0).toUpperCase()+m.slice(1)+' key saved');
+}
+
+function getKey(){ return localStorage.getItem('bcp_'+model+'_key')||''; }
+
+// ════════════════════════════════════════════════
+// MODE
+// ════════════════════════════════════════════════
+function setMode(m){
+  document.querySelectorAll('.mode-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('mode-'+m)?.classList.add('active');
+  if(currentCase){ currentCase.mode=m; allCases[currentCase.id]=currentCase; saveState(); renderCaseFile(); }
+  const modeData=MODES[m];
+  if(modeData) sendAutoPrompt(modeData.icon+' '+modeData.label+' mode activated. '+modeData.prompt);
+}
+
+function sendAutoPrompt(text){
+  history.push({role:'user',content:text});
+  addMessage('user',text);
+  fetchAI();
+}
+
+// ════════════════════════════════════════════════
+// MESSAGING
+// ════════════════════════════════════════════════
+function onKey(e){ if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMsg();} }
+
+async function sendMsg(){
+  const ta=document.getElementById('msgInput');
+  const text=ta.value.trim();
+  if(!text||generating) return;
+  ta.value=''; autoResize(ta);
+  history.push({role:'user',content:text});
+  addMessage('user',text);
+  await fetchAI();
+}
+
+async function fetchAI(){
+  if(!getKey()){toast('Add your '+(model==='gemini'?'Gemini':'Anthropic')+' API key first.');return;}
+  generating=true;
+  document.getElementById('sendBtn').disabled=true;
+  const typingId=addTyping();
+  try{
+    const reply=model==='gemini'?await callGemini():await callClaude();
+    removeTyping(typingId);
+    addMessage('ai',reply,true);
+    history.push({role:'assistant',content:reply});
+    if(currentCase){currentCase.updated=Date.now();allCases[currentCase.id]=currentCase;saveState();}
+  }catch(e){
+    removeTyping(typingId);
+    addSystemMsg('Error: '+e.message);
+    console.error('[bcp]',e);
+  }
+  generating=false;
+  document.getElementById('sendBtn').disabled=false;
+}
+
+async function callGemini(){
+  const ctx=currentCase||{country:'unknown',region:'',situation:'general',mode:'general'};
+  const contents=history.map(m=>({role:m.role==='user'?'user':'model',parts:[{text:m.content}]}));
+  const body={
+    system_instruction:{parts:[{text:buildSystemPrompt(ctx)}]},
+    contents,
+    generationConfig:{temperature:0.55,maxOutputTokens:1400}
+  };
+  const res=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${getKey()}`,
+    {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+  if(!res.ok){const e=await res.json().catch(()=>({}));throw new Error(e?.error?.message||`HTTP ${res.status}`);}
+  const data=await res.json();
+  const text=data.candidates?.[0]?.content?.parts?.[0]?.text;
+  if(!text) throw new Error('Empty response');
+  return text.trim();
+}
+
+async function callClaude(){
+  const ctx=currentCase||{country:'unknown',region:'',situation:'general',mode:'general'};
+  const messages=history.map(m=>({role:m.role==='user'?'user':'assistant',content:m.content}));
+  const res=await fetch('https://api.anthropic.com/v1/messages',{
+    method:'POST',
+    headers:{'Content-Type':'application/json','x-api-key':getKey(),'anthropic-version':'2023-06-01'},
+    body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1400,system:buildSystemPrompt(ctx),messages})
+  });
+  if(!res.ok){const e=await res.json().catch(()=>({}));throw new Error(e?.error?.message||`HTTP ${res.status}`);}
+  const data=await res.json();
+  const text=data.content?.[0]?.text;
+  if(!text) throw new Error('Empty response');
+  return text.trim();
+}
+
+// ════════════════════════════════════════════════
+// DOM HELPERS
+// ════════════════════════════════════════════════
+function addMessage(role,text,showSave=false){
+  const msgs=document.getElementById('chatMessages');
+  const div=document.createElement('div');
+  div.className='msg '+role;
+  const av=document.createElement('div');
+  av.className='avatar '+(role==='ai'?'ai-av':'user-av');
+  av.textContent=role==='ai'?'⚖':'👤';
+  const bubble=document.createElement('div');
+  bubble.className='bubble';
+  // Convert markdown-ish to HTML
+  bubble.innerHTML=formatLegal(text);
+  if(showSave){
+    const sb=document.createElement('button');
+    sb.className='save-response-btn';
+    sb.textContent='📌 Save to case file';
+    sb.onclick=()=>saveResponse(text,sb);
+    bubble.appendChild(sb);
+  }
+  div.appendChild(av);
+  div.appendChild(bubble);
+  msgs.appendChild(div);
+  msgs.scrollTop=msgs.scrollHeight;
+}
+
+function formatLegal(text){
+  let h=escH(text);
+  h=h.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>');
+  h=h.replace(/\*(.*?)\*/g,'<em>$1</em>');
+  h=h.replace(/\n\n/g,'</p><p>');
+  h=h.replace(/\n/g,'<br>');
+  if(!h.startsWith('<p>')) h='<p>'+h+'</p>';
+  return h;
+}
+
+function addSystemMsg(text){
+  const msgs=document.getElementById('chatMessages');
+  const div=document.createElement('div');
+  div.className='msg system';
+  const bubble=document.createElement('div');
+  bubble.className='bubble';
+  bubble.textContent=text;
+  div.appendChild(bubble);
+  msgs.appendChild(div);
+  msgs.scrollTop=msgs.scrollHeight;
+}
+
+let typingCounter=0;
+function addTyping(){
+  const id='typing-'+(++typingCounter);
+  const msgs=document.getElementById('chatMessages');
+  const div=document.createElement('div');
+  div.className='msg ai'; div.id=id;
+  const av=document.createElement('div');
+  av.className='avatar ai-av'; av.textContent='⚖';
+  const bubble=document.createElement('div');
+  bubble.className='bubble';
+  bubble.innerHTML='<div class="typing-dots"><span></span><span></span><span></span></div>';
+  div.appendChild(av); div.appendChild(bubble);
+  msgs.appendChild(div);
+  msgs.scrollTop=msgs.scrollHeight;
+  return id;
+}
+function removeTyping(id){ document.getElementById(id)?.remove(); }
+
+function clearChat(){
+  history=[];
+  document.getElementById('chatMessages').innerHTML='';
+  addSystemMsg('Chat cleared. Case file preserved.');
+}
+
+// ════════════════════════════════════════════════
+// CASE FILE
+// ════════════════════════════════════════════════
+function renderCaseFile(){
+  if(!currentCase) return;
+  const rows=[
+    ['Name',currentCase.name],
+    ['Country',currentCase.country+(currentCase.region?', '+currentCase.region:'')],
+    ['Mode',currentCase.mode||'General'],
+    ['Saved notes',currentCase.savedResponses?.length||0],
+    ['Last updated',new Date(currentCase.updated||Date.now()).toLocaleDateString()],
+  ];
+  document.getElementById('caseFileRows').innerHTML=rows.map(([k,v])=>
+    `<div class="cf-row"><span class="cf-key">${k}</span><span class="cf-val">${escH(String(v))}</span></div>`
+  ).join('');
+}
+
+function saveResponse(text,btn){
+  if(!currentCase) return;
+  if(!currentCase.savedResponses) currentCase.savedResponses=[];
+  currentCase.savedResponses.push({text,ts:Date.now()});
+  allCases[currentCase.id]=currentCase;
+  saveState();
+  btn.textContent='📌 Saved ✓';
+  btn.style.color='var(--gold)';
+  renderCaseFile();
+  toast('Response saved to case file');
+}
+
+function exportCaseFile(){
+  if(!currentCase){toast('No active case.');return;}
+  const lines=[
+    '═══════════════════════════════════════',
+    'BETTER CALL PUMPO — CASE FILE',
+    '═══════════════════════════════════════',
+    'Case: '+currentCase.name,
+    'Jurisdiction: '+currentCase.country+(currentCase.region?', '+currentCase.region:''),
+    'Created: '+new Date(currentCase.created).toLocaleString(),
+    'Last updated: '+new Date(currentCase.updated).toLocaleString(),
+    '',
+    'SITUATION SUMMARY:',
+    currentCase.situation,
+    '',
+    '═══════════════════════════════════════',
+    'SAVED LEGAL GUIDANCE:',
+    '═══════════════════════════════════════',
+    ...(currentCase.savedResponses||[]).map((r,i)=>`\n[${i+1}] ${new Date(r.ts).toLocaleString()}\n${r.text}`),
+    '',
+    '═══════════════════════════════════════',
+    'DISCLAIMER: This document was generated by Better Call Pumpo, an AI-guided legal tool.',
+    'It does not constitute formal legal advice. Verify key points with a qualified lawyer.',
+    '═══════════════════════════════════════',
+  ];
+  const a=document.createElement('a');
+  a.href='data:text/plain;charset=utf-8,'+encodeURIComponent(lines.join('\n'));
+  a.download='bcp_case_'+currentCase.name.replace(/\s+/g,'_').replace(/[^a-zA-Z0-9_]/g,'')+'.txt';
+  a.click();
+  toast('Case file exported');
+}
+
+// ════════════════════════════════════════════════
+// SAVED CASES
+// ════════════════════════════════════════════════
+function renderSavedCases(){
+  const list=document.getElementById('savedCasesList');
+  const ids=Object.keys(allCases).sort((a,b)=>(allCases[b].updated||0)-(allCases[a].updated||0));
+  if(!ids.length){list.innerHTML='<div style="font-family:var(--mono);font-size:8px;color:var(--muted);padding:.25rem;">No saved cases.</div>';return;}
+  list.innerHTML=ids.map(id=>{
+    const c=allCases[id];
+    const isActive=currentCase&&currentCase.id===id;
+    return `<div class="saved-case-item ${isActive?'active-case':''}" onclick="loadCase('${id}')">
+      <div>
+        <div style="color:${isActive?'var(--gold)':'var(--text)'};">${escH(c.name)}</div>
+        <div style="color:var(--muted);font-size:7px;">${c.country} · ${new Date(c.updated||c.created).toLocaleDateString()}</div>
+      </div>
+      <button class="sc-del" onclick="deleteCase('${id}',event)">✕</button>
+    </div>`;
+  }).join('');
+}
+
+function loadCase(id){
+  currentCase=allCases[id];
+  if(!currentCase) return;
+  history=[];
+  document.getElementById('chatMessages').innerHTML='';
+  renderCaseFile();
+  renderSavedCases();
+  addSystemMsg('Loaded case: '+currentCase.name+'. Jurisdiction: '+currentCase.country+(currentCase.region?', '+currentCase.region:'')+'. What would you like to work on?');
+}
+
+function newCase(){
+  currentCase=null;
+  document.getElementById('appScreen').classList.remove('active');
+  document.getElementById('onboardScreen').classList.add('active');
+  document.getElementById('obCountry').value='';
+  document.getElementById('obRegion').value='';
+  document.getElementById('obSituation').value='';
+  document.getElementById('obCaseName').value='';
+}
+
+function deleteCase(id,e){
+  e.stopPropagation();
+  if(!confirm('Delete this case? This cannot be undone.')) return;
+  delete allCases[id];
+  saveState();
+  if(currentCase&&currentCase.id===id){
+    currentCase=null;
+    document.getElementById('chatMessages').innerHTML='';
+    document.getElementById('caseFileRows').innerHTML='';
+    const remaining=Object.keys(allCases);
+    if(remaining.length) loadCase(remaining[0]);
+    else newCase();
+  }
+  renderSavedCases();
+}
+
+// ════════════════════════════════════════════════
+// QUICK ACTIONS
+// ════════════════════════════════════════════════
+function buildQuickActions(){
+  const wrap=document.getElementById('quickActions');
+  wrap.innerHTML=QUICK_ACTIONS.map(q=>`<button class="qa-btn" onclick="quickAction('${escH(q)}')">${escH(q)}</button>`).join('');
+}
+
+function quickAction(text){
+  document.getElementById('msgInput').value=text;
+  sendMsg();
+}
+
+// ════════════════════════════════════════════════
+// UTILS
+// ════════════════════════════════════════════════
+function autoResize(ta){
+  ta.style.height='auto';
+  ta.style.height=Math.min(ta.scrollHeight,120)+'px';
+}
+
+function escH(s){
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function toast(msg){
+  const el=document.getElementById('statusToast');
+  el.textContent=msg; el.classList.add('show');
+  clearTimeout(el._t); el._t=setTimeout(()=>el.classList.remove('show'),2500);
+}
+</script>
+<!-- PUMPO BAR — paste shared snippet here -->
+</body>
+</html>
