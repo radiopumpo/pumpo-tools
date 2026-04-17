@@ -17,10 +17,10 @@ const SMCEngine = {
     session: null,               // 'asian'|'london'|'newyork_am'|'lunch'|'newyork_pm'
     in_killzone: null,           // true | false
     silver_bullet: null,         // true | false
-    liquidity_raided: null,      // true | false
-    raid_direction: null,        // 'buyside'|'sellside' (which liquidity was taken)
-    choch_confirmed: null,       // true | false
-    choch_direction: null,       // 'bullish'|'bearish'
+    liquidity_grabbed: null,      // true | false
+    grab_direction: null,        // 'buyside'|'sellside' (which liquidity was taken)
+    mss_confirmed: null,       // true | false
+    mss_direction: null,       // 'bullish'|'bearish'
     has_ob: null,                // true | false
     has_fvg: null,               // true | false
     at_ote: null,                // true | false (price at 0.618-0.786 retracement)
@@ -65,33 +65,33 @@ const SMCEngine = {
         : 'Outside killzone — reduced probability',
     };
 
-    // Gate 3 — Liquidity Raid (20pts)
-    const raid_aligned = s.liquidity_raided &&
-      ((s.raid_direction === 'sellside' && s.weekly_structure === 'bullish') ||
-       (s.raid_direction === 'buyside' && s.weekly_structure === 'bearish'));
+    // Gate 3 — Liquidity Grab (20pts)
+    const raid_aligned = s.liquidity_grabbed &&
+      ((s.grab_direction === 'sellside' && s.weekly_structure === 'bullish') ||
+       (s.grab_direction === 'buyside' && s.weekly_structure === 'bearish'));
     results.liquidity_raid = {
-      score: raid_aligned ? 20 : s.liquidity_raided ? 10 : 0,
+      score: raid_aligned ? 20 : s.liquidity_grabbed ? 10 : 0,
       pass: raid_aligned,
       label: SMC_DATA.engine_weights.liquidity_raid.label,
       max: 20,
-      detail: raid_aligned ? `${s.raid_direction?.toUpperCase()} liquidity raided — aligned with ${s.weekly_structure} bias`
-        : s.liquidity_raided ? 'Liquidity raided but direction conflicts with HTF bias'
-        : 'No liquidity raid confirmed — wait for sweep before entry',
+      detail: raid_aligned ? `${s.grab_direction?.toUpperCase()} liquidity grabed — aligned with ${s.weekly_structure} bias`
+        : s.liquidity_grabbed ? 'Liquidity raided but direction conflicts with HTF bias'
+        : 'No liquidity grab confirmed — wait for sweep before entry',
     };
 
-    // Gate 4 — ChoCH (15pts)
-    const choch_aligned = s.choch_confirmed &&
-      ((s.choch_direction === 'bullish' && s.weekly_structure === 'bullish') ||
-       (s.choch_direction === 'bearish' && s.weekly_structure === 'bearish'));
-    results.choch = {
-      score: choch_aligned ? 15 : s.choch_confirmed ? 5 : 0,
-      pass: choch_aligned,
-      label: SMC_DATA.engine_weights.choch.label,
+    // Gate 4 — MSS (15pts)
+    const mss_aligned = s.mss_confirmed &&
+      ((s.mss_direction === 'bullish' && s.weekly_structure === 'bullish') ||
+       (s.mss_direction === 'bearish' && s.weekly_structure === 'bearish'));
+    results.mss = {
+      score: mss_aligned ? 15 : s.mss_confirmed ? 5 : 0,
+      pass: mss_aligned,
+      label: SMC_DATA.engine_weights.mss.label,
       max: 15,
-      detail: choch_aligned
-        ? `${s.choch_direction?.toUpperCase()} ChoCH confirmed — structural shift in line with bias`
-        : s.choch_confirmed ? 'ChoCH confirmed but opposes HTF bias — caution'
-        : 'No ChoCH yet — do not enter without structural confirmation',
+      detail: mss_aligned
+        ? `${s.mss_direction?.toUpperCase()} MSS confirmed — structural shift in line with bias`
+        : s.mss_confirmed ? 'MSS confirmed but opposes HTF bias — caution'
+        : 'No MSS yet — do not enter without structural confirmation',
     };
 
     // Gate 5 — Entry Array (15pts)
@@ -156,8 +156,8 @@ const SMCEngine = {
     const tier = SMC_DATA.score_tiers.find(t => total >= t.min && total <= t.max) || SMC_DATA.score_tiers[3];
 
     // ── BIAS DIRECTION ────────────────────────────────────
-    const direction = choch_aligned
-      ? (s.choch_direction === 'bullish' ? 'LONG' : 'SHORT')
+    const direction = mss_aligned
+      ? (s.mss_direction === 'bullish' ? 'LONG' : 'SHORT')
       : bias_aligned
         ? (s.weekly_structure === 'bullish' ? 'LONG BIAS' : 'SHORT BIAS')
         : 'NEUTRAL';
