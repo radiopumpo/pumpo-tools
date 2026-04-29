@@ -1,0 +1,928 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Hidden Coordination | Pumpo Tools</title>
+<link href="https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Space+Mono:wght@400;700&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+:root {
+  --bg:#0d0d0d; --bg2:#111; --bg3:#181818;
+  --pink:#ff0080; --cyan:#40e0d0; --amber:#ffaa00;
+  --violet:#9b59ff; --green:#00c46a; --red:#e24b4a;
+  --text:#f0ede6; --muted:#666; --dim:#222;
+  --border:rgba(255,255,255,0.07); --border-hi:rgba(255,255,255,0.14);
+  --accent:#ff0080; --accent-d:rgba(255,0,128,0.10); --accent-b:rgba(255,0,128,0.28);
+  --danger:#e24b4a; --danger-d:rgba(226,75,74,0.10);
+  --gold:#ffaa00; --ghost:#40e0d0; --ghost-d:rgba(64,224,208,0.10);
+  --panel:var(--bg2); --card:var(--bg3);
+  --mono:'Space Mono',monospace; --sans:'Rajdhani',sans-serif; --display:'Black Ops One',cursive;
+  --safe-bottom:env(safe-area-inset-bottom,0px);
+}
+
+html { height: 100%; }
+body::before { content:''; position:fixed; inset:0; background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.018) 2px,rgba(0,0,0,0.018) 4px); pointer-events:none; z-index:9999; }
+body {
+  min-height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 15px;
+  line-height: 1.5;
+  overscroll-behavior: none;
+}
+
+.shell { min-height: 100svh; display: flex; flex-direction: column; }
+
+/* TOP BAR */
+.topbar {
+  position:sticky; top:0; z-index:100;
+  background:rgba(13,13,13,0.97); backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--border);
+  padding:0 16px; height:52px;
+  display:flex; align-items:center; justify-content:space-between;
+  flex-shrink:0;
+}
+.topbar-pills { display: flex; gap: 6px; align-items: center; }
+.pill { font-family: var(--mono); font-size: 10px; letter-spacing: 0.06em; padding: 3px 9px; border-radius: 3px; background: var(--card); color: var(--muted); border: 1px solid var(--border); }
+.pill.live { border-color:rgba(255,0,128,0.3); color:var(--pink); }
+.pill.ghost-pill { border-color:rgba(64,224,208,0.35); color:var(--cyan); display:none; }
+.live-dot { display:inline-block; width:5px; height:5px; border-radius:50%; background:var(--pink); margin-right:4px; vertical-align:middle; animation:blink 2s infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
+
+/* MODE TOGGLE */
+.mode-row { display:flex; gap:6px; padding:10px 16px 0; }
+.mode-btn {
+  flex:1; padding:8px; border-radius:6px; border:1px solid var(--border);
+  background:var(--card); color:var(--muted); font-family:var(--mono);
+  font-size:9px; letter-spacing:.08em; text-transform:uppercase;
+  cursor:pointer; transition:all .15s; touch-action:manipulation;
+}
+.mode-btn.active { border-color:rgba(255,0,128,0.3); color:var(--pink); background:rgba(255,0,128,0.08); }
+.mode-btn.active.ghost-mode { border-color:rgba(64,224,208,0.4); color:var(--cyan); background:rgba(64,224,208,0.08); }
+
+/* CONTENT */
+.content { flex:1; display:flex; flex-direction:column; padding:14px 16px; gap:12px; max-width:600px; width:100%; margin:0 auto; }
+
+/* STAT STRIP */
+.stat-strip { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; }
+.stat-box { background:var(--card); border:1px solid var(--border); border-radius:8px; padding:10px 12px; display:flex; flex-direction:column; gap:4px; }
+.sbl { font-family:var(--mono); font-size:9px; letter-spacing:.09em; text-transform:uppercase; color:var(--dim); }
+.sbv { font-family:var(--mono); font-size:17px; font-weight:700; color:var(--text); line-height:1; }
+.sbv.a { color:var(--accent); } .sbv.d { color:var(--danger); } .sbv.g { color:var(--gold); } .sbv.gh { color:var(--ghost); }
+
+/* FIELD INTELLIGENCE */
+.field-intel {
+  background:var(--card); border:1px solid var(--border); border-radius:8px; padding:12px;
+}
+.fi-label { font-family:var(--mono); font-size:9px; letter-spacing:.1em; text-transform:uppercase; color:var(--dim); margin-bottom:8px; display:flex; justify-content:space-between; }
+.fi-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:6px; }
+.fi-cell { display:flex; flex-direction:column; gap:3px; }
+.fi-sig { font-family:var(--mono); font-size:10px; color:var(--muted); text-align:center; }
+.fi-track { height:24px; background:var(--bg); border-radius:3px; overflow:hidden; display:flex; flex-direction:column; justify-content:flex-end; }
+.fi-bar { border-radius:2px; min-height:2px; transition:height .4s ease; }
+.fi-wins { font-family:var(--mono); font-size:9px; color:var(--dim); text-align:center; }
+.fi-trend { font-size:8px; text-align:center; font-family:var(--mono); }
+.trend-up { color:var(--accent); } .trend-dn { color:var(--danger); } .trend-eq { color:var(--dim); }
+
+/* POP BAR */
+.pop-wrap { display:flex; flex-direction:column; gap:5px; }
+.pop-top { display:flex; justify-content:space-between; font-family:var(--mono); font-size:10px; color:var(--dim); }
+.pop-track { height:3px; background:var(--border); border-radius:2px; overflow:hidden; }
+.pop-fill { height:100%; background:var(--accent); border-radius:2px; transition:width .7s ease; }
+.pop-fill.low { background:var(--danger); }
+
+/* ROUND CONTEXT */
+.round-ctx { padding:2px 0; }
+.round-num { font-family:var(--mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--dim); margin-bottom:4px; }
+.round-title { font-family:var(--mono); font-size:20px; font-weight:700; color:var(--text); }
+.round-hint { margin-top:5px; font-size:13px; color:var(--muted); line-height:1.55; }
+
+/* PRESSURE INDICATOR */
+.pressure-row { display:flex; align-items:center; gap:8px; }
+.pressure-label { font-family:var(--mono); font-size:9px; letter-spacing:.08em; text-transform:uppercase; color:var(--dim); white-space:nowrap; }
+.pressure-track { flex:1; height:4px; background:var(--border); border-radius:2px; overflow:hidden; }
+.pressure-fill { height:100%; border-radius:2px; transition:width .5s ease, background .5s ease; }
+
+/* SIGNAL GRID */
+.signal-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.sig-btn {
+  background:var(--card); border:1px solid var(--border); border-radius:10px;
+  padding:16px 14px; cursor:pointer; text-align:left; position:relative; overflow:hidden;
+  transition:border-color .15s, transform .12s;
+  touch-action:manipulation; min-height:108px;
+  display:flex; flex-direction:column; justify-content:space-between;
+  color:var(--text); -webkit-tap-highlight-color:transparent;
+}
+.sig-btn::before { content:''; position:absolute; inset:0; background:var(--accent-d); opacity:0; transition:opacity .15s; pointer-events:none; }
+.sig-btn:active:not(:disabled) { transform:scale(0.96); border-color:var(--accent-b); }
+.sig-btn:active:not(:disabled)::before { opacity:1; }
+.sig-btn.selected { border-color:var(--accent); }
+.sig-btn.selected::before { opacity:1; }
+.sig-btn:disabled { pointer-events:none; opacity:0.35; }
+.sig-btn.hot { border-color:rgba(240,192,64,0.3); }
+.sig-btn.cold { border-color:rgba(255,79,79,0.2); }
+.sig-top { display:flex; justify-content:space-between; align-items:flex-start; }
+.sig-glyph { font-family:var(--display); font-size:32px; font-weight:700; color:var(--pink); line-height:1; position:relative; z-index:1; }
+.sig-badge { font-family:var(--mono); font-size:10px; padding:2px 7px; border-radius:3px; background:rgba(255,255,255,0.05); color:var(--muted); position:relative; z-index:1; }
+.sig-streak { font-family:var(--mono); font-size:9px; position:relative; z-index:1; }
+.sig-bottom { position:relative; z-index:1; }
+.sig-name { font-family:var(--mono); font-size:10px; letter-spacing:.07em; text-transform:uppercase; color:var(--muted); margin-bottom:2px; }
+.sig-desc { font-size:11px; color:var(--dim); line-height:1.4; }
+
+/* GHOST OVERLAY on signals */
+.sig-ghost-bar { position:absolute; bottom:0; left:0; right:0; height:3px; background:var(--ghost); opacity:0; transition:opacity .3s, width .4s; border-radius:0 0 10px 10px; }
+
+/* RESOLUTION PANEL */
+.res-panel { background:var(--card); border:1px solid var(--border); border-radius:10px; padding:18px; display:none; }
+.res-panel.on { display:block; animation:fadeup .3s ease; }
+.res-lbl { font-family:var(--mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--dim); margin-bottom:14px; }
+.dist-row { display:flex; gap:8px; height:68px; align-items:flex-end; margin-bottom:14px; }
+.dist-col { flex:1; display:flex; flex-direction:column; align-items:center; gap:4px; height:100%; justify-content:flex-end; }
+.dist-bar { width:100%; border-radius:3px 3px 0 0; min-height:3px; transition:height .5s ease; }
+.bar-player { background:var(--accent); }
+.bar-max    { background:rgba(184,240,80,0.35); }
+.bar-other  { background:var(--border-hi); }
+.bar-ghost  { background:var(--ghost); opacity:.7; }
+.dist-sig { font-family:var(--mono); font-size:11px; color:var(--muted); }
+.dist-n   { font-family:var(--mono); font-size:10px; color:var(--dim); }
+.res-summary { font-size:13px; color:var(--muted); line-height:1.65; border-top:1px solid var(--border); padding-top:13px; }
+.res-summary strong { color:var(--text); font-weight:500; }
+.hl-a { color:var(--accent); } .hl-d { color:var(--danger); } .hl-g { color:var(--gold); } .hl-gh { color:var(--ghost); }
+.proceed-btn { display:block; width:100%; margin-top:16px; padding:15px; background:var(--pink); color:#fff; border:none; border-radius:8px; font-family:var(--mono); font-size:13px; font-weight:700; letter-spacing:.07em; text-transform:uppercase; cursor:pointer; touch-action:manipulation; transition:opacity .15s, transform .1s; }
+.proceed-btn:active { transform:scale(0.98); opacity:.85; }
+.proceed-btn.danger { background:var(--danger); color:#fff; }
+
+/* LOG */
+.log-wrap { border:1px solid var(--border); border-radius:10px; overflow:hidden; }
+.log-head { background:var(--card); padding:10px 14px; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border); }
+.log-head-label { font-family:var(--mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--dim); }
+.log-toggle-btn { font-family:var(--mono); font-size:10px; color:var(--muted); background:none; border:none; cursor:pointer; padding:2px 4px; touch-action:manipulation; }
+.log-body { background:var(--panel); max-height:120px; overflow-y:auto; padding:8px 14px; display:flex; flex-direction:column; gap:4px; }
+.log-body.hidden { display:none; }
+.log-body::-webkit-scrollbar { width:2px; }
+.log-body::-webkit-scrollbar-thumb { background:var(--border-hi); }
+.log-entry { font-size:11px; font-family:var(--mono); color:var(--muted); line-height:1.6; animation:fadeup .2s ease; }
+.log-tag { display:inline-block; font-size:9px; padding:1px 5px; border-radius:2px; margin-right:5px; text-transform:uppercase; letter-spacing:.06em; }
+.tag-sys  { background:var(--accent-d); color:var(--accent); }
+.tag-elim { background:var(--danger-d); color:var(--danger); }
+.tag-you  { background:rgba(184,240,80,0.18); color:var(--accent); }
+.tag-rnd  { background:rgba(255,255,255,0.04); color:var(--muted); }
+.tag-gh   { background:var(--ghost-d); color:var(--ghost); }
+
+/* END SCREEN */
+.end-screen { display:none; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:48px 24px; gap:12px; min-height:60svh; }
+.end-screen.on { display:flex; animation:fadeup .4s ease; }
+.end-icon { font-size:54px; line-height:1; }
+.end-title { font-family:var(--mono); font-size:24px; font-weight:700; }
+.end-title.win { color:var(--gold); } .end-title.lose { color:var(--danger); }
+.end-body { font-size:13px; color:var(--muted); max-width:280px; line-height:1.7; }
+.end-meta { font-family:var(--mono); font-size:11px; color:var(--dim); margin-top:2px; }
+.end-stats { display:grid; grid-template-columns:1fr 1fr; gap:8px; width:100%; max-width:280px; margin-top:6px; }
+.end-stat { background:var(--card); border:1px solid var(--border); border-radius:6px; padding:8px; }
+.end-stat-l { font-family:var(--mono); font-size:8px; color:var(--dim); letter-spacing:.08em; text-transform:uppercase; }
+.end-stat-v { font-family:var(--mono); font-size:16px; font-weight:700; color:var(--text); margin-top:2px; }
+.restart-btn { margin-top:10px; padding:14px 0; width:100%; max-width:280px; background:transparent; border:1px solid var(--border-hi); color:var(--text); border-radius:8px; font-family:var(--mono); font-size:12px; letter-spacing:.07em; text-transform:uppercase; cursor:pointer; touch-action:manipulation; transition:border-color .15s, color .15s; }
+.restart-btn:active { border-color:var(--accent); color:var(--accent); }
+
+/* FOOTER */
+.footer { border-top:1px solid var(--border); background:var(--panel); padding:10px 16px; padding-bottom:calc(10px + var(--safe-bottom)); display:flex; justify-content:space-between; align-items:center; flex-shrink:0; }
+.footer-l { font-family:var(--mono); font-size:9px; color:var(--dim); letter-spacing:.06em; }
+.footer-r { font-size:11px; color:var(--dim); font-style:italic; }
+
+@keyframes fadeup { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
+
+@media(min-width:680px) {
+  .topbar { padding:0 28px; height:54px; }
+  .mode-row { padding:14px 28px 0; }
+  .content { padding:18px 28px; gap:16px; }
+  .sbv { font-size:20px; }
+  .round-title { font-size:26px; }
+  .signal-grid { grid-template-columns:repeat(4,1fr); gap:12px; }
+  .sig-btn { min-height:128px; padding:18px 16px; }
+  .sig-btn:hover:not(:disabled) { border-color:var(--accent-b); transform:translateY(-2px); }
+  .sig-btn:hover:not(:disabled)::before { opacity:1; }
+  .sig-glyph { font-size:38px; }
+  .dist-row { height:80px; }
+  .footer { padding:10px 28px; }
+}
+@media(max-width:359px) {
+  .stat-strip { grid-template-columns:repeat(2,1fr); }
+  .round-title { font-size:17px; }
+  .sig-glyph { font-size:26px; }
+  .sig-btn { min-height:96px; padding:14px 12px; }
+}
+</style>
+</head>
+<body>
+<div class="shell">
+
+<header class="topbar">
+  <a href="index.html" class="topbar-brand" style="text-decoration:none;">
+    <span style="font-family:var(--display);font-size:.9rem;color:var(--pink);letter-spacing:1px;">HIDDEN</span>
+    <span style="font-family:var(--display);font-size:.9rem;color:var(--cyan);letter-spacing:1px;">COORD</span>
+  </a>
+  <div class="topbar-pills">
+    <span class="pill live"><span class="live-dot"></span><span id="h-alive">25</span> ALIVE</span>
+    <span class="pill" id="h-rnd">RND 01</span>
+    <span class="pill ghost-pill" id="ghost-pill">👻 GHOST</span>
+    <a href="index.html" style="font-family:var(--mono);font-size:.6rem;font-weight:700;color:var(--muted);text-decoration:none;border:1px solid rgba(255,255,255,0.1);padding:3px 9px;border-radius:20px;transition:.2s;letter-spacing:.06em;">← Tools</a>
+  </div>
+</header>
+
+<!-- INTRO SCREEN -->
+<div id="introScreen" style="
+  position:fixed;inset:0;z-index:800;
+  background:rgba(13,13,13,0.97);backdrop-filter:blur(14px);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:2rem 1.5rem;overflow-y:auto;
+">
+  <div style="max-width:420px;width:100%;text-align:center;">
+    <div style="font-size:48px;margin-bottom:1rem;">⬡</div>
+    <div style="font-family:var(--display);font-size:clamp(24px,5vw,36px);color:var(--pink);letter-spacing:1px;margin-bottom:.3rem;">HIDDEN COORDINATION</div>
+    <div style="font-family:var(--mono);font-size:8px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);margin-bottom:1.5rem;">A Game Theory Survival Simulation</div>
+
+    <div style="background:var(--bg3);border:1px solid var(--border);border-radius:14px;padding:1.25rem;margin-bottom:1.25rem;text-align:left;">
+      <div style="font-family:var(--mono);font-size:8px;letter-spacing:.15em;text-transform:uppercase;color:var(--cyan);margin-bottom:.85rem;">How it works</div>
+      <div style="display:flex;flex-direction:column;gap:.75rem;">
+        <div style="display:flex;gap:10px;align-items:flex-start;">
+          <span style="font-family:var(--display);font-size:18px;color:var(--pink);flex-shrink:0;line-height:1.2;">01</span>
+          <div style="font-size:13px;color:var(--text);font-weight:600;line-height:1.6;">Each round, <strong style="color:var(--pink)">25 agents</strong> (including you) broadcast one of four signals — Alpha, Beta, Gamma, or Delta.</div>
+        </div>
+        <div style="display:flex;gap:10px;align-items:flex-start;">
+          <span style="font-family:var(--display);font-size:18px;color:var(--pink);flex-shrink:0;line-height:1.2;">02</span>
+          <div style="font-size:13px;color:var(--text);font-weight:600;line-height:1.6;">Agents in the <strong style="color:var(--cyan)">largest cluster</strong> survive. Agents in weaker clusters face elimination. The fewer agents remain, the higher the pressure.</div>
+        </div>
+        <div style="display:flex;gap:10px;align-items:flex-start;">
+          <span style="font-family:var(--display);font-size:18px;color:var(--pink);flex-shrink:0;line-height:1.2;">03</span>
+          <div style="font-size:13px;color:var(--text);font-weight:600;line-height:1.6;">Agents <strong style="color:var(--amber)">remember</strong> what worked. Watch the <strong style="color:var(--cyan)">Field Intelligence</strong> panel — signal win history tells you where the field is coordinating.</div>
+        </div>
+        <div style="display:flex;gap:10px;align-items:flex-start;">
+          <span style="font-family:var(--display);font-size:18px;color:var(--pink);flex-shrink:0;line-height:1.2;">04</span>
+          <div style="font-size:13px;color:var(--text);font-weight:600;line-height:1.6;">Be the <strong style="color:var(--amber)">last agent standing</strong>. In Ghost Match mode, your session is recorded and others face your field.</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="background:rgba(255,0,128,0.05);border:1px solid rgba(255,0,128,0.15);border-radius:10px;padding:.85rem 1rem;margin-bottom:1.5rem;font-size:12px;color:var(--muted);font-weight:600;line-height:1.65;text-align:left;">
+      <span style="color:var(--pink);font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;">The meta</span><br>
+      You cannot communicate. You cannot see others' choices. You can only read the field's history and guess where the crowd will go — then go there first. This is how coordination works in the real world.
+    </div>
+
+    <button onclick="startSession()" style="
+      width:100%;background:var(--pink);color:#fff;border:none;
+      padding:.9rem;font-family:var(--display);font-size:15px;letter-spacing:1px;
+      border-radius:12px;cursor:pointer;transition:.2s;
+      box-shadow:0 4px 20px rgba(255,0,128,0.25);
+    ">ENTER THE FIELD →</button>
+    <div style="margin-top:.75rem;font-family:var(--mono);font-size:8px;color:var(--muted);letter-spacing:.08em;">Solo vs Field · Ghost Match · Field Intelligence</div>
+  </div>
+</div>
+
+<div class="mode-row">
+  <button class="mode-btn active" id="btn-solo" onclick="setMode('solo')">Solo vs Field</button>
+  <button class="mode-btn" id="btn-ghost" onclick="setMode('ghost')">👻 Ghost Match</button>
+</div>
+
+<div class="content">
+
+  <div class="stat-strip">
+    <div class="stat-box"><div class="sbl">Alive</div><div class="sbv a" id="s-alive">25</div></div>
+    <div class="stat-box"><div class="sbl">Round</div><div class="sbv" id="s-round">1</div></div>
+    <div class="stat-box"><div class="sbl">Elim.</div><div class="sbv d" id="s-elim">0</div></div>
+    <div class="stat-box"><div class="sbl">Status</div><div class="sbv a" id="s-status">IN</div></div>
+  </div>
+
+  <!-- FIELD INTELLIGENCE -->
+  <div class="field-intel" id="field-intel">
+    <div class="fi-label">
+      <span>Field Intelligence</span>
+      <span id="fi-hint" style="font-size:8px;color:var(--dim);">No data yet</span>
+    </div>
+    <div class="fi-grid" id="fi-grid"></div>
+  </div>
+
+  <div class="pop-wrap" id="pop-wrap">
+    <div class="pop-top"><span>Population remaining</span><span id="pb-pct">100%</span></div>
+    <div class="pop-track"><div class="pop-fill" id="pop-fill" style="width:100%"></div></div>
+  </div>
+
+  <!-- PRESSURE -->
+  <div class="pressure-row" id="pressure-row" style="display:none">
+    <span class="pressure-label">Elimination pressure</span>
+    <div class="pressure-track"><div class="pressure-fill" id="pressure-fill"></div></div>
+  </div>
+
+  <div class="round-ctx" id="round-ctx">
+    <div class="round-num" id="rn-num">Round 01 of ∞</div>
+    <div class="round-title">CHOOSE YOUR SIGNAL</div>
+    <div class="round-hint" id="round-hint">Broadcast a signal. Read the field intelligence. Align with the dominant cluster or be culled.</div>
+  </div>
+
+  <div class="signal-grid" id="signal-grid"></div>
+
+  <div class="res-panel" id="res-panel">
+    <div class="res-lbl">Round resolution</div>
+    <div class="dist-row" id="dist-row"></div>
+    <div class="res-summary" id="res-summary"></div>
+    <button class="proceed-btn" id="proceed-btn" onclick="proceedRound()">Continue →</button>
+  </div>
+
+  <div class="log-wrap" id="log-wrap">
+    <div class="log-head">
+      <span class="log-head-label">Event log</span>
+      <button class="log-toggle-btn" id="log-toggle" onclick="toggleLog()">hide</button>
+    </div>
+    <div class="log-body" id="log-body"></div>
+  </div>
+
+  <div class="end-screen" id="end-screen">
+    <div class="end-icon" id="end-icon">◈</div>
+    <div class="end-title" id="end-title"></div>
+    <div class="end-body" id="end-body"></div>
+    <div class="end-stats" id="end-stats"></div>
+    <div class="end-meta" id="end-meta"></div>
+    <button class="restart-btn" onclick="restartGame()">↺ NEW SESSION</button>
+  </div>
+
+</div>
+
+<footer class="footer">
+  <div class="footer-l" id="footer-mode">BUILD 0.4.0 · SOLO_VS_FIELD</div>
+  <div class="footer-r">Read the field. Survive the cull.</div>
+</footer>
+
+</div>
+
+<script>
+// ════════════════════════════════
+//  CONFIG
+// ════════════════════════════════
+const CONFIG = {
+  totalPlayers: 25,
+  signals: [
+    { id:'A', glyph:'Α', name:'Alpha', desc:'High-frequency. Widely legible.' },
+    { id:'B', glyph:'Β', name:'Beta',  desc:'Medium-range. Moderate detection.' },
+    { id:'C', glyph:'Γ', name:'Gamma', desc:'Low-band. Less tracked.' },
+    { id:'D', glyph:'Δ', name:'Delta', desc:'Rare. High coordination risk.' },
+  ],
+  baseElimChance:  0.55,   // base elimination chance for non-dominant clusters
+  maxElimChance:   0.85,   // max at high pressure
+  contrarian:      0.12,   // fraction of NPCs who deliberately avoid the leading signal
+  memoryWeight:    0.55,   // how much last-round dominance affects NPC choice
+  ghostSessions:   8,      // max ghost sessions to store
+};
+
+// ════════════════════════════════
+//  STATE
+// ════════════════════════════════
+let MODE = 'solo'; // 'solo' | 'ghost'
+let S = {};
+let signalHistory = []; // [{A:n, B:n, C:n, D:n, winner:'A', round:n}]
+let npcPrefs = {};      // per-NPC signal preference weights
+let ghostSessions = []; // stored past sessions
+let activeGhost = null; // ghost session being replayed
+
+// ════════════════════════════════
+//  MODE SWITCHING
+// ════════════════════════════════
+function setMode(m) {
+  MODE = m;
+  document.getElementById('btn-solo').classList.toggle('active', m==='solo');
+  document.getElementById('btn-ghost').classList.toggle('active', m==='ghost');
+  document.getElementById('btn-ghost').classList.toggle('ghost-mode', m==='ghost');
+  document.getElementById('ghost-pill').style.display = m==='ghost' ? '' : 'none';
+  document.getElementById('footer-mode').textContent = m==='ghost'
+    ? 'BUILD 0.4.0 · GHOST_MATCH' : 'BUILD 0.4.0 · SOLO_VS_FIELD';
+
+  if (m==='ghost') {
+    ghostSessions = loadGhostSessions();
+    if (!ghostSessions.length) {
+      addLog('gh','No ghost data yet — play a solo game first to record a session.');
+    } else {
+      activeGhost = ghostSessions[Math.floor(Math.random()*ghostSessions.length)];
+      addLog('gh','Replaying ghost from round '+activeGhost.maxRound+'. '+activeGhost.totalPlayers+' agents. Beat their survival.');
+    }
+  }
+  restartGame();
+}
+
+// ════════════════════════════════
+//  GHOST SESSION STORAGE
+// ════════════════════════════════
+function saveGhostSession(session) {
+  let sessions = loadGhostSessions();
+  sessions.unshift(session);
+  if (sessions.length > CONFIG.ghostSessions) sessions = sessions.slice(0, CONFIG.ghostSessions);
+  try { localStorage.setItem('hc_ghosts', JSON.stringify(sessions)); } catch(e) {}
+}
+
+function loadGhostSessions() {
+  try { return JSON.parse(localStorage.getItem('hc_ghosts') || '[]'); } catch(e) { return []; }
+}
+
+// ════════════════════════════════
+//  INIT
+// ════════════════════════════════
+function initGame() {
+  S = {
+    players:      [],
+    round:        1,
+    phase:        'choose',
+    playerChoice: null,
+    totalStarted: CONFIG.totalPlayers,
+    logCollapsed: false,
+    sessionLog:   [],    // for ghost recording [{round, choice, alive}]
+    roundsWon:    0,
+    bestStreak:   0,
+    currentStreak:0,
+  };
+  signalHistory = [];
+  npcPrefs = {};
+
+  for (let i = 0; i < CONFIG.totalPlayers; i++) {
+    S.players.push({ id:i, alive:true, isPlayer:i===0 });
+    if (i>0) {
+      // Each NPC starts with a random signal preference
+      npcPrefs[i] = {};
+      CONFIG.signals.forEach(s => { npcPrefs[i][s.id] = 0.25 + (Math.random()-0.5)*0.1; });
+    }
+  }
+
+  buildGrid();
+  buildFieldIntel();
+  syncStats();
+  updatePressure();
+  setEl('rn-num','Round 01 of ∞');
+  setEl('round-hint','Broadcast a signal. Read the field intelligence. Align with the dominant cluster or be culled.');
+
+  show('round-ctx'); show('signal-grid'); show('pop-wrap'); show('log-wrap');
+  show('field-intel'); show('pressure-row');
+  hide('res-panel'); hide('end-screen');
+  document.getElementById('log-body').innerHTML = '';
+
+  const modeLabel = MODE==='ghost' && activeGhost ? 'Ghost match active — ' + activeGhost.maxRound + ' rounds to beat.' : CONFIG.totalPlayers + ' agents enter. Read the field.';
+  addLog('sys', modeLabel);
+  localStorage.setItem('hc_played','1');
+}
+
+// ════════════════════════════════
+//  NPC SIGNAL SELECTION
+// ════════════════════════════════
+function npcPickSignal(npcId) {
+  const prefs = npcPrefs[npcId];
+  const total = Object.values(prefs).reduce((a,b)=>a+b,0);
+  const r = Math.random() * total;
+  let acc = 0;
+  for (const sig of CONFIG.signals) {
+    acc += prefs[sig.id];
+    if (r <= acc) return sig.id;
+  }
+  return CONFIG.signals[CONFIG.signals.length-1].id;
+}
+
+function updateNPCPrefs(groups, winnerId) {
+  S.players.filter(p=>p.alive && !p.isPlayer).forEach(p => {
+    const prefs = npcPrefs[p.id];
+    // Reinforce what worked
+    CONFIG.signals.forEach(s => {
+      const wasInGroup = groups[s.id].find(x=>x.id===p.id);
+      const won = s.id === winnerId;
+      if (wasInGroup && won) {
+        prefs[s.id] = Math.min(0.7, prefs[s.id] + CONFIG.memoryWeight * 0.3);
+      } else if (wasInGroup && !won) {
+        prefs[s.id] = Math.max(0.05, prefs[s.id] - 0.15);
+      }
+    });
+    // Normalise
+    const t = Object.values(prefs).reduce((a,b)=>a+b,0);
+    CONFIG.signals.forEach(s => { prefs[s.id] = prefs[s.id]/t; });
+  });
+}
+
+// ════════════════════════════════
+//  FIELD INTELLIGENCE DISPLAY
+// ════════════════════════════════
+function buildFieldIntel() {
+  const grid = document.getElementById('fi-grid');
+  grid.innerHTML = CONFIG.signals.map(s => `
+    <div class="fi-cell" id="fi-${s.id}">
+      <div class="fi-sig">${s.id}</div>
+      <div class="fi-track"><div class="fi-bar" id="fi-bar-${s.id}" style="height:2px;background:var(--dim)"></div></div>
+      <div class="fi-wins" id="fi-wins-${s.id}">—</div>
+      <div class="fi-trend" id="fi-trend-${s.id}">·</div>
+    </div>`).join('');
+  setEl('fi-hint','No data yet');
+}
+
+function updateFieldIntel() {
+  if (!signalHistory.length) return;
+  const wins = {};
+  CONFIG.signals.forEach(s => { wins[s.id] = 0; });
+  signalHistory.forEach(h => { wins[h.winner]++; });
+  const maxWins = Math.max(...Object.values(wins));
+
+  CONFIG.signals.forEach(s => {
+    const w = wins[s.id];
+    const barH = maxWins>0 ? Math.max(2, Math.round((w/maxWins)*20)) : 2;
+    const bar = document.getElementById('fi-bar-'+s.id);
+    const winsEl = document.getElementById('fi-wins-'+s.id);
+    const trendEl = document.getElementById('fi-trend-'+s.id);
+    if (!bar) return;
+
+    const pct = maxWins>0 ? w/maxWins : 0;
+    const col = pct>0.7 ? 'var(--accent)' : pct>0.4 ? 'var(--gold)' : 'var(--dim)';
+    bar.style.height = barH+'px';
+    bar.style.background = col;
+    winsEl.textContent = w>0 ? w+'W' : '—';
+
+    // Trend — compare last 2 rounds
+    if (signalHistory.length>=2) {
+      const last = signalHistory[signalHistory.length-1];
+      const prev = signalHistory[signalHistory.length-2];
+      if (last.winner===s.id && prev.winner!==s.id) {
+        trendEl.textContent = '↑'; trendEl.className='fi-trend trend-up';
+      } else if (last.winner!==s.id && prev.winner===s.id) {
+        trendEl.textContent = '↓'; trendEl.className='fi-trend trend-dn';
+      } else if (last.winner===s.id) {
+        trendEl.textContent = '→'; trendEl.className='fi-trend trend-eq';
+      } else {
+        trendEl.textContent = '·'; trendEl.className='fi-trend';
+      }
+    }
+  });
+
+  const topSig = CONFIG.signals.reduce((a,b)=>wins[a.id]>=wins[b.id]?a:b);
+  setEl('fi-hint', topSig.id+' dominant ·  R'+signalHistory.length);
+}
+
+function updateSignalHeat() {
+  if (!signalHistory.length) return;
+  const last = signalHistory[signalHistory.length-1];
+  CONFIG.signals.forEach(s => {
+    const btn = document.getElementById('sig-'+s.id);
+    if (!btn) return;
+    btn.classList.remove('hot','cold');
+    if (s.id===last.winner) btn.classList.add('hot');
+    else if (signalHistory.filter(h=>h.winner===s.id).length===0) btn.classList.add('cold');
+    // Streak badge
+    const streak = getStreak(s.id);
+    const streakEl = btn.querySelector('.sig-streak');
+    if (streakEl) streakEl.textContent = streak>=2 ? '🔥×'+streak : '';
+  });
+}
+
+function getStreak(sigId) {
+  let streak = 0;
+  for (let i=signalHistory.length-1;i>=0;i--) {
+    if (signalHistory[i].winner===sigId) streak++;
+    else break;
+  }
+  return streak;
+}
+
+// ════════════════════════════════
+//  PRESSURE
+// ════════════════════════════════
+function getCurrentPressure() {
+  const alive = S.players.filter(p=>p.alive).length;
+  const pct = 1 - (alive / S.totalStarted);
+  return CONFIG.baseElimChance + (CONFIG.maxElimChance - CONFIG.baseElimChance) * Math.pow(pct, 0.8);
+}
+
+function updatePressure() {
+  const p = getCurrentPressure();
+  const fill = document.getElementById('pressure-fill');
+  const pct = ((p - CONFIG.baseElimChance) / (CONFIG.maxElimChance - CONFIG.baseElimChance)) * 100;
+  fill.style.width = pct+'%';
+  const col = pct<33?'var(--accent)':pct<66?'var(--gold)':'var(--danger)';
+  fill.style.background = col;
+}
+
+// ════════════════════════════════
+//  BUILD SIGNAL GRID
+// ════════════════════════════════
+function buildGrid() {
+  const g = document.getElementById('signal-grid');
+  g.innerHTML = '';
+  CONFIG.signals.forEach(sig => {
+    const btn = document.createElement('button');
+    btn.className = 'sig-btn';
+    btn.id = 'sig-'+sig.id;
+    btn.innerHTML =
+      '<div class="sig-top"><div class="sig-glyph">'+sig.glyph+'</div>'+
+      '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;">'+
+      '<div class="sig-badge">'+sig.id+'</div>'+
+      '<div class="sig-streak" id="streak-'+sig.id+'"></div></div></div>'+
+      '<div class="sig-bottom"><div class="sig-name">'+sig.name+'</div>'+
+      '<div class="sig-desc">'+sig.desc+'</div></div>'+
+      '<div class="sig-ghost-bar" id="ghost-bar-'+sig.id+'"></div>';
+    btn.addEventListener('click', () => choose(sig.id));
+    g.appendChild(btn);
+  });
+}
+
+// ════════════════════════════════
+//  GHOST OVERLAY on signals
+// ════════════════════════════════
+function showGhostBars() {
+  if (MODE!=='ghost' || !activeGhost) return;
+  const roundData = activeGhost.rounds[S.round-1];
+  if (!roundData) return;
+  const max = Math.max(...CONFIG.signals.map(s=>roundData.dist[s.id]||0));
+  CONFIG.signals.forEach(s => {
+    const bar = document.getElementById('ghost-bar-'+s.id);
+    if (!bar) return;
+    const pct = max>0 ? ((roundData.dist[s.id]||0)/max)*100 : 0;
+    bar.style.width = pct+'%';
+    bar.style.opacity = '0.6';
+  });
+}
+
+// ════════════════════════════════
+//  CHOOSE
+// ════════════════════════════════
+function choose(sigId) {
+  if (S.phase!=='choose') return;
+  S.playerChoice = sigId;
+  CONFIG.signals.forEach(s => {
+    document.getElementById('sig-'+s.id).classList.toggle('selected', s.id===sigId);
+    document.getElementById('sig-'+s.id).disabled = true;
+  });
+  addLog('you','You broadcast: Signal '+sigId);
+  setTimeout(resolve, 480);
+}
+
+// ════════════════════════════════
+//  RESOLVE ROUND
+// ════════════════════════════════
+function resolve() {
+  S.phase = 'resolution';
+  const alive = S.players.filter(p=>p.alive);
+  const groups = {};
+  CONFIG.signals.forEach(s => { groups[s.id] = []; });
+
+  // Determine contrarian signal (least popular in last round)
+  let contrarianTarget = null;
+  if (signalHistory.length) {
+    const last = signalHistory[signalHistory.length-1];
+    contrarianTarget = CONFIG.signals.reduce((a,b) =>
+      (last.dist[a.id]||0) <= (last.dist[b.id]||0) ? a : b
+    ).id;
+  }
+
+  alive.forEach(p => {
+    if (p.isPlayer) {
+      groups[S.playerChoice].push(p);
+    } else {
+      // Contrarian agents deliberately pick low-traffic signal
+      if (Math.random() < CONFIG.contrarian && contrarianTarget) {
+        groups[contrarianTarget].push(p);
+      } else {
+        const pick = npcPickSignal(p.id);
+        groups[pick].push(p);
+      }
+    }
+  });
+
+  const sizes = CONFIG.signals.map(s=>groups[s.id].length);
+  const maxSz = Math.max(...sizes);
+  const winnerId = CONFIG.signals[sizes.indexOf(maxSz)].id;
+  let elim = 0;
+  const elimChance = getCurrentPressure();
+
+  CONFIG.signals.forEach(s => {
+    if (groups[s.id].length < maxSz) {
+      groups[s.id].forEach(p => {
+        if (Math.random() < elimChance) { p.alive=false; elim++; }
+      });
+    }
+  });
+
+  // Record history
+  const distSnap = {};
+  CONFIG.signals.forEach(s => { distSnap[s.id] = groups[s.id].length; });
+  signalHistory.push({ round:S.round, dist:distSnap, winner:winnerId });
+
+  // Update NPC preferences for next round
+  updateNPCPrefs(groups, winnerId);
+  updateFieldIntel();
+  updateSignalHeat();
+  updatePressure();
+  syncStats();
+
+  // Record session log
+  S.sessionLog.push({ round:S.round, choice:S.playerChoice, alive:S.players.filter(p=>p.alive).length, dist:distSnap });
+
+  renderResolution(groups, sizes, maxSz, winnerId, elim);
+}
+
+// ════════════════════════════════
+//  RENDER RESOLUTION
+// ════════════════════════════════
+function renderResolution(groups, sizes, maxSz, winnerId, elim) {
+  const alive = S.players.filter(p=>p.alive);
+  const playerOk = !!alive.find(p=>p.isPlayer);
+  const pGroup = groups[S.playerChoice];
+  const playerInMax = pGroup.length===maxSz;
+  const btn = document.getElementById('proceed-btn');
+
+  // Ghost comparison
+  let ghostCmp = '';
+  if (MODE==='ghost' && activeGhost) {
+    const ghostRound = activeGhost.rounds[S.round-1];
+    if (ghostRound) {
+      const ghostChoice = ghostRound.choice;
+      const ghostOk = ghostRound.survived;
+      ghostCmp = ' <span class="hl-gh">Ghost chose '+ghostChoice+(ghostOk?' (survived)':' (culled)')+'.</span>';
+    }
+  }
+
+  // Bars
+  const row = document.getElementById('dist-row');
+  row.innerHTML = '';
+  sizes.forEach((sz,i) => {
+    const sig = CONFIG.signals[i];
+    const isP = sig.id===S.playerChoice;
+    const barH = maxSz>0 ? Math.max(4,Math.round((sz/maxSz)*60)) : 4;
+    const cls = isP?'bar-player':(sz===maxSz?'bar-max':'bar-other');
+    row.innerHTML +=
+      '<div class="dist-col">'+
+      '<div class="dist-bar '+cls+'" style="height:'+barH+'px"></div>'+
+      '<div class="dist-sig">'+sig.id+'</div>'+
+      '<div class="dist-n">'+sz+'</div>'+
+      '</div>';
+  });
+
+  let html = '';
+  if (!playerOk) {
+    html = 'Your signal placed you in a <span class="hl-d">losing cluster</span>. Eliminated in round '+S.round+'. <strong>'+alive.length+' agents remain.</strong>'+ghostCmp;
+    btn.textContent = 'VIEW RESULTS';
+    btn.className = 'proceed-btn danger';
+    addLog('elim','You were eliminated in round '+S.round+'.');
+  } else if (alive.length<=1) {
+    html = 'You are the <span class="hl-g">last survivor</span>. Every other agent has been eliminated.'+ghostCmp;
+    btn.textContent = 'CLAIM VICTORY';
+    btn.className = 'proceed-btn';
+    S.roundsWon++;
+    addLog('sys','You are the last agent standing.');
+  } else {
+    const dom = playerInMax?'<span class="hl-a">dominant</span>':'not dominant';
+    html = 'Signal <strong>'+S.playerChoice+'</strong> drew <span class="hl-a">'+pGroup.length+' agents</span> — '+dom+
+      '. <strong>'+elim+'</strong> eliminated. <strong>'+alive.length+'</strong> remain.'+ghostCmp;
+    btn.textContent = 'ROUND '+(S.round+1)+' →';
+    btn.className = 'proceed-btn';
+    if (playerInMax) { S.currentStreak++; S.bestStreak=Math.max(S.bestStreak,S.currentStreak); }
+    else S.currentStreak = 0;
+    addLog('rnd','R'+S.round+': '+elim+' eliminated · '+alive.length+' remain · pressure '+Math.round(getCurrentPressure()*100)+'%');
+  }
+  document.getElementById('res-summary').innerHTML = html;
+  document.getElementById('res-panel').classList.add('on');
+  document.getElementById('res-panel').style.display='';
+}
+
+// ════════════════════════════════
+//  PROCEED
+// ════════════════════════════════
+function proceedRound() {
+  const alive = S.players.filter(p=>p.alive);
+  const playerOk = !!alive.find(p=>p.isPlayer);
+  if (!playerOk || alive.length<=1) { showEnd(!playerOk?false:true); return; }
+
+  S.round++;
+  S.phase = 'choose';
+  S.playerChoice = null;
+
+  document.getElementById('res-panel').classList.remove('on');
+  document.getElementById('res-panel').style.display='none';
+
+  CONFIG.signals.forEach(s => {
+    const b = document.getElementById('sig-'+s.id);
+    b.disabled=false; b.className='sig-btn';
+  });
+
+  updateSignalHeat();
+  showGhostBars();
+  setEl('rn-num','Round '+pad(S.round)+' of ∞');
+  syncStats();
+}
+
+// ════════════════════════════════
+//  END SCREEN
+// ════════════════════════════════
+function showEnd(win) {
+  S.phase='end';
+  hide('round-ctx'); hide('signal-grid'); hide('pop-wrap'); hide('pressure-row');
+  document.getElementById('res-panel').style.display='none';
+
+  // Save ghost session if solo win
+  if (MODE==='solo' && win && S.round>=3) {
+    const session = {
+      maxRound: S.round,
+      totalPlayers: S.totalStarted,
+      rounds: S.sessionLog.map((l,i)=>({
+        round:l.round, choice:l.choice, survived:true,
+        dist:l.dist
+      })),
+    };
+    saveGhostSession(session);
+    addLog('gh','Session recorded as a ghost — others can now face your field.');
+  }
+
+  // Ghost comparison
+  let ghostMsg = '';
+  if (MODE==='ghost' && activeGhost) {
+    if (win && S.round > activeGhost.maxRound) ghostMsg = 'You outlasted the ghost.';
+    else if (win) ghostMsg = 'Survived like the ghost — try to go further.';
+    else ghostMsg = 'Ghost survived longer. Study their choices.';
+  }
+
+  document.getElementById('end-icon').textContent = win?'◈':'◌';
+  document.getElementById('end-title').textContent = win?'LAST STANDING':'ELIMINATED';
+  document.getElementById('end-title').className = 'end-title '+(win?'win':'lose');
+  document.getElementById('end-body').textContent = win
+    ? 'You read the field, tracked the dominant signal, and outlasted every other agent. '+(ghostMsg||'')
+    : 'Your signal failed to find the dominant cluster. You were culled. '+(ghostMsg||'');
+
+  document.getElementById('end-stats').innerHTML =
+    '<div class="end-stat"><div class="end-stat-l">Rounds</div><div class="end-stat-v">'+S.round+'</div></div>'+
+    '<div class="end-stat"><div class="end-stat-l">Best streak</div><div class="end-stat-v" style="color:var(--accent)">'+S.bestStreak+'</div></div>'+
+    '<div class="end-stat"><div class="end-stat-l">Survivors</div><div class="end-stat-v">'+S.players.filter(p=>p.alive).length+'</div></div>'+
+    '<div class="end-stat"><div class="end-stat-l">Mode</div><div class="end-stat-v" style="font-size:11px;color:var(--muted)">'+MODE.toUpperCase()+'</div></div>';
+
+  document.getElementById('end-meta').textContent = S.totalStarted+' started · round '+S.round+(ghostMsg?' · '+ghostMsg:'');
+  show('end-screen');
+}
+
+// ════════════════════════════════
+//  RESTART
+// ════════════════════════════════
+function restartGame() {
+  hide('end-screen');
+  initGame();
+}
+
+// ════════════════════════════════
+//  LOG
+// ════════════════════════════════
+const TAG_CLS = { sys:'tag-sys', elim:'tag-elim', you:'tag-you', rnd:'tag-rnd', gh:'tag-gh' };
+const TAG_LBL = { sys:'SYS', elim:'ELIM', you:'YOU', rnd:'RND', gh:'GHOST' };
+function addLog(type, msg) {
+  const body = document.getElementById('log-body');
+  const el = document.createElement('div');
+  el.className='log-entry';
+  el.innerHTML='<span class="log-tag '+(TAG_CLS[type]||'tag-rnd')+'">'+(TAG_LBL[type]||type)+'</span>'+msg;
+  body.prepend(el);
+}
+function toggleLog() {
+  S.logCollapsed=!S.logCollapsed;
+  document.getElementById('log-body').classList.toggle('hidden',S.logCollapsed);
+  document.getElementById('log-toggle').textContent=S.logCollapsed?'show':'hide';
+}
+
+// ════════════════════════════════
+//  SYNC STATS
+// ════════════════════════════════
+function syncStats() {
+  const alive = S.players.filter(p=>p.alive).length;
+  const elim = S.totalStarted-alive;
+  const pctVal = Math.round((alive/S.totalStarted)*100);
+  const playerOk = S.players.find(p=>p.isPlayer)?.alive;
+  setEl('s-alive',alive); setEl('s-round',S.round); setEl('s-elim',elim);
+  setEl('s-status',playerOk?'IN':'OUT');
+  setEl('h-alive',alive); setEl('h-rnd','RND '+pad(S.round));
+  setEl('pb-pct',pctVal+'%');
+  document.getElementById('s-status').className='sbv '+(playerOk?'a':'d');
+  const fill=document.getElementById('pop-fill');
+  fill.style.width=pctVal+'%';
+  fill.className='pop-fill'+(pctVal<25?' low':'');
+}
+
+// ════════════════════════════════
+//  HELPERS
+// ════════════════════════════════
+function setEl(id,val){ const e=document.getElementById(id);if(e)e.textContent=val; }
+function show(id){ const e=document.getElementById(id);if(e)e.style.display=''; }
+function hide(id){ const e=document.getElementById(id);if(e)e.style.display='none'; }
+function pad(n){ return String(n).padStart(2,'0'); }
+
+// BOOT
+function startSession() {
+  const intro = document.getElementById('introScreen');
+  if (intro) {
+    intro.style.transition = 'opacity .35s ease';
+    intro.style.opacity = '0';
+    setTimeout(() => { intro.style.display = 'none'; }, 350);
+  }
+}
+// Show intro on first load, skip if returning player
+const hasPlayed = localStorage.getItem('hc_played');
+if (hasPlayed) {
+  document.getElementById('introScreen').style.display = 'none';
+}
+initGame();
+</script>
+</body>
+</html>
